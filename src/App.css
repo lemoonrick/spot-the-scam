@@ -1,0 +1,106 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #0f172a;
+  color: white;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+
+.start-screen,
+.scam-screen {
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+}
+
+.start-screen h1 {
+  margin-bottom: 8px;
+}
+
+.start-screen p {
+  opacity: 0.85;
+}
+
+button {
+  margin-top: 20px;
+  padding: 14px 20px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: #22c55e;
+  color: black;
+  font-weight: bold;
+}
+
+.message-card {
+  background: #020617;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: left;
+}
+
+.flag {
+  background: rgba(239, 68, 68, 0.2);
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.hint {
+  margin-top: 12px;
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.flag {
+  cursor: pointer;
+}
+
+.flag.selected {
+  background: rgba(239, 68, 68, 0.5);
+}
+
+.check-btn {
+  margin-top: 16px;
+  width: 100%;
+}
+
+.result {
+  margin-top: 16px;
+  background: #020617;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: left;
+}
+
+.result h3 {
+  margin-top: 0;
+}
+
+.explanations p {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.progress {
+  font-size: 13px;
+  opacity: 0.6;
+  margin-bottom: 8px;
+}
+
+.score {
+  font-size: 48px;
+  font-weight: bold;
+  margin: 12px 0;
+}
