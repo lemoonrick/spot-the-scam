@@ -1,106 +1,146 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg-top: #f8fafc;
+  --bg-bottom: #eef2f7;
+
+  --text-main: #0f172a;
+  --text-muted: #475569;
+
+  --card-bg: #ffffff;
+
+  --green-main: #22c55e;
+  --green-dark: #16a34a;
+
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 20px 40px rgba(15, 23, 42, 0.08);
+  --shadow-button: 0 12px 24px rgba(34, 197, 94, 0.25);
+}
+
 * {
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
-  background: #0f172a;
-  color: white;
+  font-family: 'Poppins', system-ui, sans-serif;
+  color: var(--text-main);
+  background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
 }
 
 .app {
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 16px;
 }
 
-.start-screen,
-.scam-screen {
-  max-width: 360px;
-  width: 100%;
-  text-align: center;
-}
-
-.start-screen h1 {
-  margin-bottom: 8px;
-}
-
-.start-screen p {
-  opacity: 0.85;
-}
-
+/* buttons */
 button {
-  margin-top: 20px;
-  padding: 14px 20px;
-  font-size: 16px;
-  border-radius: 8px;
   border: none;
   cursor: pointer;
-  background: #22c55e;
-  color: black;
-  font-weight: bold;
+  padding: 14px 28px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: 16px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--green-main), var(--green-dark));
+  box-shadow: var(--shadow-button);
 }
 
-.message-card {
-  background: #020617;
-  border-radius: 12px;
-  padding: 16px;
-  text-align: left;
+/* START */
+.start-wrapper {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px;
 }
 
-.flag {
-  background: rgba(239, 68, 68, 0.2);
-  padding: 2px 4px;
-  border-radius: 4px;
-}
-
-.hint {
-  margin-top: 12px;
-  font-size: 14px;
-  opacity: 0.7;
-}
-
-.flag {
-  cursor: pointer;
-}
-
-.flag.selected {
-  background: rgba(239, 68, 68, 0.5);
-}
-
-.check-btn {
-  margin-top: 16px;
+.start-card {
+  max-width: 420px;
   width: 100%;
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 36px 32px;
+  text-align: center;
+  box-shadow: var(--shadow-soft);
 }
 
-.result {
-  margin-top: 16px;
-  background: #020617;
-  border-radius: 12px;
-  padding: 12px;
-  text-align: left;
+.logo {
+  height: 32px;
 }
 
-.result h3 {
-  margin-top: 0;
+.subtitle {
+  color: var(--text-muted);
+  margin-bottom: 24px;
 }
 
-.explanations p {
-  font-size: 14px;
-  opacity: 0.9;
+.start-footer {
+  margin-top: 20px;
+  font-size: 13px;
+}
+
+/* ================= SCAM FLOW LAYOUT ================= */
+
+.scam-wrapper {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: 1fr auto auto 1fr;
+  align-items: center;
+  justify-items: center;
+  padding: 24px 16px;
+}
+
+.scam-content {
+  grid-row: 2;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.scam-footer {
+  grid-row: 3;
+  text-align: center;
 }
 
 .progress {
   font-size: 13px;
-  opacity: 0.6;
-  margin-bottom: 8px;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+/* ANALYTICS */
+.analytics-wrapper {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+}
+
+.analytics-card {
+  max-width: 480px;
+  width: 100%;
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 40px 36px;
+  text-align: center;
+  box-shadow: var(--shadow-soft);
+}
+
+.score-ring {
+  width: 160px;
+  height: 160px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side, white 78%, transparent 80%),
+    conic-gradient(var(--green-main) calc(var(--score, 0) * 1%), #e5e7eb 0);
+  display: grid;
+  place-items: center;
 }
 
 .score {
-  font-size: 48px;
-  font-weight: bold;
-  margin: 12px 0;
+  font-size: 44px;
+  font-weight: 700;
+  color: var(--green-main);
 }

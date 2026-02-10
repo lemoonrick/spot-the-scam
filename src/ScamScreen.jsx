@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { scams } from './scams';
 import AnalyticsScreen from './AnalyticsScreen';
+import SmsScam from './components/SmsScam';
+import WhatsAppScam from './components/WhatsAppScam';
+import EmailScam from './components/EmailScam';
 
-const ScamScreen = () => {
+export default function ScamScreen() {
   const [scamIndex, setScamIndex] = useState(0);
   const [selectedFlags, setSelectedFlags] = useState([]);
   const [results, setResults] = useState([]);
 
-  // When all scams are done, show analytics
   if (scamIndex >= scams.length) {
     return (
       <AnalyticsScreen
@@ -23,7 +25,6 @@ const ScamScreen = () => {
 
   const scam = scams[scamIndex];
 
-  // Toggle a red-flag selection
   const toggleFlag = (flagId) => {
     setSelectedFlags((prev) =>
       prev.includes(flagId)
@@ -32,9 +33,6 @@ const ScamScreen = () => {
     );
   };
 
-  const isSelected = (flagId) => selectedFlags.includes(flagId);
-
-  // Move to next scam and store performance
   const nextScam = () => {
     const missed = scam.correctFlags.filter(
       (flag) => !selectedFlags.includes(flag),
@@ -55,39 +53,45 @@ const ScamScreen = () => {
     setScamIndex((prev) => prev + 1);
   };
 
+  const renderScam = () => {
+    switch (scam.type) {
+      case 'whatsapp':
+        return (
+          <WhatsAppScam
+            scam={scam}
+            selectedFlags={selectedFlags}
+            toggleFlag={toggleFlag}
+          />
+        );
+      case 'email':
+        return (
+          <EmailScam
+            scam={scam}
+            selectedFlags={selectedFlags}
+            toggleFlag={toggleFlag}
+          />
+        );
+      default:
+        return (
+          <SmsScam
+            scam={scam}
+            selectedFlags={selectedFlags}
+            toggleFlag={toggleFlag}
+          />
+        );
+    }
+  };
+
   return (
-    <div className="scam-screen">
-      <div className="message-card">
-        <p>
-          <strong>{scam.sender}</strong>
-        </p>
+    <div className="scam-wrapper">
+      <div className="scam-content">{renderScam()}</div>
 
-        <p className="scam-type">{scam.type.toUpperCase()}</p>
-
-        <p>
-          {scam.message.map((block, index) =>
-            block.flag ? (
-              <span
-                key={index}
-                className={`flag ${isSelected(block.flag) ? 'selected' : ''}`}
-                onClick={() => toggleFlag(block.flag)}
-              >
-                {block.text}
-              </span>
-            ) : (
-              <span key={index}>{block.text}</span>
-            ),
-          )}
+      <div className="scam-footer">
+        <p className="progress">
+          Message {scamIndex + 1} of {scams.length}
         </p>
+        <button onClick={nextScam}>Next message</button>
       </div>
-
-      <p className="progress">
-        Message {scamIndex + 1} of {scams.length}
-      </p>
-
-      <button onClick={nextScam}>Next message</button>
     </div>
   );
-};
-
-export default ScamScreen;
+}

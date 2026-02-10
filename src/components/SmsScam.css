@@ -1,0 +1,48 @@
+/* iOS Messages background */
+.sms-wrapper {
+  background: #ffffff;
+  padding: 16px 12px 20px;
+  border-radius: 20px;
+  max-width: 420px;
+  margin: 0 auto 16px;
+}
+
+/* top meta */
+.sms-top {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.sms-label {
+  font-size: 13px;
+  color: #8e8e93;
+}
+
+.sms-date {
+  font-size: 13px;
+  color: #8e8e93;
+}
+
+/* message bubble */
+.sms-bubble {
+  background: #e5e5ea;
+  color: #000;
+  border-radius: 18px;
+  padding: 12px 14px;
+  font-size: 16px;
+  line-height: 1.35;
+  max-width: 88%;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* tappable highlights */
+.sms-flag {
+  background: rgba(0, 122, 255, 0.15);
+  border-radius: 4px;
+  padding: 1px 3px;
+  cursor: pointer;
+}
+
+.sms-flag.selected {
+  background: rgba(0, 122, 255, 0.3);
+}

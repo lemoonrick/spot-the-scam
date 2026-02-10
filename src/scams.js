@@ -8,62 +8,76 @@ export const scams = [
     message: [
       { text: 'ICICI: Your account access will be ', flag: null },
       { text: 'restricted within 2 hours', flag: 'urgency' },
-      { text: ' due to unusual login.\n\nVerify now: ', flag: null },
+      { text: ' due to unusual login.\n\nVerify now:\n', flag: null },
       { text: 'https://icici-verify.co/login', flag: 'fake-link' },
     ],
     explanations: {
       urgency:
-        'Banks use official app notifications, not time-pressure SMS threats.',
+        'Banks do not threaten immediate action over SMS to pressure users.',
       'fake-link':
-        'Scammers use lookalike domains that are not owned by the real bank.',
+        'The URL is a lookalike domain and not an official ICICI website.',
     },
   },
 
-  // 2. Gmail-style email (job / invoice scam)
+  // 2. Gmail-style email (invoice / billing scam)
   {
     id: 2,
     type: 'email',
-    sender: 'Billing Team <billing@amaz0n-support.com>',
+    subject: 'Invoice pending for your recent order',
+    senderName: 'Amazon Billing',
+    sender: 'billing@amaz0n-support.com',
     correctFlags: ['spoofed-sender', 'attachment-risk'],
     message: [
       {
-        text: 'Hello,\n\nYour recent order could not be processed.\n\n',
+        text: 'Hello,\n\nWe were unable to process your recent order due to a billing issue.\n\n',
         flag: null,
       },
       {
         text: 'Please review the attached invoice to avoid cancellation.\n\n',
         flag: 'attachment-risk',
       },
-      { text: 'Regards,\nAmazon Billing Team', flag: null },
+      {
+        text: 'Regards,\nAmazon Billing Team',
+        flag: null,
+      },
     ],
     explanations: {
       'spoofed-sender':
-        'The sender address uses a lookalike domain to impersonate a real company.',
+        'The sender email uses a fake domain that closely imitates Amazon.',
       'attachment-risk':
-        'Unexpected attachments are a common way to deliver malware.',
+        'Unexpected attachments are commonly used to deliver malware.',
     },
   },
 
-  // 3. WhatsApp KYC / SIM block scam
+  // 3. WhatsApp KYC / SIM deactivation scam
   {
     id: 3,
     type: 'whatsapp',
     sender: 'Jio Support',
-    correctFlags: ['authority', 'fake-link'],
+    correctFlags: ['authority', 'fake-link', 'cta'],
     message: [
       {
         text: 'Dear customer, your SIM will be deactivated today due to ',
         flag: null,
       },
-      { text: 'KYC not completed', flag: 'authority' },
-      { text: '.\n\nComplete verification immediately:\n', flag: null },
-      { text: 'http://jio-kyc-update.in', flag: 'fake-link' },
+      {
+        text: 'KYC not completed',
+        flag: 'authority',
+      },
+      {
+        text: '.\n\nComplete verification immediately:\n',
+        flag: null,
+      },
+      {
+        text: 'http://jio-kyc-update.in',
+        flag: 'fake-link',
+      },
     ],
     explanations: {
-      authority:
-        'Scammers pretend to be telecom providers to scare users into compliance.',
+      authority: 'Scammers impersonate telecom providers to create panic.',
       'fake-link':
-        'Official companies do not use random .in or hyphenated domains.',
+        'Official companies do not use unofficial or hyphenated domains.',
+      cta: 'The call-to-action link is designed to rush users into clicking.',
     },
   },
 
@@ -78,7 +92,10 @@ export const scams = [
         text: 'Hey! We loved your profile and would like to offer you a ',
         flag: null,
       },
-      { text: 'paid collaboration opportunity', flag: 'too-good' },
+      {
+        text: 'paid collaboration opportunity',
+        flag: 'too-good',
+      },
       {
         text: '.\n\nKindly share your email to proceed. This is an official brand partnership.',
         flag: 'impersonation',
@@ -86,9 +103,8 @@ export const scams = [
     ],
     explanations: {
       impersonation:
-        'Scammers often claim to be official without verification badges.',
-      'too-good':
-        'Unsolicited paid offers are a common hook used to gain trust.',
+        'There is no verification or proof this account represents a real brand.',
+      'too-good': 'Unsolicited paid offers are commonly used to bait victims.',
     },
   },
 
@@ -113,9 +129,9 @@ export const scams = [
       },
     ],
     explanations: {
-      fear: 'Scammers use fear to stop you from thinking critically.',
+      fear: 'Scammers rely on fear to stop users from thinking clearly.',
       'fake-support':
-        'Legitimate companies never show phone numbers in random pop-ups.',
+        'Legitimate companies do not display phone numbers in pop-up alerts.',
     },
   },
 ];
