@@ -23,29 +23,57 @@ export const scams = [
   {
     id: 2,
     type: 'email',
-    subject: 'Invoice pending for your recent order',
+    subject: 'Action required: Confirm your Amazon billing details',
     senderName: 'Amazon Billing',
-    sender: 'billing@amaz0n-support.com',
-    correctFlags: ['spoofed-sender', 'attachment-risk'],
-    message: [
+    senderEmail: '<billing@amaz0n-support.com>',
+    time: '9:14 AM',
+
+    correctFlags: ['spoofed-sender', 'attachment-risk', 'fake-link'],
+
+    content: [
       {
-        text: 'Hello,\n\nWe were unable to process your recent order due to a billing issue.\n\n',
-        flag: null,
+        parts: [{ text: 'Hello,' }],
       },
       {
-        text: 'Please review the attached invoice to avoid cancellation.\n\n',
-        flag: 'attachment-risk',
+        parts: [
+          { text: 'We were unable to process your recent order due to a ' },
+          { text: 'billing issue', flagId: 'urgency' },
+          { text: '.' },
+        ],
       },
       {
-        text: 'Regards,\nAmazon Billing Team',
-        flag: null,
+        parts: [
+          { text: 'Please review the attached invoice to avoid ' },
+          { text: 'account suspension', flagId: 'attachment-risk' },
+          { text: '.' },
+        ],
+      },
+      {
+        parts: [
+          { text: 'You can securely verify your information here: ' },
+          {
+            text: 'https://amaz0n-support-verification.com/login',
+            flagId: 'fake-link',
+          },
+        ],
+      },
+      {
+        parts: [{ text: 'Regards,' }],
+      },
+      {
+        parts: [{ text: 'Amazon Billing Team' }],
       },
     ],
+
     explanations: {
       'spoofed-sender':
-        'The sender email uses a fake domain that closely imitates Amazon.',
+        'The sender email uses a fake domain that imitates Amazon.',
       'attachment-risk':
-        'Unexpected attachments are commonly used to deliver malware.',
+        'Unexpected invoices and attachments are commonly used to deliver malware.',
+      'fake-link':
+        'The link contains a lookalike domain (amaz0n instead of amazon).',
+      urgency:
+        'Scammers create artificial urgency to pressure quick decisions.',
     },
   },
 
@@ -86,25 +114,43 @@ export const scams = [
     id: 4,
     type: 'instagram',
     sender: 'brand.collabs_official',
-    correctFlags: ['impersonation', 'too-good'],
+    profileName: 'Brand Collabs',
+    followers: '1,284 followers',
+    posts: '12 posts',
+    correctFlags: ['too-good', 'impersonation', 'malicious-link'],
     message: [
       {
-        text: 'Hey! We loved your profile and would like to offer you a ',
+        text: 'Hello! We are selecting a few creators for a ',
         flag: null,
       },
       {
-        text: 'paid collaboration opportunity',
+        text: 'paid brand collaboration',
         flag: 'too-good',
       },
       {
-        text: '.\n\nKindly share your email to proceed. This is an official brand partnership.',
+        text: '.\n\nYou have been shortlisted for ₹85,000 campaign.\n\n',
+        flag: null,
+      },
+      {
+        text: 'To confirm participation, register here:\n',
+        flag: null,
+      },
+      {
+        text: 'https://brand-collabs-verify.com/apply',
+        flag: 'malicious-link',
+      },
+      {
+        text: '\n\nLimited slots available. Respond ASAP.',
         flag: 'impersonation',
       },
     ],
     explanations: {
+      'too-good':
+        'Unsolicited high-paying offers are commonly used to lure victims.',
       impersonation:
-        'There is no verification or proof this account represents a real brand.',
-      'too-good': 'Unsolicited paid offers are commonly used to bait victims.',
+        'Scammers pretend to be brand agencies without verification.',
+      'malicious-link':
+        'The link uses a suspicious domain unrelated to any real brand.',
     },
   },
 

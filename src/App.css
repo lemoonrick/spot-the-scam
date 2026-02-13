@@ -17,6 +17,12 @@
 
   --shadow-soft: 0 20px 40px rgba(15, 23, 42, 0.08);
   --shadow-button: 0 12px 24px rgba(34, 197, 94, 0.25);
+
+  --flag-hover-bg: #fde8e8;
+  --flag-hover-text: #b91c1c;
+
+  --flag-selected-bg: #fca5a5;
+  --flag-selected-text: #7f1d1d;
 }
 
 * {

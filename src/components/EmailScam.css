@@ -1,62 +1,137 @@
-.email-wrapper {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  max-width: 600px;
-  margin: 0 auto 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.email-subject {
-  font-size: 22px;
-  margin-bottom: 8px;
-}
-
-.email-meta {
-  font-size: 14px;
-  color: #5f6368;
+.gmail-wrapper {
+  width: 100%;
   display: flex;
-  gap: 6px;
+  justify-content: center;
+}
+
+.gmail-container {
+  width: 100%;
+  max-width: 820px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  padding: 24px 32px 40px;
+}
+
+/* Toolbar */
+
+.gmail-toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  padding: 6px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.icon-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke: #5f6368;
+  stroke-width: 1.8;
+  fill: none;
+}
+
+.icon-btn:hover {
+  background: #f1f3f4;
+}
+
+/* Subject */
+
+.gmail-subject {
+  font-size: 22px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.label {
+  background: #e8eaed;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: #5f6368;
+}
+
+/* Sender row */
+
+.gmail-sender {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 28px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  background: #1a73e8;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  margin-right: 14px;
+}
+
+.sender-meta {
+  flex: 1;
+}
+
+.sender-top {
+  display: flex;
+  gap: 8px;
   align-items: center;
 }
 
-.email-address {
+.sender-name {
+  font-weight: 500;
+}
+
+.sender-email {
+  font-size: 13px;
+  color: #5f6368;
+}
+
+.to-row {
+  font-size: 13px;
   color: #5f6368;
 }
 
 .email-time {
-  margin-left: auto;
+  font-size: 13px;
+  color: #5f6368;
 }
 
-.email-body {
-  margin-top: 16px;
+/* Body */
+
+.gmail-body p {
   font-size: 15px;
-  line-height: 1.6;
-  color: #202124;
+  line-height: 1.7;
+  margin-bottom: 16px;
 }
 
-.email-flag {
-  background: rgba(26, 115, 232, 0.15);
+/* Flag interaction */
+
+.flag {
+  background: #e8f0fe;
+  padding: 2px 4px;
   border-radius: 4px;
-  padding: 1px 3px;
   cursor: pointer;
+  transition: 0.15s ease;
 }
 
-.email-flag.selected {
-  background: rgba(26, 115, 232, 0.3);
+.flag:hover {
+  background: #d2e3fc;
 }
 
-.email-actions {
-  margin-top: 20px;
-  display: flex;
-  gap: 12px;
-}
-
-.email-actions button {
-  background: transparent;
-  border: 1px solid #dadce0;
-  border-radius: 18px;
-  padding: 6px 14px;
-  font-size: 14px;
-  cursor: default;
+.flag.active {
+  background: #fce8e6;
 }

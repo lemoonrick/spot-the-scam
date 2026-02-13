@@ -4,6 +4,7 @@ import AnalyticsScreen from './AnalyticsScreen';
 import SmsScam from './components/SmsScam';
 import WhatsAppScam from './components/WhatsAppScam';
 import EmailScam from './components/EmailScam';
+import InstagramScam from './components/InstagramScam';
 
 export default function ScamScreen() {
   const [scamIndex, setScamIndex] = useState(0);
@@ -71,6 +72,16 @@ export default function ScamScreen() {
             toggleFlag={toggleFlag}
           />
         );
+
+      case 'instagram':
+        return (
+          <InstagramScam
+            scam={scam}
+            selectedFlags={selectedFlags}
+            toggleFlag={toggleFlag}
+          />
+        );
+
       default:
         return (
           <SmsScam

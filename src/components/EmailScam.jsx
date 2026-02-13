@@ -1,43 +1,82 @@
 import './EmailScam.css';
 
-const EmailScam = ({ scam, selectedFlags, toggleFlag }) => {
-  const isSelected = (flag) => selectedFlags.includes(flag);
-
+export default function EmailScam({ scam, selectedFlags, toggleFlag }) {
   return (
-    <div className="email-wrapper">
-      <div className="email-header">
-        <h2 className="email-subject">{scam.subject}</h2>
+    <div className="gmail-wrapper">
+      <div className="gmail-container">
+        {/* Top toolbar */}
+        <div className="gmail-toolbar">
+          <button className="icon-btn">
+            <svg viewBox="0 0 24 24">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
 
-        <div className="email-meta">
-          <strong>{scam.senderName}</strong>{' '}
-          <span className="email-address">&lt;{scam.sender}&gt;</span>
-          <span className="email-time">9:14 AM</span>
+          <button className="icon-btn">
+            <svg viewBox="0 0 24 24">
+              <path d="M6 6h12v12H6z" />
+            </svg>
+          </button>
+
+          <button className="icon-btn">
+            <svg viewBox="0 0 24 24">
+              <path d="M6 7h12M9 7v10m6-10v10M5 7l1 12h12l1-12" />
+            </svg>
+          </button>
+
+          <button className="icon-btn">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="1" />
+              <circle cx="12" cy="6" r="1" />
+              <circle cx="12" cy="18" r="1" />
+            </svg>
+          </button>
         </div>
-      </div>
 
-      <div className="email-body">
-        {scam.message.map((block, i) =>
-          block.flag ? (
-            <span
-              key={i}
-              className={`email-flag ${isSelected(block.flag) ? 'selected' : ''}`}
-              onClick={() => toggleFlag(block.flag)}
-            >
-              {block.text}
-            </span>
-          ) : (
-            <span key={i}>{block.text}</span>
-          ),
-        )}
-      </div>
+        {/* Subject */}
+        <h1 className="gmail-subject">
+          {scam.subject}
+          <span className="label">Inbox</span>
+        </h1>
 
-      <div className="email-actions">
-        <button>Looking forward to it!</button>
-        <button>We will be there!</button>
-        <button>Thanks for the update!</button>
+        {/* Sender row */}
+        <div className="gmail-sender">
+          <div className="avatar">{scam.senderName.charAt(0)}</div>
+
+          <div className="sender-meta">
+            <div className="sender-top">
+              <span className="sender-name">{scam.senderName}</span>
+              <span className="sender-email">{scam.senderEmail}</span>
+            </div>
+            <div className="to-row">to me</div>
+          </div>
+
+          <div className="email-time">{scam.time}</div>
+        </div>
+
+        {/* Email body */}
+        <div className="gmail-body">
+          {scam.content.map((block, index) => (
+            <p key={index}>
+              {block.parts.map((part, i) =>
+                part.flagId ? (
+                  <span
+                    key={i}
+                    className={`flag ${
+                      selectedFlags.includes(part.flagId) ? 'active' : ''
+                    }`}
+                    onClick={() => toggleFlag(part.flagId)}
+                  >
+                    {part.text}
+                  </span>
+                ) : (
+                  part.text
+                ),
+              )}
+            </p>
+          ))}
+        </div>
       </div>
     </div>
   );
-};
-
-export default EmailScam;
+}
