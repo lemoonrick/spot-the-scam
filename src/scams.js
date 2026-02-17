@@ -1,88 +1,72 @@
 export const scams = [
-  // 1. iPhone SMS / iMessage-style bank alert
+  // 1 — ICICI SMS phishing
   {
     id: 1,
     type: 'sms',
+    verdict: 'phishing',
     sender: 'ICICI Alerts',
     correctFlags: ['urgency', 'fake-link'],
     message: [
       { text: 'ICICI: Your account access will be ', flag: null },
       { text: 'restricted within 2 hours', flag: 'urgency' },
-      { text: ' due to unusual login.\n\nVerify now:\n', flag: null },
+      { text: ' due to unusual login activity.\n\nVerify now:\n', flag: null },
       { text: 'https://icici-verify.co/login', flag: 'fake-link' },
     ],
-    explanations: {
-      urgency:
-        'Banks do not threaten immediate action over SMS to pressure users.',
-      'fake-link':
-        'The URL is a lookalike domain and not an official ICICI website.',
+    explanation: {
+      short:
+        'This is a phishing attempt using urgency and a look-alike domain.',
+      points: [
+        'Scammers create artificial deadlines to pressure quick action.',
+        'The URL uses a fake domain. Banks do not use unofficial domains for verification.',
+      ],
     },
   },
 
-  // 2. Gmail-style email (invoice / billing scam)
+  // 2 — Amazon billing email phishing
   {
     id: 2,
     type: 'email',
+    verdict: 'phishing',
     subject: 'Action required: Confirm your Amazon billing details',
     senderName: 'Amazon Billing',
     senderEmail: '<billing@amaz0n-support.com>',
     time: '9:14 AM',
-
-    correctFlags: ['spoofed-sender', 'attachment-risk', 'fake-link'],
-
-    content: [
+    correctFlags: ['spoofed-sender', 'attachment-risk'],
+    message: [
+      { text: 'Hello,\n\n', flag: null },
       {
-        parts: [{ text: 'Hello,' }],
+        text: 'We were unable to process your recent order due to a billing issue.\n\n',
+        flag: null,
       },
       {
-        parts: [
-          { text: 'We were unable to process your recent order due to a ' },
-          { text: 'billing issue', flagId: 'urgency' },
-          { text: '.' },
-        ],
+        text: 'Please review the attached invoice to avoid account suspension.\n\n',
+        flag: 'attachment-risk',
       },
+      { text: 'You can securely verify your information here:\n', flag: null },
       {
-        parts: [
-          { text: 'Please review the attached invoice to avoid ' },
-          { text: 'account suspension', flagId: 'attachment-risk' },
-          { text: '.' },
-        ],
+        text: 'https://amaz0n-support-verification.com/login\n\n',
+        flag: 'spoofed-sender',
       },
-      {
-        parts: [
-          { text: 'You can securely verify your information here: ' },
-          {
-            text: 'https://amaz0n-support-verification.com/login',
-            flagId: 'fake-link',
-          },
-        ],
-      },
-      {
-        parts: [{ text: 'Regards,' }],
-      },
-      {
-        parts: [{ text: 'Amazon Billing Team' }],
-      },
+      { text: 'Regards,\n', flag: null },
+      { text: 'Amazon Billing Team', flag: null },
     ],
-
-    explanations: {
-      'spoofed-sender':
-        'The sender email uses a fake domain that imitates Amazon.',
-      'attachment-risk':
-        'Unexpected invoices and attachments are commonly used to deliver malware.',
-      'fake-link':
-        'The link contains a lookalike domain (amaz0n instead of amazon).',
-      urgency:
-        'Scammers create artificial urgency to pressure quick decisions.',
+    explanation: {
+      short:
+        'This email impersonates Amazon using a fake sender domain and malicious link.',
+      points: [
+        'The sender domain contains a zero instead of the letter "o".',
+        'Unexpected attachments and urgent billing threats are common phishing tactics.',
+      ],
     },
   },
 
-  // 3. WhatsApp KYC / SIM deactivation scam
+  // 3 — WhatsApp KYC scam
   {
     id: 3,
     type: 'whatsapp',
+    verdict: 'phishing',
     sender: 'Jio Support',
-    correctFlags: ['authority', 'fake-link', 'cta'],
+    correctFlags: ['authority', 'fake-link'],
     message: [
       {
         text: 'Dear customer, your SIM will be deactivated today due to ',
@@ -101,23 +85,24 @@ export const scams = [
         flag: 'fake-link',
       },
     ],
-    explanations: {
-      authority: 'Scammers impersonate telecom providers to create panic.',
-      'fake-link':
-        'Official companies do not use unofficial or hyphenated domains.',
-      cta: 'The call-to-action link is designed to rush users into clicking.',
+    explanation: {
+      short: 'This is a telecom impersonation scam designed to create panic.',
+      points: [
+        'Scammers impersonate telecom providers to create urgency.',
+        'Official companies do not use random hyphenated domains for verification.',
+      ],
     },
   },
 
-  // 4. Instagram DM brand collaboration scam
+  // 4 — Instagram collaboration DM scam
   {
     id: 4,
     type: 'instagram',
+    verdict: 'phishing',
     sender: 'brand.collabs_official',
-    profileName: 'Brand Collabs',
     followers: '1,284 followers',
     posts: '12 posts',
-    correctFlags: ['too-good', 'impersonation', 'malicious-link'],
+    correctFlags: ['too-good', 'fake-link'],
     message: [
       {
         text: 'Hello! We are selecting a few creators for a ',
@@ -128,36 +113,33 @@ export const scams = [
         flag: 'too-good',
       },
       {
-        text: '.\n\nYou have been shortlisted for ₹85,000 campaign.\n\n',
-        flag: null,
-      },
-      {
-        text: 'To confirm participation, register here:\n',
+        text: '. You have been shortlisted for ₹85,000 campaign.\n\nTo confirm participation, register here:\n',
         flag: null,
       },
       {
         text: 'https://brand-collabs-verify.com/apply',
-        flag: 'malicious-link',
+        flag: 'fake-link',
       },
       {
         text: '\n\nLimited slots available. Respond ASAP.',
-        flag: 'impersonation',
+        flag: 'too-good',
       },
     ],
-    explanations: {
-      'too-good':
-        'Unsolicited high-paying offers are commonly used to lure victims.',
-      impersonation:
-        'Scammers pretend to be brand agencies without verification.',
-      'malicious-link':
-        'The link uses a suspicious domain unrelated to any real brand.',
+    explanation: {
+      short:
+        'This is a fake brand collaboration scam using unrealistic payment and a malicious link.',
+      points: [
+        'Unsolicited high-pay offers are commonly used to lure creators.',
+        'Legitimate brands do not use suspicious third-party domains for onboarding.',
+      ],
     },
   },
 
-  // 5. Tech support pop-up / system alert scam
+  // 5 — Browser pop-up tech support scam
   {
     id: 5,
     type: 'popup',
+    verdict: 'phishing',
     sender: 'System Alert',
     correctFlags: ['fear', 'fake-support'],
     message: [
@@ -174,10 +156,12 @@ export const scams = [
         flag: 'fake-support',
       },
     ],
-    explanations: {
-      fear: 'Scammers rely on fear to stop users from thinking clearly.',
-      'fake-support':
-        'Legitimate companies do not display phone numbers in pop-up alerts.',
+    explanation: {
+      short: 'This is a fake tech support pop-up designed to scare users.',
+      points: [
+        'Legitimate companies do not display emergency phone numbers in browser pop-ups.',
+        'Fear-based messaging is meant to override rational thinking.',
+      ],
     },
   },
 ];
