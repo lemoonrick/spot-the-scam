@@ -3,9 +3,10 @@ import { useEffect, useState } from 'react';
 export default function AnalyticsScreen({ results, onRestart }) {
   const total = results.length;
   const correct = results.filter((r) => r.verdictCorrect).length;
-  const score = total === 0 ? 0 : Math.round((correct / total) * 100);
+  const score = Math.round((correct / total) * 100);
 
   const [displayScore, setDisplayScore] = useState(0);
+  const [posts, setPosts] = useState([]);
 
   useEffect(() => {
     let current = 0;
@@ -22,6 +23,18 @@ export default function AnalyticsScreen({ results, onRestart }) {
 
     return () => clearInterval(interval);
   }, [score]);
+
+  // Fetch latest blog posts
+  useEffect(() => {
+    fetch('https://myfactree.org/wp-json/wp/v2/posts?_embed&per_page=3')
+      .then((res) => res.json())
+      .then((data) => {
+        setPosts(data);
+      })
+      .catch((err) => {
+        console.error('Error fetching blog posts:', err);
+      });
+  }, []);
 
   const triggerConfetti = () => {
     const canvas = document.createElement('canvas');
@@ -54,32 +67,91 @@ export default function AnalyticsScreen({ results, onRestart }) {
   };
 
   return (
-    <div className="analytics-modern">
-      <div className="analytics-inner">
-        <h2 className="analytics-title">Your Media Literacy Score</h2>
+    <div className="analytics-page">
+      {/* Analytics Section */}
+      <section className="analytics-hero">
+        <div className="analytics-inner">
+          <h2>Your Media Literacy Score</h2>
 
-        <div className="score-ring-modern" style={{ '--score': displayScore }}>
-          <div className="score-modern">{displayScore}%</div>
+          <div
+            className="score-ring-modern"
+            style={{ '--score': displayScore }}
+          >
+            <div className="score-modern">{displayScore}%</div>
+          </div>
+
+          <p className="analytics-summary">
+            You identified {correct} out of {total} scams correctly.
+          </p>
+
+          <div className="analytics-feedback">
+            {score >= 80 && <p>🧠 Very hard to fool. Nice.</p>}
+            {score >= 50 && score < 80 && (
+              <p>👍 Decent instincts, but some tricks slipped through.</p>
+            )}
+            {score < 50 && (
+              <p>⚠️ These tactics are designed to manipulate fast reactions.</p>
+            )}
+          </div>
+
+          <button className="analytics-restart" onClick={onRestart}>
+            Try Again
+          </button>
+
+          <div className="scroll-indicator">
+            <div className="mouse">
+              <div className="wheel" />
+            </div>
+            <span>Scroll to read more</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Blog Section */}
+      <section className="blog-section">
+        <div className="blog-header">
+          <h3>Educate yourself even more</h3>
+          <p>Latest insights from our blog</p>
         </div>
 
-        <p className="analytics-summary">
-          You identified {correct} out of {total} scams correctly.
-        </p>
+        <div className="blog-grid">
+          {posts.map((post) => {
+            const image = post._embedded?.['wp:featuredmedia']?.[0]?.source_url;
 
-        <div className="analytics-feedback">
-          {score >= 80 && <p>🧠 Very hard to fool. Nice.</p>}
-          {score >= 50 && score < 80 && (
-            <p>👍 Decent instincts, but some tricks slipped through.</p>
-          )}
-          {score < 50 && (
-            <p>⚠️ These tactics are designed to manipulate fast reactions.</p>
-          )}
+            return (
+              <a
+                key={post.id}
+                href={post.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="blog-card"
+              >
+                {image && (
+                  <div
+                    className="blog-image"
+                    style={{ backgroundImage: `url(${image})` }}
+                  />
+                )}
+
+                <div className="blog-content">
+                  <h4
+                    dangerouslySetInnerHTML={{ __html: post.title.rendered }}
+                  />
+
+                  <p
+                    dangerouslySetInnerHTML={{
+                      __html:
+                        post.excerpt.rendered
+                          .replace(/<[^>]+>/g, '')
+                          .slice(0, 120) + '...',
+                    }}
+                  />
+                </div>
+              </a>
+            );
+          })}
         </div>
-
-        <button className="analytics-restart" onClick={onRestart}>
-          Try Again
-        </button>
-      </div>
+      </section>
     </div>
   );
 }

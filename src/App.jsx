@@ -36,15 +36,15 @@ const StartScreen = ({ onStart }) => {
     <div className="hero-wrapper" onMouseMove={handleMouseMove}>
       <div className={`hero-content ${entered ? 'entered' : ''}`}>
         <h1 className="hero-title">
-          Can you spot the scam?
+          Spot the <span className="highlight">Scam</span>
           <br />
-          before it <span className="highlight">Spots You</span>
+          before it spots you!
         </h1>
 
         <p className="hero-subtitle">
           Practice spotting scams, fake messages,
           <br />
-          and manipulation tactics in a safe, interactive way.
+          and manipulation tactics in a safe and interactive way.
         </p>
 
         <button className="hero-btn" onClick={onStart}>
