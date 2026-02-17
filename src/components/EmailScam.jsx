@@ -6,31 +6,23 @@ export default function EmailScam({ scam, selectedFlags, toggleFlag }) {
       <div className="gmail-container">
         {/* Top toolbar */}
         <div className="gmail-toolbar">
-          <button className="icon-btn">
-            <svg viewBox="0 0 24 24">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
+          <svg viewBox="0 0 24 24">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
 
-          <button className="icon-btn">
-            <svg viewBox="0 0 24 24">
-              <path d="M6 6h12v12H6z" />
-            </svg>
-          </button>
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6h12v12H6z" />
+          </svg>
 
-          <button className="icon-btn">
-            <svg viewBox="0 0 24 24">
-              <path d="M6 7h12M9 7v10m6-10v10M5 7l1 12h12l1-12" />
-            </svg>
-          </button>
+          <svg viewBox="0 0 24 24">
+            <path d="M6 7h12M9 7v10m6-10v10M5 7l1 12h12l1-12" />
+          </svg>
 
-          <button className="icon-btn">
-            <svg viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="1" />
-              <circle cx="12" cy="6" r="1" />
-              <circle cx="12" cy="18" r="1" />
-            </svg>
-          </button>
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="1" />
+            <circle cx="12" cy="6" r="1" />
+            <circle cx="12" cy="18" r="1" />
+          </svg>
         </div>
 
         {/* Subject */}
@@ -56,22 +48,19 @@ export default function EmailScam({ scam, selectedFlags, toggleFlag }) {
 
         {/* Email body */}
         <div className="gmail-body">
-          {scam.content.map((block, index) => (
-            <p key={index}>
-              {block.parts.map((part, i) =>
-                part.flagId ? (
-                  <span
-                    key={i}
-                    className={`flag ${
-                      selectedFlags.includes(part.flagId) ? 'active' : ''
-                    }`}
-                    onClick={() => toggleFlag(part.flagId)}
-                  >
-                    {part.text}
-                  </span>
-                ) : (
-                  part.text
-                ),
+          {scam.message.map((line, index) => (
+            <p key={index} className="gmail-paragraph">
+              {line.flag ? (
+                <span
+                  className={`flag ${
+                    selectedFlags.includes(line.flag) ? 'active' : ''
+                  }`}
+                  onClick={() => toggleFlag(line.flag)}
+                >
+                  {line.text}
+                </span>
+              ) : (
+                line.text
               )}
             </p>
           ))}

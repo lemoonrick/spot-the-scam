@@ -5,11 +5,17 @@ import SmsScam from './components/SmsScam';
 import WhatsAppScam from './components/WhatsAppScam';
 import EmailScam from './components/EmailScam';
 import InstagramScam from './components/InstagramScam';
+import VerdictControls from './components/VerdictControls';
+import RevealCard from './components/RevealCard';
+import PopupScam from './components/PopupScam';
 
 export default function ScamScreen() {
   const [scamIndex, setScamIndex] = useState(0);
   const [selectedFlags, setSelectedFlags] = useState([]);
   const [results, setResults] = useState([]);
+
+  const [userVerdict, setUserVerdict] = useState(null);
+  const [hasRevealed, setHasRevealed] = useState(false);
 
   if (scamIndex >= scams.length) {
     return (
@@ -18,6 +24,8 @@ export default function ScamScreen() {
         onRestart={() => {
           setResults([]);
           setSelectedFlags([]);
+          setUserVerdict(null);
+          setHasRevealed(false);
           setScamIndex(0);
         }}
       />
@@ -35,21 +43,18 @@ export default function ScamScreen() {
   };
 
   const nextScam = () => {
-    const missed = scam.correctFlags.filter(
-      (flag) => !selectedFlags.includes(flag),
-    );
-
     setResults((prev) => [
       ...prev,
       {
         scamId: scam.id,
-        correct: selectedFlags.filter((flag) =>
-          scam.correctFlags.includes(flag),
-        ),
-        missed,
+        verdictChosen: userVerdict,
+        verdictCorrect: userVerdict === scam.verdict,
+        selectedFlags,
       },
     ]);
 
+    setUserVerdict(null);
+    setHasRevealed(false);
     setSelectedFlags([]);
     setScamIndex((prev) => prev + 1);
   };
@@ -64,6 +69,7 @@ export default function ScamScreen() {
             toggleFlag={toggleFlag}
           />
         );
+
       case 'email':
         return (
           <EmailScam
@@ -82,6 +88,15 @@ export default function ScamScreen() {
           />
         );
 
+      case 'popup':
+        return (
+          <PopupScam
+            scam={scam}
+            selectedFlags={selectedFlags}
+            toggleFlag={toggleFlag}
+          />
+        );
+
       default:
         return (
           <SmsScam
@@ -94,14 +109,43 @@ export default function ScamScreen() {
   };
 
   return (
-    <div className="scam-wrapper">
-      <div className="scam-content">{renderScam()}</div>
+    <div
+      className={`scam-wrapper ${
+        hasRevealed
+          ? userVerdict === scam.verdict
+            ? 'correct-glow'
+            : 'incorrect-glow'
+          : ''
+      }`}
+    >
+      <div key={scam.id} className="scam-content slide-in">
+        {renderScam()}
+      </div>
 
+      {/* Verdict Selection */}
+      <VerdictControls
+        userVerdict={userVerdict}
+        setUserVerdict={setUserVerdict}
+        hasRevealed={hasRevealed}
+        onReveal={() => setHasRevealed(true)}
+      />
+
+      {/* Explanation Card */}
+      {hasRevealed && (
+        <RevealCard
+          scam={scam}
+          userVerdict={userVerdict}
+          selectedFlags={selectedFlags}
+          onNext={nextScam}
+          isLast={scamIndex === scams.length - 1}
+        />
+      )}
+
+      {/* Progress only */}
       <div className="scam-footer">
         <p className="progress">
-          Message {scamIndex + 1} of {scams.length}
+          {scamIndex + 1}/{scams.length}
         </p>
-        <button onClick={nextScam}>Next message</button>
       </div>
     </div>
   );

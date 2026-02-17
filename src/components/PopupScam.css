@@ -1,0 +1,80 @@
+.popup-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.popup-browser {
+  width: 100%;
+  max-width: 520px;
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+/* Fake browser bar */
+.popup-bar {
+  background: #f3f4f6;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.popup-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.popup-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.popup-dots span:nth-child(1) {
+  background: #f87171;
+}
+.popup-dots span:nth-child(2) {
+  background: #facc15;
+}
+.popup-dots span:nth-child(3) {
+  background: #4ade80;
+}
+
+.popup-url {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* Popup body */
+.popup-content {
+  padding: 32px 28px;
+  font-size: 17px;
+  line-height: 1.6;
+  color: #111827;
+  white-space: pre-wrap;
+}
+
+/* Flags */
+.popup-flag {
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.popup-flag:hover {
+  background: var(--flag-hover-bg);
+  color: var(--flag-hover-text);
+}
+
+.popup-flag.selected {
+  background: var(--flag-selected-bg);
+  color: var(--flag-selected-text);
+}

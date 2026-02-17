@@ -21,15 +21,11 @@
   margin-bottom: 24px;
 }
 
-.icon-btn {
-  background: transparent;
-  border: none;
-  padding: 6px;
-  border-radius: 50%;
-  cursor: pointer;
+.gmail-toolbar svg {
+  font-size: 16px;
 }
 
-.icon-btn svg {
+svg {
   width: 20px;
   height: 20px;
   stroke: #5f6368;
