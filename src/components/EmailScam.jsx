@@ -1,6 +1,6 @@
 import './EmailScam.css';
 
-export default function EmailScam({ scam, selectedFlags, toggleFlag }) {
+export default function EmailScam({ scam, activeFlagId }) {
   return (
     <div className="gmail-wrapper">
       <div className="gmail-container">
@@ -9,15 +9,12 @@ export default function EmailScam({ scam, selectedFlags, toggleFlag }) {
           <svg viewBox="0 0 24 24">
             <path d="M15 18l-6-6 6-6" />
           </svg>
-
           <svg viewBox="0 0 24 24">
             <path d="M6 6h12v12H6z" />
           </svg>
-
           <svg viewBox="0 0 24 24">
             <path d="M6 7h12M9 7v10m6-10v10M5 7l1 12h12l1-12" />
           </svg>
-
           <svg viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="1" />
             <circle cx="12" cy="6" r="1" />
@@ -31,14 +28,18 @@ export default function EmailScam({ scam, selectedFlags, toggleFlag }) {
           <span className="label">Inbox</span>
         </h1>
 
-        {/* Sender row */}
+        {/* Sender row — highlight if spoofed-sender is the active flag */}
         <div className="gmail-sender">
           <div className="avatar">{scam.senderName.charAt(0)}</div>
 
           <div className="sender-meta">
             <div className="sender-top">
               <span className="sender-name">{scam.senderName}</span>
-              <span className="sender-email">{scam.senderEmail}</span>
+              <span
+                className={`sender-email ${activeFlagId === 'spoofed-sender' ? 'flag-highlight' : ''}`}
+              >
+                {scam.senderEmail}
+              </span>
             </div>
             <div className="to-row">to me</div>
           </div>
@@ -52,10 +53,7 @@ export default function EmailScam({ scam, selectedFlags, toggleFlag }) {
             <p key={index} className="gmail-paragraph">
               {line.flag ? (
                 <span
-                  className={`flag ${
-                    selectedFlags.includes(line.flag) ? 'active' : ''
-                  }`}
-                  onClick={() => toggleFlag(line.flag)}
+                  className={`flag ${activeFlagId === line.flag ? 'active' : ''}`}
                 >
                   {line.text}
                 </span>

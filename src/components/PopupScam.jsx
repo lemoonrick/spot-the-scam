@@ -1,6 +1,6 @@
 import './PopupScam.css';
 
-export default function PopupScam({ scam, selectedFlags, toggleFlag }) {
+export default function PopupScam({ scam, activeFlagId }) {
   return (
     <div className="popup-wrapper">
       <div className="popup-browser">
@@ -18,10 +18,7 @@ export default function PopupScam({ scam, selectedFlags, toggleFlag }) {
             part.flag ? (
               <span
                 key={i}
-                className={`popup-flag ${
-                  selectedFlags.includes(part.flag) ? 'selected' : ''
-                }`}
-                onClick={() => toggleFlag(part.flag)}
+                className={`popup-flag ${activeFlagId === part.flag ? 'active' : ''}`}
               >
                 {part.text}
               </span>

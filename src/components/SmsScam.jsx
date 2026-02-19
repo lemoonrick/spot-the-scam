@@ -1,6 +1,6 @@
 import './SmsScam.css';
 
-export default function SmsScam({ scam, selectedFlags, toggleFlag }) {
+export default function SmsScam({ scam, activeFlagId }) {
   return (
     <div className="sms-container">
       <div className="sms-header">
@@ -15,7 +15,6 @@ export default function SmsScam({ scam, selectedFlags, toggleFlag }) {
               />
             </svg>
           </div>
-
           <div>
             <div className="sms-title">{scam.sender}</div>
             <div className="sms-subtitle">Text Message · SMS</div>
@@ -37,10 +36,7 @@ export default function SmsScam({ scam, selectedFlags, toggleFlag }) {
             part.flag ? (
               <span
                 key={i}
-                className={`sms-flag ${
-                  selectedFlags.includes(part.flag) ? 'active' : ''
-                }`}
-                onClick={() => toggleFlag(part.flag)}
+                className={`sms-flag ${activeFlagId === part.flag ? 'active' : ''}`}
               >
                 {part.text}
               </span>

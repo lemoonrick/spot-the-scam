@@ -1,6 +1,6 @@
 import './InstagramScam.css';
 
-export default function InstagramScam({ scam, selectedFlags, toggleFlag }) {
+export default function InstagramScam({ scam, activeFlagId }) {
   return (
     <div className="insta-container">
       <div className="insta-card">
@@ -19,10 +19,7 @@ export default function InstagramScam({ scam, selectedFlags, toggleFlag }) {
             part.flag ? (
               <span
                 key={i}
-                className={`insta-flag ${
-                  selectedFlags.includes(part.flag) ? 'selected' : ''
-                }`}
-                onClick={() => toggleFlag(part.flag)}
+                className={`insta-flag ${activeFlagId === part.flag ? 'active' : ''}`}
               >
                 {part.text}
               </span>

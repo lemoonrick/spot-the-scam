@@ -1,8 +1,6 @@
 import './WhatsAppScam.css';
 
-const WhatsAppScam = ({ scam, selectedFlags, toggleFlag }) => {
-  const isSelected = (flag) => selectedFlags.includes(flag);
-
+const WhatsAppScam = ({ scam, activeFlagId }) => {
   return (
     <div className="wa-wrapper">
       <div className="wa-chat">
@@ -19,8 +17,7 @@ const WhatsAppScam = ({ scam, selectedFlags, toggleFlag }) => {
               block.flag ? (
                 <span
                   key={i}
-                  className={`wa-flag ${isSelected(block.flag) ? 'selected' : ''}`}
-                  onClick={() => toggleFlag(block.flag)}
+                  className={`wa-flag ${activeFlagId === block.flag ? 'active' : ''}`}
                 >
                   {block.text}
                 </span>
@@ -28,14 +25,6 @@ const WhatsAppScam = ({ scam, selectedFlags, toggleFlag }) => {
                 <span key={i}>{block.text}</span>
               ),
             )}
-          </div>
-
-          <div
-            className={`wa-cta ${isSelected('cta') ? 'selected' : ''}`}
-            onClick={() => toggleFlag('cta')}
-          >
-            <span className="wa-cta-icon">↗</span>
-            <span className="wa-cta-text">Click here</span>
           </div>
 
           <div className="wa-time">14:46</div>
