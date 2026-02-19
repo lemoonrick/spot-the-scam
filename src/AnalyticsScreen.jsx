@@ -8,6 +8,15 @@ export default function AnalyticsScreen({ results, onRestart }) {
   const [displayScore, setDisplayScore] = useState(0);
   const [posts, setPosts] = useState([]);
 
+  // Determine dynamic color based on score
+  const getScoreColor = (s) => {
+    if (s < 40) return '#ef4444'; // Red
+    if (s < 75) return '#f59e0b'; // Amber
+    return '#10b981'; // Green
+  };
+
+  const currentColor = getScoreColor(displayScore);
+
   useEffect(() => {
     let current = 0;
     const interval = setInterval(() => {
@@ -17,107 +26,126 @@ export default function AnalyticsScreen({ results, onRestart }) {
         clearInterval(interval);
       }
       setDisplayScore(current);
-    }, 15);
+    }, 20);
 
-    if (score >= 80) triggerConfetti();
+    if (score >= 80) triggerConfetti(getScoreColor(score));
 
     return () => clearInterval(interval);
   }, [score]);
 
-  // Fetch latest blog posts
   useEffect(() => {
     fetch('https://myfactree.org/wp-json/wp/v2/posts?_embed&per_page=3')
       .then((res) => res.json())
-      .then((data) => {
-        setPosts(data);
-      })
-      .catch((err) => {
-        console.error('Error fetching blog posts:', err);
-      });
+      .then((data) => setPosts(data))
+      .catch((err) => console.error('Error fetching blog posts:', err));
   }, []);
 
-  const triggerConfetti = () => {
+  const triggerConfetti = (color) => {
     const canvas = document.createElement('canvas');
     canvas.className = 'confetti-canvas';
     document.body.appendChild(canvas);
-
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const pieces = Array.from({ length: 80 }, () => ({
+    const pieces = Array.from({ length: 100 }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height - canvas.height,
-      size: Math.random() * 6 + 4,
-      speed: Math.random() * 3 + 2,
+      size: Math.random() * 8 + 4,
+      speed: Math.random() * 4 + 2,
+      color: color,
+      rotation: Math.random() * 360,
     }));
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       pieces.forEach((p) => {
-        ctx.fillStyle = '#22c55e';
-        ctx.fillRect(p.x, p.y, p.size, p.size);
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+        ctx.restore();
         p.y += p.speed;
+        p.rotation += 2;
       });
-      requestAnimationFrame(animate);
+      if (pieces[0].y < canvas.height + 100) requestAnimationFrame(animate);
     };
-
     animate();
-    setTimeout(() => canvas.remove(), 2500);
+    setTimeout(() => canvas.remove(), 4000);
   };
 
   return (
     <div className="analytics-page">
-      {/* Analytics Section */}
       <section className="analytics-hero">
         <div className="analytics-inner">
-          <h2>Your Media Literacy Score</h2>
+          <h2 className="analytics-title">Media Literacy Analysis</h2>
 
-          <div
-            className="score-ring-modern"
-            style={{ '--score': displayScore }}
-          >
-            <div className="score-modern">{displayScore}%</div>
+          {/* New Modern Score Visualization */}
+          <div className="score-container">
+            <div
+              className="score-glow"
+              style={{ backgroundColor: currentColor }}
+            />
+            <div
+              className="score-ring-v2"
+              style={{
+                '--score': displayScore,
+                '--score-color': currentColor,
+              }}
+            >
+              <div className="score-content">
+                <span className="score-number">{displayScore}</span>
+                <span className="score-percent">%</span>
+              </div>
+            </div>
           </div>
 
           <p className="analytics-summary">
-            You identified {correct} out of {total} scams correctly.
+            You identified <strong>{correct}</strong> out of{' '}
+            <strong>{total}</strong> scams correctly.
           </p>
 
           <div className="analytics-feedback">
-            {score >= 80 && <p>🧠 Very hard to fool. Nice.</p>}
+            {score >= 80 && (
+              <p className="feedback-badge high">
+                🧠 Hard to fool. Exceptional instincts.
+              </p>
+            )}
             {score >= 50 && score < 80 && (
-              <p>👍 Decent instincts, but some tricks slipped through.</p>
+              <p className="feedback-badge mid">
+                👍 Good instincts, but stay vigilant.
+              </p>
             )}
             {score < 50 && (
-              <p>⚠️ These tactics are designed to manipulate fast reactions.</p>
+              <p className="feedback-badge low">
+                ⚠️ You're reacting too fast. Be careful.
+              </p>
             )}
           </div>
 
-          <button className="analytics-restart" onClick={onRestart}>
-            Try Again
+          <button className="analytics-restart-v2" onClick={onRestart}>
+            Retake Assessment
           </button>
 
           <div className="scroll-indicator">
             <div className="mouse">
               <div className="wheel" />
             </div>
-            <span>Scroll to read more</span>
+            <span>Deep Dive into Scams</span>
           </div>
         </div>
       </section>
 
-      {/* Blog Section */}
+      {/* Blog section remains same... */}
       <section className="blog-section">
         <div className="blog-header">
-          <h3>Educate yourself even more</h3>
-          <p>Latest insights from our blog</p>
+          <h3>Continue Learning</h3>
+          <p>Latest investigations from our researchers</p>
         </div>
-
         <div className="blog-grid">
           {posts.map((post) => {
             const image = post._embedded?.['wp:featuredmedia']?.[0]?.source_url;
-
             return (
               <a
                 key={post.id}
@@ -132,18 +160,16 @@ export default function AnalyticsScreen({ results, onRestart }) {
                     style={{ backgroundImage: `url(${image})` }}
                   />
                 )}
-
                 <div className="blog-content">
                   <h4
                     dangerouslySetInnerHTML={{ __html: post.title.rendered }}
                   />
-
                   <p
                     dangerouslySetInnerHTML={{
                       __html:
                         post.excerpt.rendered
                           .replace(/<[^>]+>/g, '')
-                          .slice(0, 120) + '...',
+                          .slice(0, 110) + '...',
                     }}
                   />
                 </div>

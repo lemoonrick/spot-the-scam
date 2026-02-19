@@ -52,8 +52,9 @@ export default function EmailScam({ scam, activeFlagId }) {
               <div className="gmail-sender-meta">
                 <div className="gmail-sender-top">
                   <span className="gmail-sender-name">{scam.senderName}</span>
+                  to:
                   <span
-                    className={`gmail-sender-addr${activeFlagId === 'spoofed-sender' ? ' active' : ''}`}
+                    className={`gmail-sender-addr${activeFlagId === 'spoofed-sender' || activeFlagId === 'official-domain' ? ' active' : ''}`}
                   >
                     {scam.senderEmail}
                   </span>

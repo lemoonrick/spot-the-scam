@@ -1,11 +1,3 @@
-/**
- * FlagCard.jsx
- *
- * A single explanation card shown one at a time during the reveal phase.
- * Appears as a clean card below the scam UI (not a modal, not blocking).
- * Has a "Next" button to advance to the next flag, or next scam if last flag.
- */
-
 export default function FlagCard({
   flag,
   flagIndex,
@@ -13,33 +5,60 @@ export default function FlagCard({
   isLastFlag,
   isLastScam,
   onNext,
+  coords,
+  verdict, // Make sure this is passed from ScamScreen
 }) {
-  const nextLabel = isLastFlag
-    ? isLastScam
-      ? 'See Results'
-      : 'Next Scam →'
-    : 'Next →';
+  const isLegit = verdict === 'legitimate';
+
+  // Define colors based on the verdict
+  const themeColor = isLegit ? 'var(--green)' : 'var(--red)';
+  const themeHex = isLegit ? '#22c55e' : '#ef4444';
+
+  const style = {
+    position: 'absolute',
+    top: `${coords.top}px`,
+    left: `${coords.left}px`,
+    transform: 'translateX(-50%)',
+    zIndex: 2000,
+    '--current-theme': themeHex, // This controls the triangle color in CSS
+  };
 
   return (
-    <div className="flag-card-wrap">
-      <div className="flag-card">
-        {/* Dot indicator for multi-flag progress */}
+    <div className="flag-card-wrap" style={style}>
+      {/* Manually overriding the borderTopColor based on verdict */}
+      <div className="flag-card" style={{ borderTopColor: themeHex }}>
         {totalFlags > 1 && (
           <div className="flag-dots">
             {Array.from({ length: totalFlags }).map((_, i) => (
               <span
                 key={i}
-                className={`flag-dot ${i === flagIndex ? 'active' : i < flagIndex ? 'done' : ''}`}
+                className={`flag-dot ${i === flagIndex ? 'active' : ''}`}
+                style={{
+                  backgroundColor: i === flagIndex ? themeHex : '#e2e8f0',
+                }}
               />
             ))}
           </div>
         )}
 
-        <div className="flag-card-label">{flag.label}</div>
+        <div
+          className="flag-card-label"
+          style={{
+            color: isLegit ? 'var(--green-dark)' : 'var(--red-dark)',
+            backgroundColor: isLegit ? 'var(--correct-bg)' : 'var(--red-soft)',
+          }}
+        >
+          {flag.label}
+        </div>
+
         <p className="flag-card-text">{flag.text}</p>
 
         <button className="flag-next-btn" onClick={onNext}>
-          {nextLabel}
+          {isLastFlag
+            ? isLastScam
+              ? 'See My Score'
+              : 'Next Example →'
+            : 'Next →'}
         </button>
       </div>
     </div>

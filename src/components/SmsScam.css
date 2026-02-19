@@ -8,12 +8,12 @@
   width: 100%;
   max-width: 390px;
   background: #fff;
-  border-radius: 44px;
+  border-radius: 15px;
   overflow: hidden;
   box-shadow:
-    0 0 0 1px rgba(0,0,0,0.08),
-    0 32px 64px rgba(0,0,0,0.18),
-    0 8px 16px rgba(0,0,0,0.08);
+    0 0 0 1px rgba(0, 0, 0, 0.08),
+    0 32px 64px rgba(0, 0, 0, 0.18),
+    0 8px 16px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
 }
@@ -43,7 +43,7 @@
 .sms-battery {
   width: 25px;
   height: 12px;
-  border: 1.5px solid rgba(0,0,0,0.35);
+  border: 1.5px solid rgba(0, 0, 0, 0.35);
   border-radius: 3px;
   position: relative;
   padding: 1.5px;
@@ -64,7 +64,7 @@
   transform: translateY(-50%);
   width: 3px;
   height: 6px;
-  background: rgba(0,0,0,0.35);
+  background: rgba(0, 0, 0, 0.35);
   border-radius: 0 2px 2px 0;
 }
 
@@ -86,7 +86,7 @@
 
 .sms-back-label {
   font-size: 17px;
-  color: #007AFF;
+  color: #007aff;
   font-weight: 400;
 }
 
@@ -154,7 +154,9 @@
 /* Flag spans — NO default styling, invisible until active */
 .sms-flag {
   border-radius: 3px;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 /* Input bar */
@@ -183,7 +185,7 @@
 .sms-send-btn {
   width: 32px;
   height: 32px;
-  background: #007AFF;
+  background: #007aff;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -193,5 +195,7 @@
 
 /* Responsive */
 @media (max-width: 440px) {
-  .sms-phone { border-radius: 28px; }
+  .sms-phone {
+    border-radius: 28px;
+  }
 }

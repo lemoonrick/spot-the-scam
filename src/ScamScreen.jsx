@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { scams } from './scams';
 import AnalyticsScreen from './AnalyticsScreen';
 import SmsScam from './components/SmsScam';
@@ -8,34 +9,54 @@ import InstagramScam from './components/InstagramScam';
 import PopupScam from './components/PopupScam';
 import FlagCard from './components/FlagCard';
 
-// Flow per scam:
-// 'idle'           → scam shown, Phishing/Legitimate buttons visible
-// 'verdict-chosen' → verdict picked, both buttons hidden, "Show Me" appears
-// 'revealing'      → Show Me clicked, flag cards shown one at a time
+export default function ScamScreen({ results, setResults }) {
+  const { id } = useParams();
+  const navigate = useNavigate();
 
-export default function ScamScreen() {
-  const [scamIndex, setScamIndex] = useState(0);
-  const [results, setResults] = useState([]);
+  // Convert URL ID (1-based) to Array Index (0-based)
+  const scamIndex = parseInt(id) - 1;
+  const scam = scams[scamIndex];
+
   const [userVerdict, setUserVerdict] = useState(null);
-  const [phase, setPhase] = useState('idle'); // 'idle' | 'verdict-chosen' | 'revealing'
-  const [flagIndex, setFlagIndex] = useState(0); // which flag card is currently showing
+  const [phase, setPhase] = useState('idle');
+  const [flagIndex, setFlagIndex] = useState(0);
+  const [cardPosition, setCardPosition] = useState({ top: 0, left: 0 });
 
-  if (scamIndex >= scams.length) {
+  const containerRef = useRef(null);
+
+  // Reset internal state when the URL ID changes (user hits back/next)
+  useEffect(() => {
+    setUserVerdict(null);
+    setPhase('idle');
+    setFlagIndex(0);
+  }, [id]);
+
+  useEffect(() => {
+    if (phase === 'revealing') {
+      const activeElement = containerRef.current?.querySelector(
+        '.active, .safe-active',
+      );
+      if (activeElement) {
+        const rect = activeElement.getBoundingClientRect();
+        const containerRect = containerRef.current.getBoundingClientRect();
+
+        setCardPosition({
+          top: rect.bottom - containerRect.top + 12,
+          left: rect.left - containerRect.left + rect.width / 2,
+        });
+      }
+    }
+  }, [phase, flagIndex, id]);
+
+  if (!scam) {
     return (
       <AnalyticsScreen
         results={results}
-        onRestart={() => {
-          setResults([]);
-          setUserVerdict(null);
-          setPhase('idle');
-          setFlagIndex(0);
-          setScamIndex(0);
-        }}
+        onRestart={() => navigate('/quiz/1')}
       />
     );
   }
 
-  const scam = scams[scamIndex];
   const isLastScam = scamIndex === scams.length - 1;
   const currentFlag = phase === 'revealing' ? scam.flags[flagIndex] : null;
   const isLastFlag = flagIndex === scam.flags.length - 1;
@@ -52,7 +73,7 @@ export default function ScamScreen() {
 
   const handleNextFlag = () => {
     if (isLastFlag) {
-      // Save result and advance to next scam
+      // Record result
       setResults((prev) => [
         ...prev,
         {
@@ -61,20 +82,33 @@ export default function ScamScreen() {
           verdictCorrect: userVerdict === scam.verdict,
         },
       ]);
-      setUserVerdict(null);
-      setPhase('idle');
-      setFlagIndex(0);
-      setScamIndex((prev) => prev + 1);
+
+      // Navigate to next ID in URL
+      const nextId = parseInt(id) + 1;
+      if (nextId > scams.length) {
+        setPhase('completed'); // Shows results
+      } else {
+        navigate(`/quiz/${nextId}`);
+      }
     } else {
       setFlagIndex((prev) => prev + 1);
     }
   };
 
-  // The active flag ID to highlight in the scam UI
-  const activeFlagId = currentFlag?.id ?? null;
+  if (phase === 'completed') {
+    return (
+      <AnalyticsScreen
+        results={results}
+        onRestart={() => {
+          setResults([]);
+          navigate('/quiz/1');
+        }}
+      />
+    );
+  }
 
   const renderScam = () => {
-    const props = { scam, activeFlagId };
+    const props = { scam, activeFlagId: currentFlag?.id };
     switch (scam.type) {
       case 'whatsapp':
         return <WhatsAppScam {...props} />;
@@ -89,17 +123,10 @@ export default function ScamScreen() {
     }
   };
 
-  // Glow as soon as verdict is picked, not just during reveal
-  const glowClass =
-    phase !== 'idle'
-      ? userVerdict === scam.verdict
-        ? 'correct-glow'
-        : 'incorrect-glow'
-      : '';
-
   return (
-    <div className={`scam-wrapper ${glowClass}`}>
-      {/* ── Verdict header — shows IMMEDIATELY when user picks a verdict ── */}
+    <div
+      className={`scam-wrapper ${phase !== 'idle' ? (userVerdict === scam.verdict ? 'correct-glow' : 'incorrect-glow') : ''}`}
+    >
       {phase !== 'idle' && (
         <div
           className={`verdict-header ${userVerdict === scam.verdict ? 'correct' : 'incorrect'}`}
@@ -111,36 +138,36 @@ export default function ScamScreen() {
         </div>
       )}
 
-      {/* ── Scam UI ── */}
-      <div key={scam.id} className="scam-content slide-in">
-        {renderScam()}
+      <div className="scam-relative-container" ref={containerRef}>
+        <div key={scam.id} className="scam-content slide-in">
+          {renderScam()}
+        </div>
+
+        {phase === 'revealing' && currentFlag && (
+          <FlagCard
+            flag={currentFlag}
+            flagIndex={flagIndex}
+            totalFlags={scam.flags.length}
+            isLastFlag={isLastFlag}
+            isLastScam={isLastScam}
+            onNext={handleNextFlag}
+            coords={cardPosition}
+            verdict={scam.verdict}
+          />
+        )}
       </div>
 
-      {/* ── Flag card overlay (one at a time) ── */}
-      {phase === 'revealing' && currentFlag && (
-        <FlagCard
-          key={currentFlag.id}
-          flag={currentFlag}
-          flagIndex={flagIndex}
-          totalFlags={scam.flags.length}
-          isLastFlag={isLastFlag}
-          isLastScam={isLastScam}
-          onNext={handleNextFlag}
-        />
-      )}
-
-      {/* ── Verdict buttons (idle state) ── */}
       {phase === 'idle' && (
         <div className="verdict-section">
           <div className="verdict-buttons">
             <button
-              className={`verdict-btn ${userVerdict === 'phishing' ? 'selected phishing' : ''}`}
+              className="verdict-btn"
               onClick={() => handleVerdictPick('phishing')}
             >
               Phishing
             </button>
             <button
-              className={`verdict-btn ${userVerdict === 'legitimate' ? 'selected legit' : ''}`}
+              className="verdict-btn"
               onClick={() => handleVerdictPick('legitimate')}
             >
               Legitimate
@@ -149,27 +176,17 @@ export default function ScamScreen() {
         </div>
       )}
 
-      {/* ── Show Me button (verdict-chosen state) ── */}
       {phase === 'verdict-chosen' && (
         <div className="verdict-section">
-          <div className="show-me-wrap">
-            <p className="show-me-hint">
-              You said:{' '}
-              <strong>
-                {userVerdict === 'phishing' ? 'Phishing' : 'Legitimate'}
-              </strong>
-            </p>
-            <button className="show-btn show-btn-pulse" onClick={handleShowMe}>
-              Show me →
-            </button>
-          </div>
+          <button className="show-btn show-btn-pulse" onClick={handleShowMe}>
+            Show me →
+          </button>
         </div>
       )}
 
-      {/* ── Progress ── */}
       <div className="scam-footer">
         <p className="progress">
-          {scamIndex + 1}/{scams.length}
+          {id}/{scams.length}
         </p>
       </div>
     </div>

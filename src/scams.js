@@ -186,4 +186,41 @@ export const scams = [
         'A fake Windows security popup using fear to push you to call scammers.',
     },
   },
+  {
+    id: 6,
+    type: 'email',
+    verdict: 'legitimate',
+    subject: 'Your Monthly FactTree Impact Report',
+    senderName: 'FactTree Team',
+    senderEmail: '<hello@myfactree.org>',
+    time: '10:30 AM',
+    message: [
+      { text: 'Hi there,\n\n', flag: null },
+      {
+        text: 'Your monthly impact report is ready! Thanks to your support, we reached 5,000 students this month.\n\n',
+        flag: null,
+      },
+      {
+        text: 'You can view the full report on our official dashboard:\n',
+        flag: null,
+      },
+      { text: 'https://myfactree.org/dashboard', flag: 'safe-link' },
+      { text: '\n\nBest,\nThe FactTree Team', flag: null },
+    ],
+    flags: [
+      {
+        id: 'official-domain',
+        label: 'Verified Sender',
+        text: 'The email comes from the official "myfactree.org" domain, matching the organization exactly.',
+      },
+      {
+        id: 'safe-link',
+        label: 'Official Link',
+        text: 'The URL leads directly to the main website with no strange hyphens or misspellings.',
+      },
+    ],
+    explanation: {
+      short: 'A genuine update from a verified organization domain.',
+    },
+  },
 ];
