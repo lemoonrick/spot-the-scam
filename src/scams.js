@@ -1,5 +1,5 @@
 export const scams = [
-  // 1 — ICICI SMS phishing
+  // 1 — ICICI SMS phishing (iPhone Messages UI)
   {
     id: 1,
     type: 'sms',
@@ -15,20 +15,20 @@ export const scams = [
       {
         id: 'urgency',
         label: 'Urgency tactic',
-        text: 'Scammers create fake deadlines to pressure you into acting without thinking.',
+        text: 'Scammers create fake deadlines — "2 hours" — to stop you from thinking clearly and acting fast.',
       },
       {
         id: 'fake-link',
         label: 'Fake domain',
-        text: 'ICICI\'s real domain is icicibank.com — not "icici-verify.co". Banks never send links like this.',
+        text: 'ICICI Bank\'s real domain is icicibank.com — not "icici-verify.co". Banks never send login links via SMS.',
       },
     ],
     explanation: {
-      short: 'This is a phishing SMS using urgency and a fake look-alike link.',
+      short: 'A phishing SMS using urgency and a fake look-alike link.',
     },
   },
 
-  // 2 — Amazon billing email phishing
+  // 2 — Amazon billing email phishing (Gmail UI)
   {
     id: 2,
     type: 'email',
@@ -58,58 +58,58 @@ export const scams = [
       {
         id: 'spoofed-sender',
         label: 'Spoofed sender',
-        text: '"amaz0n-support.com" — the "o" is a zero. Amazon only emails from amazon.com.',
+        text: '"amaz0n-support.com" — the letter "o" is replaced with a zero. Amazon only emails from amazon.com.',
       },
       {
         id: 'attachment',
         label: 'Suspicious attachment',
-        text: "Real companies don't send unsolicited invoices. Attachments can carry malware.",
+        text: "Legitimate companies don't email you unsolicited invoices. Attachments from strangers can carry malware.",
       },
       {
         id: 'fake-link',
         label: 'Fake URL',
-        text: "This link goes to a scammer's site, not amazon.com. Never click billing links in emails.",
+        text: "This link leads to a scammer's domain, not amazon.com. Never click billing or account links inside emails.",
       },
     ],
     explanation: {
       short:
-        'This email impersonates Amazon using a spoofed sender and malicious link.',
+        'An email impersonating Amazon with a spoofed sender and malicious link.',
     },
   },
 
-  // 3 — WhatsApp KYC scam
+  // 3 — WhatsApp KYC scam (WhatsApp UI with link preview card)
   {
     id: 3,
     type: 'whatsapp',
     verdict: 'phishing',
     sender: 'Jio Support',
     message: [
+      { text: 'Dear customer, your SIM will be ', flag: null },
+      { text: 'deactivated today', flag: 'authority' },
       {
-        text: 'Dear customer, your SIM will be deactivated today due to ',
+        text: ' due to KYC not completed.\n\nComplete verification immediately:',
         flag: null,
       },
-      { text: 'KYC not completed', flag: 'authority' },
-      { text: '.\n\nComplete verification immediately:\n', flag: null },
       { text: 'http://jio-kyc-update.in', flag: 'fake-link' },
     ],
     flags: [
       {
         id: 'authority',
         label: 'Fake authority',
-        text: 'Jio never messages you on WhatsApp to demand KYC. This impersonates an official brand.',
+        text: 'Jio never contacts customers on WhatsApp to demand KYC. This impersonates an official brand to create panic.',
       },
       {
         id: 'fake-link',
         label: 'Fake domain',
-        text: 'Jio\'s real site is jio.com — not "jio-kyc-update.in". Hyphenated domains are a red flag.',
+        text: 'Jio\'s real site is jio.com. The domain "jio-kyc-update.in" is fake — hyphenated unofficial domains are a major red flag.',
       },
     ],
     explanation: {
-      short: 'A telecom impersonation scam designed to create panic.',
+      short: 'A telecom impersonation scam using panic and a fake KYC link.',
     },
   },
 
-  // 4 — Instagram collaboration DM scam
+  // 4 — Instagram collaboration DM scam (Instagram DM UI)
   {
     id: 4,
     type: 'instagram',
@@ -118,39 +118,38 @@ export const scams = [
     followers: '1,284 followers',
     posts: '12 posts',
     message: [
-      { text: 'Hello! We are selecting a few creators for a ', flag: null },
+      { text: 'Hello! We are selecting creators for a ', flag: null },
       { text: 'paid brand collaboration', flag: 'too-good' },
       {
-        text: '. You have been shortlisted for ₹85,000 campaign.\n\nTo confirm participation, register here:\n',
+        text: '. You have been shortlisted for a ₹85,000 campaign.\n\nTo confirm, register here:\n',
         flag: null,
       },
       { text: 'https://brand-collabs-verify.com/apply', flag: 'fake-link' },
-      { text: '\n\nLimited slots available. Respond ASAP.', flag: 'urgency' },
+      { text: '\n\nLimited slots. Respond ASAP.', flag: 'urgency' },
     ],
     flags: [
       {
         id: 'too-good',
         label: 'Too good to be true',
-        text: 'Unsolicited ₹85,000 collab offers from unknown accounts are almost always scams.',
+        text: 'Unsolicited ₹85,000 brand deals from unknown accounts are almost always scams. Real brands research you first.',
       },
       {
         id: 'fake-link',
         label: 'Shady domain',
-        text: 'Legitimate brands onboard creators through official channels — not random third-party links.',
+        text: 'Legitimate brands onboard creators through official contracts and emails — not random "verify" links from DMs.',
       },
       {
         id: 'urgency',
         label: 'Fake urgency',
-        text: '"Limited slots" and "Respond ASAP" are pressure tactics to stop you from thinking clearly.',
+        text: '"Limited slots" and "Respond ASAP" are classic pressure tactics designed to stop you from verifying the offer.',
       },
     ],
     explanation: {
-      short:
-        'A fake brand collab DM using unrealistic pay and a malicious link.',
+      short: 'A fake Instagram brand collab using unrealistic pay and urgency.',
     },
   },
 
-  // 5 — Browser pop-up tech support scam
+  // 5 — Browser pop-up tech support scam (Windows dialog UI)
   {
     id: 5,
     type: 'popup',
@@ -158,15 +157,15 @@ export const scams = [
     sender: 'System Alert',
     message: [
       {
-        text: '⚠️ WARNING: Your device has been infected with malware.\n\n',
+        text: 'WARNING: Your device has been infected with malware.\n\n',
         flag: null,
       },
       {
-        text: 'Immediate action is required to prevent data loss.\n\n',
+        text: 'Immediate action required to prevent data loss and identity theft.\n\n',
         flag: 'fear',
       },
       {
-        text: 'Call Microsoft Support now: +91-98XXXXXXX',
+        text: 'Call Microsoft Support NOW: +91-98XXXXXXX',
         flag: 'fake-support',
       },
     ],
@@ -174,16 +173,17 @@ export const scams = [
       {
         id: 'fear',
         label: 'Fear tactic',
-        text: "Real security warnings don't appear as browser pop-ups. This is designed to make you panic.",
+        text: 'Real OS security warnings never appear as browser popups. This dialog is designed to make you panic and act without thinking.',
       },
       {
         id: 'fake-support',
         label: 'Fake helpline',
-        text: 'Microsoft never puts a support number in a browser alert. This leads to scammers.',
+        text: 'Microsoft never puts a phone number in a browser alert. Calling this number connects you to scammers who will ask for money or access.',
       },
     ],
     explanation: {
-      short: 'A fake browser pop-up using fear to push you to call scammers.',
+      short:
+        'A fake Windows security popup using fear to push you to call scammers.',
     },
   },
 ];

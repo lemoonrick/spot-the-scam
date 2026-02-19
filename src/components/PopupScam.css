@@ -1,80 +1,266 @@
-.popup-wrapper {
-  width: 100%;
+.popup-scene {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 0 16px;
 }
 
+/* ── Fake browser behind the dialog ── */
 .popup-browser {
   width: 100%;
-  max-width: 520px;
-  background: white;
-  border-radius: 18px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  border-radius: 10px 10px 0 0;
   overflow: hidden;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #d1d5db;
+  border-bottom: none;
+  opacity: 0.55;
+  pointer-events: none;
 }
 
-/* Fake browser bar */
-.popup-bar {
-  background: #f3f4f6;
-  padding: 10px 14px;
+.popup-browser-bar {
+  background: #e8e8e8;
+  padding: 8px 12px;
   display: flex;
   align-items: center;
-  gap: 14px;
-  border-bottom: 1px solid #e5e7eb;
+  gap: 10px;
+  border-bottom: 1px solid #d1d5db;
 }
 
 .popup-dots {
   display: flex;
-  gap: 6px;
+  gap: 5px;
+  flex-shrink: 0;
 }
 
-.popup-dots span {
-  width: 10px;
-  height: 10px;
+.dot {
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
 }
+.dot.red {
+  background: #ff5f57;
+}
+.dot.yellow {
+  background: #febc2e;
+}
+.dot.green {
+  background: #28c840;
+}
 
-.popup-dots span:nth-child(1) {
-  background: #f87171;
-}
-.popup-dots span:nth-child(2) {
-  background: #facc15;
-}
-.popup-dots span:nth-child(3) {
-  background: #4ade80;
-}
-
-.popup-url {
-  font-size: 13px;
+.popup-address-bar {
+  flex: 1;
+  background: white;
+  border-radius: 5px;
+  padding: 4px 9px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid #d1d5db;
+  font-size: 11.5px;
   color: #6b7280;
+  font-family: monospace;
 }
 
-/* Popup body */
-.popup-content {
-  padding: 32px 28px;
-  font-size: 17px;
+.popup-tab-add {
+  font-size: 16px;
+  color: #9ca3af;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.popup-browser-body {
+  background: #ffffff;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 80px;
+}
+
+.popup-skeleton-line {
+  height: 10px;
+  background: #e9ecef;
+  border-radius: 4px;
+  width: 100%;
+}
+.popup-skeleton-line.short {
+  width: 38%;
+}
+.popup-skeleton-line.medium {
+  width: 62%;
+}
+
+/* ── The actual Windows alert dialog ── */
+.popup-dialog {
+  width: 100%;
+  background: #f0f0f0;
+  border: 2px solid #1a6fba;
+  border-radius: 0 0 6px 6px;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: dialogPop 0.22s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+}
+
+@keyframes dialogPop {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Title bar */
+.popup-titlebar {
+  background: linear-gradient(180deg, #1e80d8, #1460a8);
+  padding: 7px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.popup-titlebar-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.popup-ms-logo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5px;
+  font-size: 7px;
+  line-height: 1;
+  width: 16px;
+  height: 16px;
+}
+.ms-r {
+  color: #f25022;
+}
+.ms-g {
+  color: #7fba00;
+}
+.ms-b {
+  color: #00a4ef;
+}
+.ms-y {
+  color: #ffb900;
+}
+
+.popup-title-text {
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+}
+
+.popup-title-close {
+  color: rgba(255, 255, 255, 0.85);
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  padding: 2px 5px;
+  border-radius: 2px;
+  cursor: pointer;
+  line-height: 1;
+  box-shadow: none;
+  transition: background 0.1s ease;
+}
+.popup-title-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: none;
+}
+
+/* Body */
+.popup-body {
+  padding: 22px 20px 16px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.popup-warning-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.popup-message {
+  font-size: 14px;
   line-height: 1.6;
-  color: #111827;
+  color: #1a1a1a;
   white-space: pre-wrap;
 }
 
-/* Flags */
+/* Flag spans — completely invisible until active */
 .popup-flag {
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 6px;
+  border-radius: 3px;
   transition:
-    background 0.2s ease,
-    color 0.2s ease;
+    background 0.22s ease,
+    color 0.22s ease;
 }
 
-.popup-flag:hover {
-  background: var(--flag-hover-bg);
-  color: var(--flag-hover-text);
+/* Footer */
+.popup-footer {
+  padding: 10px 20px 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
-.popup-flag.selected {
-  background: var(--flag-selected-bg);
-  color: var(--flag-selected-text);
+.popup-btn-ok,
+.popup-btn-cancel {
+  padding: 6px 22px;
+  border-radius: 3px;
+  font-size: 13px;
+  font-weight: 400;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid;
+  box-shadow: none;
+  transition: filter 0.1s ease;
+}
+.popup-btn-ok:hover,
+.popup-btn-cancel:hover {
+  transform: none;
+  filter: brightness(0.95);
+}
+
+.popup-btn-ok {
+  background: #1a6fba;
+  color: white;
+  border-color: #1460a8;
+}
+
+.popup-btn-cancel {
+  background: #f0f0f0;
+  color: #1a1a1a;
+  border-color: #aaa;
+}
+
+/* Responsive */
+@media (max-width: 520px) {
+  .popup-scene {
+    padding: 0 8px;
+  }
+  .popup-browser-body {
+    padding: 14px 16px;
+  }
+  .popup-body {
+    padding: 16px 14px 12px;
+    gap: 12px;
+  }
+  .popup-warning-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+  .popup-message {
+    font-size: 13px;
+  }
 }

@@ -1,84 +1,197 @@
-.sms-container {
-  width: 100%;
-  max-width: 420px;
-  background: #ffffff;
-  border-radius: 28px;
-  /* box-shadow: 0 30px 60px rgba(15, 23, 42, 0.12); */
-  border: 1px solid #e5e7eb;
-  overflow: hidden;
+.sms-phone-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
 }
 
-/* Header */
-.sms-header {
-  background: #f8fafc;
-  padding: 14px 16px;
-  border-bottom: 1px solid #e5e7eb;
+.sms-phone {
+  width: 100%;
+  max-width: 390px;
+  background: #fff;
+  border-radius: 44px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.08),
+    0 32px 64px rgba(0,0,0,0.18),
+    0 8px 16px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Status bar */
+.sms-statusbar {
+  background: #f2f2f7;
+  padding: 14px 24px 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.sms-header-left {
+.sms-time-pill {
+  font-size: 15px;
+  font-weight: 600;
+  color: #000;
+  letter-spacing: -0.3px;
+}
+
+.sms-statusbar-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
 }
 
-.sms-icon {
-  width: 30px;
-  height: 30px;
+.sms-battery {
+  width: 25px;
+  height: 12px;
+  border: 1.5px solid rgba(0,0,0,0.35);
+  border-radius: 3px;
+  position: relative;
+  padding: 1.5px;
+  display: flex;
+  align-items: center;
+}
+
+.sms-battery-inner {
+  height: 100%;
+  background: #000;
+  border-radius: 1.5px;
+}
+
+.sms-battery-nub {
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 6px;
+  background: rgba(0,0,0,0.35);
+  border-radius: 0 2px 2px 0;
+}
+
+/* Nav bar */
+.sms-navbar {
+  background: #f2f2f7;
+  padding: 6px 16px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 0.5px solid #c6c6c8;
+}
+
+.sms-back {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sms-back-label {
+  font-size: 17px;
+  color: #007AFF;
+  font-weight: 400;
+}
+
+.sms-contact-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.sms-contact-avatar {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #48bb78, #38a169);
   border-radius: 50%;
-  background: #e2e8f0;
-  display: grid;
-  place-items: center;
-}
-
-.sms-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 14px;
   font-weight: 600;
-  color: #0f172a;
+  color: white;
 }
 
-.sms-subtitle {
+.sms-contact-name {
   font-size: 12px;
-  color: #64748b;
+  color: #000;
+  font-weight: 500;
 }
 
-/* Body */
-.sms-body {
-  padding: 28px 20px 36px;
+/* Thread */
+.sms-thread {
+  background: #fff;
+  padding: 16px 16px 8px;
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.sms-meta {
-  font-size: 13px;
-  color: #64748b;
-  margin-bottom: 14px;
+.sms-thread-date {
+  text-align: center;
+  font-size: 12px;
+  color: #8e8e93;
+  margin-bottom: 4px;
+}
+
+.sms-bubble-row {
+  display: flex;
+  justify-content: flex-start;
 }
 
 .sms-bubble {
-  background: #e5e7eb;
-  padding: 16px 18px;
-  border-radius: 22px;
-  font-size: 15px;
-  line-height: 1.6;
-  color: #0f172a;
-  max-width: 85%;
+  max-width: 78%;
+  background: #e9e9eb;
+  color: #000;
+  border-radius: 18px 18px 18px 4px;
+  padding: 10px 14px;
+  font-size: 16px;
+  line-height: 1.45;
   word-break: break-word;
+  white-space: pre-wrap;
+  letter-spacing: -0.1px;
 }
 
-/* Interactive flags */
+/* Flag spans — NO default styling, invisible until active */
 .sms-flag {
-  background: rgba(59, 130, 246, 0.25);
-  padding: 2px 4px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.2s ease;
+  border-radius: 3px;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
-.sms-flag:hover {
-  background: rgba(59, 130, 246, 0.45);
+/* Input bar */
+.sms-inputbar {
+  background: #f2f2f7;
+  border-top: 0.5px solid #c6c6c8;
+  padding: 10px 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.sms-flag.active {
-  background: rgba(34, 197, 94, 0.35);
+.sms-input-pill {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #c6c6c8;
+  border-radius: 20px;
+  padding: 8px 14px;
+}
+
+.sms-input-placeholder {
+  font-size: 15px;
+  color: #c7c7cc;
+}
+
+.sms-send-btn {
+  width: 32px;
+  height: 32px;
+  background: #007AFF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 440px) {
+  .sms-phone { border-radius: 28px; }
 }

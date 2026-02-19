@@ -231,9 +231,9 @@ button:active {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 24px;
-  padding: 32px 16px 48px;
+  padding: 40px 16px 48px;
 }
 
 /* Page-level flash on reveal */
@@ -453,23 +453,26 @@ button:active {
 }
 
 /* ── Flag span highlights
-   No styling by default — completely invisible until .active is added ── */
+   NO default styling — spans are completely invisible until .active ── */
 .sms-flag,
 .wa-flag,
 .insta-flag,
 .popup-flag,
+.gmail-flag,
 .flag {
-  border-radius: 5px;
+  border-radius: 4px;
   transition:
-    background 0.25s ease,
-    color 0.25s ease,
-    outline-color 0.25s ease;
+    background 0.22s ease,
+    color 0.22s ease,
+    outline-color 0.22s ease;
 }
 
 .sms-flag.active,
 .wa-flag.active,
 .insta-flag.active,
 .popup-flag.active,
+.gmail-flag.active,
+.gmail-flag.flag-active,
 .flag.active {
   background: var(--red-soft);
   color: #991b1b;
@@ -477,18 +480,17 @@ button:active {
   outline-offset: 2px;
 }
 
-/* Email spoofed-sender in header */
-.sender-email.flag-highlight {
+/* Gmail spoofed-sender address in header */
+.gmail-sender-addr.active {
   background: var(--red-soft);
   color: #991b1b;
-  padding: 1px 5px;
-  border-radius: 4px;
   outline: 2px solid var(--red-border);
   outline-offset: 1px;
   font-weight: 600;
+  border-radius: 3px;
   transition:
-    background 0.25s ease,
-    color 0.25s ease;
+    background 0.22s ease,
+    color 0.22s ease;
 }
 
 /* ============================================================
