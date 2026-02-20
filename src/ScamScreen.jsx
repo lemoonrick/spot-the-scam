@@ -15,7 +15,6 @@ export default function ScamScreen() {
   const [phase, setPhase] = useState('idle');
   const [flagIndex, setFlagIndex] = useState(0);
   const [cardPosition, setCardPosition] = useState({ top: 0, left: 0 });
-  // How much padding-bottom to add to the container so the card isn't clipped
   const [containerPad, setContainerPad] = useState(0);
 
   const containerRef = useRef(null);
@@ -25,17 +24,21 @@ export default function ScamScreen() {
   const isLastScam = scamIndex === scams.length - 1;
 
   const goToNextScam = () => {
+    // Instant jump to top FIRST — before any state change —
+    // so the new scam always starts with buttons visible.
+    // 'instant' avoids the smooth-scroll race condition on mobile.
+    window.scrollTo({ top: 0, behavior: 'instant' });
+
     setUserVerdict(null);
     setPhase('idle');
     setFlagIndex(0);
     setCardPosition({ top: 0, left: 0 });
     setContainerPad(0);
     cardHeightRef.current = 260;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
     setScamIndex((prev) => prev + 1);
   };
 
-  // ─── Core: position card + expand container + scroll ──────────────────────
+  // ─── Position card + expand container + scroll ────────────────────────────
   const positionAndScroll = useCallback(() => {
     if (!containerRef.current) return;
     const activeEl = containerRef.current.querySelector(
@@ -48,21 +51,17 @@ export default function ScamScreen() {
     const cardHeight = cardHeightRef.current;
     const PADDING = 48;
 
-    // Card top relative to the container (for absolute positioning)
     const cardTop = activeRect.bottom - containerRect.top + 12;
     const cardLeft =
       activeRect.left - containerRect.left + activeRect.width / 2;
 
     setCardPosition({ top: cardTop, left: cardLeft });
 
-    // How tall the container needs to be to contain the card fully
-    // containerRect.top is where the container starts relative to viewport.
-    // cardTop is from container top. So card bottom in container = cardTop + cardHeight.
+    // Grow the container so the absolute card is within document flow
     const neededPad = cardTop + cardHeight + PADDING;
-    // Only grow, never shrink while on same flag
     setContainerPad((prev) => Math.max(prev, neededPad));
 
-    // Scroll: the card bottom in page coords
+    // Scroll so card bottom is in view
     const cardBottomOnPage =
       window.scrollY + containerRect.top + cardTop + cardHeight + PADDING;
     const currentViewportBottom = window.scrollY + window.innerHeight;
@@ -74,14 +73,16 @@ export default function ScamScreen() {
       });
     }
 
-    // Guard: flagged element above viewport
-    const activeTopOnPage = window.scrollY + activeRect.top;
+    // Guard: flagged element scrolled above fold
     if (activeRect.top < 80) {
-      window.scrollTo({ top: activeTopOnPage - 80, behavior: 'smooth' });
+      window.scrollTo({
+        top: window.scrollY + activeRect.top - 80,
+        behavior: 'smooth',
+      });
     }
   }, []);
 
-  // FlagCard reports its real rendered height → re-run scroll with accurate value
+  // FlagCard reports real rendered height → refine scroll
   const handleCardMeasure = useCallback(
     (height) => {
       cardHeightRef.current = height;
@@ -90,10 +91,9 @@ export default function ScamScreen() {
     [positionAndScroll],
   );
 
-  // Trigger on phase/flag/scam changes
+  // Trigger on phase/flag change
   useEffect(() => {
     if (phase !== 'revealing') return;
-    // Small rAF delay so the DOM has applied the active class before we measure
     const raf = requestAnimationFrame(() => positionAndScroll());
     return () => cancelAnimationFrame(raf);
   }, [phase, flagIndex, scamIndex, positionAndScroll]);
@@ -104,6 +104,7 @@ export default function ScamScreen() {
       <AnalyticsScreen
         results={results}
         onRestart={() => {
+          window.scrollTo({ top: 0, behavior: 'instant' });
           setResults([]);
           setScamIndex(0);
           setUserVerdict(null);
@@ -112,7 +113,6 @@ export default function ScamScreen() {
           setCardPosition({ top: 0, left: 0 });
           setContainerPad(0);
           cardHeightRef.current = 260;
-          window.scrollTo({ top: 0, behavior: 'instant' });
         }}
       />
     );
@@ -211,11 +211,6 @@ export default function ScamScreen() {
         </div>
       )}
 
-      {/*
-        padding-bottom is set dynamically so the container is tall enough
-        to contain the absolutely-positioned flag card, making the page
-        scrollable to fully reveal it.
-      */}
       <div
         className="scam-relative-container"
         ref={containerRef}
