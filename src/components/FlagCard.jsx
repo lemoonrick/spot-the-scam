@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react';
+
 export default function FlagCard({
   flag,
   flagIndex,
@@ -6,13 +8,19 @@ export default function FlagCard({
   isLastScam,
   onNext,
   coords,
-  verdict, // Make sure this is passed from ScamScreen
+  verdict,
+  onMeasure, // callback(cardHeight) called after mount so ScamScreen can scroll accurately
 }) {
   const isLegit = verdict === 'legitimate';
-
-  // Define colors based on the verdict
-  const themeColor = isLegit ? 'var(--green)' : 'var(--red)';
   const themeHex = isLegit ? '#22c55e' : '#ef4444';
+  const wrapRef = useRef(null);
+
+  // After the card renders, measure its real height and report it up
+  useEffect(() => {
+    if (wrapRef.current && onMeasure) {
+      onMeasure(wrapRef.current.offsetHeight);
+    }
+  }, [flag]); // re-measure when the flag content changes (different flags have different text lengths)
 
   const style = {
     position: 'absolute',
@@ -20,12 +28,11 @@ export default function FlagCard({
     left: `${coords.left}px`,
     transform: 'translateX(-50%)',
     zIndex: 2000,
-    '--current-theme': themeHex, // This controls the triangle color in CSS
+    '--current-theme': themeHex,
   };
 
   return (
-    <div className="flag-card-wrap" style={style}>
-      {/* Manually overriding the borderTopColor based on verdict */}
+    <div className="flag-card-wrap" style={style} ref={wrapRef}>
       <div className="flag-card" style={{ borderTopColor: themeHex }}>
         {totalFlags > 1 && (
           <div className="flag-dots">

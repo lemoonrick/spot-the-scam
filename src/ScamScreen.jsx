@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { scams } from './scams';
 import AnalyticsScreen from './AnalyticsScreen';
 import SmsScam from './components/SmsScam';
@@ -9,55 +8,116 @@ import InstagramScam from './components/InstagramScam';
 import PopupScam from './components/PopupScam';
 import FlagCard from './components/FlagCard';
 
-export default function ScamScreen({ results, setResults }) {
-  const { id } = useParams();
-  const navigate = useNavigate();
-
-  // Convert URL ID (1-based) to Array Index (0-based)
-  const scamIndex = parseInt(id) - 1;
-  const scam = scams[scamIndex];
-
+export default function ScamScreen() {
+  const [scamIndex, setScamIndex] = useState(0);
+  const [results, setResults] = useState([]);
   const [userVerdict, setUserVerdict] = useState(null);
   const [phase, setPhase] = useState('idle');
   const [flagIndex, setFlagIndex] = useState(0);
   const [cardPosition, setCardPosition] = useState({ top: 0, left: 0 });
+  // How much padding-bottom to add to the container so the card isn't clipped
+  const [containerPad, setContainerPad] = useState(0);
 
   const containerRef = useRef(null);
+  const cardHeightRef = useRef(260);
 
-  // Reset internal state when the URL ID changes (user hits back/next)
-  useEffect(() => {
+  const scam = scams[scamIndex];
+  const isLastScam = scamIndex === scams.length - 1;
+
+  const goToNextScam = () => {
     setUserVerdict(null);
     setPhase('idle');
     setFlagIndex(0);
-  }, [id]);
+    setCardPosition({ top: 0, left: 0 });
+    setContainerPad(0);
+    cardHeightRef.current = 260;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setScamIndex((prev) => prev + 1);
+  };
 
-  useEffect(() => {
-    if (phase === 'revealing') {
-      const activeElement = containerRef.current?.querySelector(
-        '.active, .safe-active',
-      );
-      if (activeElement) {
-        const rect = activeElement.getBoundingClientRect();
-        const containerRect = containerRef.current.getBoundingClientRect();
+  // ─── Core: position card + expand container + scroll ──────────────────────
+  const positionAndScroll = useCallback(() => {
+    if (!containerRef.current) return;
+    const activeEl = containerRef.current.querySelector(
+      '.active, .safe-active',
+    );
+    if (!activeEl) return;
 
-        setCardPosition({
-          top: rect.bottom - containerRect.top + 12,
-          left: rect.left - containerRect.left + rect.width / 2,
-        });
-      }
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const activeRect = activeEl.getBoundingClientRect();
+    const cardHeight = cardHeightRef.current;
+    const PADDING = 48;
+
+    // Card top relative to the container (for absolute positioning)
+    const cardTop = activeRect.bottom - containerRect.top + 12;
+    const cardLeft =
+      activeRect.left - containerRect.left + activeRect.width / 2;
+
+    setCardPosition({ top: cardTop, left: cardLeft });
+
+    // How tall the container needs to be to contain the card fully
+    // containerRect.top is where the container starts relative to viewport.
+    // cardTop is from container top. So card bottom in container = cardTop + cardHeight.
+    const neededPad = cardTop + cardHeight + PADDING;
+    // Only grow, never shrink while on same flag
+    setContainerPad((prev) => Math.max(prev, neededPad));
+
+    // Scroll: the card bottom in page coords
+    const cardBottomOnPage =
+      window.scrollY + containerRect.top + cardTop + cardHeight + PADDING;
+    const currentViewportBottom = window.scrollY + window.innerHeight;
+
+    if (cardBottomOnPage > currentViewportBottom) {
+      window.scrollTo({
+        top: cardBottomOnPage - window.innerHeight,
+        behavior: 'smooth',
+      });
     }
-  }, [phase, flagIndex, id]);
 
-  if (!scam) {
+    // Guard: flagged element above viewport
+    const activeTopOnPage = window.scrollY + activeRect.top;
+    if (activeRect.top < 80) {
+      window.scrollTo({ top: activeTopOnPage - 80, behavior: 'smooth' });
+    }
+  }, []);
+
+  // FlagCard reports its real rendered height → re-run scroll with accurate value
+  const handleCardMeasure = useCallback(
+    (height) => {
+      cardHeightRef.current = height;
+      positionAndScroll();
+    },
+    [positionAndScroll],
+  );
+
+  // Trigger on phase/flag/scam changes
+  useEffect(() => {
+    if (phase !== 'revealing') return;
+    // Small rAF delay so the DOM has applied the active class before we measure
+    const raf = requestAnimationFrame(() => positionAndScroll());
+    return () => cancelAnimationFrame(raf);
+  }, [phase, flagIndex, scamIndex, positionAndScroll]);
+
+  // ─── Analytics ────────────────────────────────────────────────────────────
+  if (scamIndex >= scams.length) {
     return (
       <AnalyticsScreen
         results={results}
-        onRestart={() => navigate('/quiz/1')}
+        onRestart={() => {
+          setResults([]);
+          setScamIndex(0);
+          setUserVerdict(null);
+          setPhase('idle');
+          setFlagIndex(0);
+          setCardPosition({ top: 0, left: 0 });
+          setContainerPad(0);
+          cardHeightRef.current = 260;
+          window.scrollTo({ top: 0, behavior: 'instant' });
+        }}
       />
     );
   }
 
-  const isLastScam = scamIndex === scams.length - 1;
   const currentFlag = phase === 'revealing' ? scam.flags[flagIndex] : null;
   const isLastFlag = flagIndex === scam.flags.length - 1;
 
@@ -73,7 +133,6 @@ export default function ScamScreen({ results, setResults }) {
 
   const handleNextFlag = () => {
     if (isLastFlag) {
-      // Record result
       setResults((prev) => [
         ...prev,
         {
@@ -82,30 +141,11 @@ export default function ScamScreen({ results, setResults }) {
           verdictCorrect: userVerdict === scam.verdict,
         },
       ]);
-
-      // Navigate to next ID in URL
-      const nextId = parseInt(id) + 1;
-      if (nextId > scams.length) {
-        setPhase('completed'); // Shows results
-      } else {
-        navigate(`/quiz/${nextId}`);
-      }
+      goToNextScam();
     } else {
       setFlagIndex((prev) => prev + 1);
     }
   };
-
-  if (phase === 'completed') {
-    return (
-      <AnalyticsScreen
-        results={results}
-        onRestart={() => {
-          setResults([]);
-          navigate('/quiz/1');
-        }}
-      />
-    );
-  }
 
   const renderScam = () => {
     const props = { scam, activeFlagId: currentFlag?.id };
@@ -125,7 +165,13 @@ export default function ScamScreen({ results, setResults }) {
 
   return (
     <div
-      className={`scam-wrapper ${phase !== 'idle' ? (userVerdict === scam.verdict ? 'correct-glow' : 'incorrect-glow') : ''}`}
+      className={`scam-wrapper ${
+        phase !== 'idle'
+          ? userVerdict === scam.verdict
+            ? 'correct-glow'
+            : 'incorrect-glow'
+          : ''
+      }`}
     >
       {phase !== 'idle' && (
         <div
@@ -137,25 +183,6 @@ export default function ScamScreen({ results, setResults }) {
           <span className="verdict-header-short">{scam.explanation.short}</span>
         </div>
       )}
-
-      <div className="scam-relative-container" ref={containerRef}>
-        <div key={scam.id} className="scam-content slide-in">
-          {renderScam()}
-        </div>
-
-        {phase === 'revealing' && currentFlag && (
-          <FlagCard
-            flag={currentFlag}
-            flagIndex={flagIndex}
-            totalFlags={scam.flags.length}
-            isLastFlag={isLastFlag}
-            isLastScam={isLastScam}
-            onNext={handleNextFlag}
-            coords={cardPosition}
-            verdict={scam.verdict}
-          />
-        )}
-      </div>
 
       {phase === 'idle' && (
         <div className="verdict-section">
@@ -184,9 +211,40 @@ export default function ScamScreen({ results, setResults }) {
         </div>
       )}
 
+      {/*
+        padding-bottom is set dynamically so the container is tall enough
+        to contain the absolutely-positioned flag card, making the page
+        scrollable to fully reveal it.
+      */}
+      <div
+        className="scam-relative-container"
+        ref={containerRef}
+        style={
+          containerPad > 0 ? { paddingBottom: `${containerPad}px` } : undefined
+        }
+      >
+        <div key={scam.id} className="scam-content slide-in">
+          {renderScam()}
+        </div>
+
+        {phase === 'revealing' && currentFlag && (
+          <FlagCard
+            flag={currentFlag}
+            flagIndex={flagIndex}
+            totalFlags={scam.flags.length}
+            isLastFlag={isLastFlag}
+            isLastScam={isLastScam}
+            onNext={handleNextFlag}
+            coords={cardPosition}
+            verdict={scam.verdict}
+            onMeasure={handleCardMeasure}
+          />
+        )}
+      </div>
+
       <div className="scam-footer">
         <p className="progress">
-          {id}/{scams.length}
+          {scamIndex + 1}/{scams.length}
         </p>
       </div>
     </div>
