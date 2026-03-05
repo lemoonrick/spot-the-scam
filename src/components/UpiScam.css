@@ -1,0 +1,277 @@
+.upi-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* Phone shell */
+.upi-phone {
+  width: 300px;
+  border-radius: 36px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.15),
+    0 24px 60px rgba(0, 0, 0, 0.28),
+    0 8px 20px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  background: #1a1f2e;
+  font-family: 'Google Sans', 'Poppins', system-ui, sans-serif;
+}
+
+/* ── Status bar ── */
+.upi-statusbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px 6px;
+  background: #1a1f2e;
+}
+.upi-time {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.2px;
+}
+.upi-sb-icons {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.upi-battery {
+  width: 22px;
+  height: 11px;
+  border-radius: 3px;
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  position: relative;
+  padding: 1.5px;
+  display: flex;
+  align-items: center;
+}
+.upi-battery::after {
+  content: '';
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 0 1px 1px 0;
+}
+.upi-battery-fill {
+  width: 72%;
+  height: 100%;
+  background: #34a853;
+  border-radius: 1px;
+}
+
+/* ── Header ── */
+.upi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px 0;
+  background: #1a1f2e;
+}
+
+.upi-header-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.upi-avatar-sm {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4285f4, #34a853);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.upi-header-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.upi-recipient-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  border-radius: 4px;
+  padding: 1px 4px;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+.upi-recipient-id {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  border-radius: 4px;
+  padding: 1px 4px;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.upi-recipient-name.upi-active,
+.upi-recipient-id.upi-active {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  outline: 1.5px solid rgba(239, 68, 68, 0.4);
+  outline-offset: 1px;
+}
+
+/* ── Amount section ── */
+.upi-amount-section {
+  text-align: center;
+  padding: 20px 24px 16px;
+  background: #1a1f2e;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+.upi-amount-section.upi-active {
+  background: rgba(239, 68, 68, 0.1);
+  outline: 1.5px solid rgba(239, 68, 68, 0.25);
+}
+
+.upi-paying-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.upi-amount {
+  font-size: 42px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -1.5px;
+  line-height: 1;
+  margin-bottom: 14px;
+}
+
+/* Note chip */
+.upi-note-chip {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 8px 12px;
+  text-align: left;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+  max-width: 240px;
+}
+.upi-note-chip.upi-active {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+.upi-note-chip svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.upi-note-chip span {
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.5;
+}
+.upi-note-chip.upi-active span {
+  color: #fca5a5;
+}
+
+/* ── PIN area ── */
+.upi-pin-area {
+  background: #f8f9fa;
+  padding: 22px 20px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.upi-pin-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3c4043;
+  margin-bottom: 16px;
+  letter-spacing: 0.1px;
+}
+
+/* 6 PIN dots */
+.upi-pin-dots {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.upi-pin-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid #dadce0;
+  background: transparent;
+}
+
+/* Numpad */
+.upi-numpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  width: 100%;
+}
+
+.upi-key {
+  background: transparent;
+  border: none;
+  padding: 14px 8px;
+  font-size: 20px;
+  font-weight: 500;
+  color: #202124;
+  cursor: default;
+  border-radius: 8px;
+  font-family: inherit;
+  line-height: 1;
+  transition: background 0.12s ease;
+}
+.upi-key:not(.upi-key-empty):hover {
+  background: #f1f3f4;
+}
+.upi-key-empty {
+  pointer-events: none;
+}
+
+/* ── Bank row ── */
+.upi-bank-row {
+  background: #f8f9fa;
+  border-top: 1px solid #e8eaed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 20px 20px;
+  border-radius: 0 0 36px 36px;
+}
+.upi-bank-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #5f6368;
+}
+
+/* Prevent App.css .active styles from bleeding into the dark UPI phone */
+.upi-phone .active {
+  background: unset;
+  color: unset;
+  outline: unset;
+}

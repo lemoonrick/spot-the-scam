@@ -78,143 +78,6 @@ button:active {
 }
 
 /* ============================================================
-   HERO SCREEN
-   ============================================================ */
-.hero-wrapper {
-  position: relative;
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  text-align: center;
-  overflow: hidden;
-  padding: 40px 20px;
-  background:
-    radial-gradient(
-      circle at 20% 30%,
-      rgba(59, 130, 246, 0.06),
-      transparent 40%
-    ),
-    radial-gradient(circle at 80% 70%, rgba(239, 68, 68, 0.06), transparent 40%);
-}
-
-.hero-content {
-  max-width: 860px;
-  opacity: 0;
-  transform: translateY(24px);
-  transition:
-    opacity 0.8s ease,
-    transform 0.8s ease;
-}
-
-.hero-content.entered {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.hero-title {
-  font-size: clamp(38px, 6vw, 68px);
-  font-weight: 700;
-  line-height: 1.12;
-  margin-bottom: 20px;
-}
-
-.hero-subtitle {
-  font-size: 17px;
-  color: var(--text-muted);
-  line-height: 1.6;
-  margin-bottom: 36px;
-}
-
-.hero-btn {
-  display: inline-block;
-  padding: 16px 56px;
-  font-size: 17px;
-  font-weight: 700;
-  border-radius: var(--radius-pill);
-  color: white;
-  background: linear-gradient(135deg, var(--green), var(--green-dark));
-  box-shadow: 0 12px 28px var(--green-shadow);
-}
-
-.hero-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 18px 36px var(--green-shadow);
-}
-
-.floating-icon {
-  position: absolute;
-  font-size: 56px;
-  opacity: 0.07;
-  pointer-events: none;
-  transform: translate(var(--parallax-x, 0px), var(--parallax-y, 0px));
-  transition: transform 0.12s linear;
-}
-
-.icon-1 {
-  top: 14%;
-  left: 14%;
-}
-.icon-2 {
-  top: 18%;
-  right: 11%;
-}
-.icon-3 {
-  bottom: 22%;
-  left: 17%;
-}
-.icon-4 {
-  bottom: 14%;
-  right: 19%;
-}
-.icon-5 {
-  top: 46%;
-  left: 50%;
-}
-
-.hero-footer {
-  position: absolute;
-  bottom: 36px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  opacity: 0.55;
-  transition: opacity 0.3s ease;
-}
-
-.hero-footer:hover {
-  opacity: 1;
-}
-.hero-logo {
-  height: 26px;
-}
-
-.hero-socials {
-  display: flex;
-  gap: 14px;
-}
-
-.hero-socials svg {
-  width: 20px;
-  height: 20px;
-  fill: var(--text-main);
-  opacity: 0.65;
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
-}
-
-.hero-socials svg:hover {
-  opacity: 1;
-  transform: translateY(-2px);
-}
-
-.highlight {
-  background: linear-gradient(90deg, var(--green), #3b82f6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* ============================================================
    SCAM FLOW LAYOUT
    ============================================================ */
 .scam-wrapper {
@@ -234,6 +97,7 @@ button:active {
   animation: incorrectFlash 0.8s ease;
 }
 
+/* ── Verdict header ── */
 .verdict-header {
   width: 100%;
   max-width: 580px;
@@ -250,7 +114,6 @@ button:active {
   background: var(--correct-bg);
   border: 1.5px solid var(--correct-border);
 }
-
 .verdict-header.incorrect {
   background: var(--incorrect-bg);
   border: 1.5px solid var(--incorrect-border);
@@ -261,19 +124,20 @@ button:active {
   font-weight: 700;
   white-space: nowrap;
 }
-
 .verdict-header.correct .verdict-header-label {
   color: var(--correct-text);
 }
 .verdict-header.incorrect .verdict-header-label {
   color: var(--incorrect-text);
 }
+
 .verdict-header-short {
   font-size: 14px;
   color: #374151;
   line-height: 1.5;
 }
 
+/* ── Scam content ── */
 .scam-content {
   width: 100%;
   display: flex;
@@ -281,7 +145,6 @@ button:active {
   animation: slideInRight 0.35s ease forwards;
 }
 
-/* ── Dynamic Floating Flag Card ── */
 .scam-relative-container {
   position: relative;
   width: 100%;
@@ -289,6 +152,7 @@ button:active {
   justify-content: center;
 }
 
+/* ── Flag card ── */
 .flag-card-wrap {
   position: absolute;
   z-index: 2000;
@@ -300,7 +164,7 @@ button:active {
 }
 
 .flag-card {
-  background: #ffffff !important;
+  background: #ffffff;
   border-radius: 12px;
   padding: 16px;
   position: relative;
@@ -316,7 +180,6 @@ button:active {
   transform: translateX(-50%);
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
-  /* This variable is set dynamically in the FlagCard style prop */
   border-bottom: 12px solid var(--current-theme);
 }
 
@@ -335,13 +198,8 @@ button:active {
     background 0.2s ease,
     transform 0.2s ease;
 }
-
 .flag-dot.active {
-  background: var(--red);
   transform: scale(1.25);
-}
-.flag-dot.done {
-  background: #fca5a5;
 }
 
 .flag-card-label {
@@ -350,8 +208,6 @@ button:active {
   font-weight: 700;
   letter-spacing: 0.7px;
   text-transform: uppercase;
-  color: var(--red);
-  background: var(--red-soft);
   padding: 3px 10px;
   border-radius: var(--radius-pill);
   margin-bottom: 8px;
@@ -374,16 +230,26 @@ button:active {
   font-weight: 600;
   box-shadow: 0 4px 14px var(--green-shadow);
 }
-
 .flag-next-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 20px var(--green-shadow);
 }
 
-/* ── Verdict section (idle phase) ── */
+/* ── Verdict section ── */
 .verdict-section {
   text-align: center;
 }
+
+.guide-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: 520px;
+  margin: 0 auto 18px;
+  padding: 0 8px;
+}
+
 .verdict-buttons {
   display: flex;
   justify-content: center;
@@ -395,38 +261,16 @@ button:active {
   border-radius: var(--radius-pill);
   font-size: 15px;
   font-weight: 600;
-  color: var(--text-main);
-  background: var(--card-bg);
-  border: 1.5px solid var(--border-soft);
+  color: white;
+  background: linear-gradient(135deg, var(--green), var(--green-dark));
+  border: 1.5px solid transparent;
   box-shadow: var(--shadow-card);
 }
-
 .verdict-btn:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-card-hover);
 }
-.verdict-btn.selected.phishing {
-  background: #fef2f2;
-  border-color: #fca5a5;
-  color: var(--red-dark);
-}
-.verdict-btn.selected.legit {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  color: #1d4ed8;
-}
 
-.show-me-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  animation: fadeUp 0.22s ease forwards;
-}
-.show-me-hint {
-  font-size: 13px;
-  color: var(--text-muted);
-}
 .show-btn {
   padding: 13px 36px;
   border-radius: var(--radius-pill);
@@ -442,6 +286,7 @@ button:active {
 .scam-footer {
   text-align: center;
 }
+
 .progress {
   font-size: 13px;
   color: var(--text-muted);
@@ -449,29 +294,33 @@ button:active {
   font-weight: 500;
 }
 
-/* ── Flag active state styling ── */
+/* ── Flag active states ── */
 .sms-flag,
 .wa-flag,
 .insta-flag,
 .popup-flag,
 .gmail-flag,
+.rich-flag,
 .flag {
   border-radius: 4px;
   transition:
     background 0.22s ease,
     color 0.22s ease;
 }
+
 .sms-flag.active,
 .wa-flag.active,
 .insta-flag.active,
 .popup-flag.active,
 .gmail-flag.active,
+.rich-flag.active,
 .flag.active {
   background: var(--red-soft);
   color: #991b1b;
   outline: 2px solid var(--red-border);
   outline-offset: 2px;
 }
+
 .gmail-sender-addr.active {
   background: var(--red-soft);
   color: #991b1b;
@@ -481,218 +330,15 @@ button:active {
   border-radius: 3px;
 }
 
-/* ============================================================
-   ANALYTICS SCREEN (REVISITED)
-   ============================================================ */
-.analytics-page {
-  width: 100%;
+.gmail-flag.safe-active,
+.flag.safe-active {
+  background: rgba(59, 130, 246, 0.1);
+  color: #1e40af;
+  outline: 2px solid rgba(59, 130, 246, 0.4);
+  outline-offset: 2px;
 }
 
-.analytics-hero {
-  min-height: 90vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 60px 20px;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(34, 197, 94, 0.1), transparent 40%),
-    radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.1), transparent 40%);
-  animation: fadeUp 0.5s ease forwards;
-}
-
-.analytics-inner {
-  max-width: 680px;
-  width: 100%;
-}
-
-.analytics-title {
-  font-size: clamp(24px, 5vw, 32px);
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  margin-bottom: 40px;
-  color: var(--text-main);
-}
-
-.score-container {
-  position: relative;
-  width: 220px;
-  height: 220px;
-  margin: 0 auto 32px;
-  display: grid;
-  place-items: center;
-}
-
-.score-glow {
-  position: absolute;
-  width: 140px;
-  height: 140px;
-  filter: blur(60px);
-  opacity: 0.15;
-  transition: background-color 0.5s ease;
-  border-radius: 50%;
-}
-
-.score-ring-v2 {
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  position: relative;
-  background: conic-gradient(
-    var(--score-color) calc(var(--score) * 1%),
-    #e2e8f0 0deg
-  );
-  transition: --score-color 0.5s ease;
-}
-
-.score-ring-v2::after {
-  content: '';
-  position: absolute;
-  width: 170px;
-  height: 170px;
-  background: #ffffff;
-  border-radius: 50%;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.score-content {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: baseline;
-}
-.score-number {
-  font-size: 64px;
-  font-weight: 800;
-  color: #1e293b;
-  line-height: 1;
-}
-.score-percent {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--text-muted);
-  margin-left: 2px;
-}
-
-.analytics-summary {
-  font-size: 17px;
-  color: var(--text-muted);
-  margin-bottom: 16px;
-}
-
-.feedback-badge {
-  display: inline-block;
-  padding: 8px 20px;
-  border-radius: 99px;
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 30px;
-}
-.feedback-badge.high {
-  background: #ecfdf5;
-  color: #059669;
-  border: 1px solid #a7f3d0;
-}
-.feedback-badge.mid {
-  background: #fffbeb;
-  color: #d97706;
-  border: 1px solid #fde68a;
-}
-.feedback-badge.low {
-  background: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
-}
-
-.analytics-restart-v2 {
-  padding: 16px 48px;
-  border-radius: var(--radius-pill);
-  background: #1e293b;
-  color: white;
-  font-size: 16px;
-  font-weight: 700;
-  box-shadow: 0 10px 20px rgba(30, 41, 59, 0.15);
-  transition: all 0.2s ease;
-}
-
-.analytics-restart-v2:hover {
-  background: #0f172a;
-  transform: translateY(-2px);
-  box-shadow: 0 15px 30px rgba(30, 41, 59, 0.2);
-}
-
-.scroll-indicator {
-  margin-top: 28px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  opacity: 0;
-  animation: fadeUp 0.5s ease 0.8s forwards;
-}
-
-.mouse {
-  width: 24px;
-  height: 38px;
-  border: 2px solid #9ca3af;
-  border-radius: 20px;
-  position: relative;
-}
-.wheel {
-  width: 4px;
-  height: 7px;
-  background: #9ca3af;
-  border-radius: 4px;
-  position: absolute;
-  top: 7px;
-  left: 50%;
-  transform: translateX(-50%);
-  animation: scrollWheel 1.5s ease-in-out infinite;
-}
-
-/* Blog Section */
-.blog-section {
-  padding: 80px 32px;
-  background: #f9fafb;
-}
-.blog-header {
-  text-align: center;
-  margin-bottom: 44px;
-}
-.blog-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-  gap: 26px;
-  max-width: 1060px;
-  margin: 0 auto;
-}
-
-.blog-card {
-  background: white;
-  border-radius: var(--radius-card);
-  overflow: hidden;
-  text-decoration: none;
-  color: inherit;
-  box-shadow: var(--shadow-card);
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
-}
-.blog-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-card-hover);
-}
-.blog-image {
-  height: 190px;
-  background-size: cover;
-  background-position: center;
-}
-.blog-content {
-  padding: 18px;
-}
-
+/* confetti canvas (triggered from AnalyticsScreen) */
 .confetti-canvas {
   position: fixed;
   inset: 0;
@@ -764,16 +410,6 @@ button:active {
     box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
   }
 }
-@keyframes scrollWheel {
-  0% {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, 10px);
-  }
-}
 
 /* ============================================================
    RESPONSIVE
@@ -795,12 +431,4 @@ button:active {
     width: 240px;
     left: 50% !important;
   }
-}
-
-.gmail-flag.safe-active,
-.flag.safe-active {
-  background: rgba(59, 130, 246, 0.1);
-  color: #1e40af;
-  outline: 2px solid rgba(59, 130, 246, 0.4);
-  outline-offset: 2px;
 }

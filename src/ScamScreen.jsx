@@ -1,14 +1,28 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { scams } from './scams';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { scams as allScams } from './scams';
 import AnalyticsScreen from './AnalyticsScreen';
 import SmsScam from './components/SmsScam';
 import WhatsAppScam from './components/WhatsAppScam';
 import EmailScam from './components/EmailScam';
 import InstagramScam from './components/InstagramScam';
 import PopupScam from './components/PopupScam';
+import UpiScam from './components/UpiScam';
 import FlagCard from './components/FlagCard';
 
+// Fisher-Yates shuffle — returns a new shuffled array, never mutates original
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 export default function ScamScreen() {
+  // Shuffle once when the component first mounts — stays stable across re-renders
+  const scams = useMemo(() => shuffle(allScams), []);
+
   const [scamIndex, setScamIndex] = useState(0);
   const [results, setResults] = useState([]);
   const [userVerdict, setUserVerdict] = useState(null);
@@ -24,11 +38,7 @@ export default function ScamScreen() {
   const isLastScam = scamIndex === scams.length - 1;
 
   const goToNextScam = () => {
-    // Instant jump to top FIRST — before any state change —
-    // so the new scam always starts with buttons visible.
-    // 'instant' avoids the smooth-scroll race condition on mobile.
     window.scrollTo({ top: 0, behavior: 'instant' });
-
     setUserVerdict(null);
     setPhase('idle');
     setFlagIndex(0);
@@ -38,11 +48,10 @@ export default function ScamScreen() {
     setScamIndex((prev) => prev + 1);
   };
 
-  // ─── Position card + expand container + scroll ────────────────────────────
   const positionAndScroll = useCallback(() => {
     if (!containerRef.current) return;
     const activeEl = containerRef.current.querySelector(
-      '.active, .safe-active',
+      '.active, .safe-active, .upi-active',
     );
     if (!activeEl) return;
 
@@ -57,11 +66,9 @@ export default function ScamScreen() {
 
     setCardPosition({ top: cardTop, left: cardLeft });
 
-    // Grow the container so the absolute card is within document flow
     const neededPad = cardTop + cardHeight + PADDING;
     setContainerPad((prev) => Math.max(prev, neededPad));
 
-    // Scroll so card bottom is in view
     const cardBottomOnPage =
       window.scrollY + containerRect.top + cardTop + cardHeight + PADDING;
     const currentViewportBottom = window.scrollY + window.innerHeight;
@@ -73,7 +80,6 @@ export default function ScamScreen() {
       });
     }
 
-    // Guard: flagged element scrolled above fold
     if (activeRect.top < 80) {
       window.scrollTo({
         top: window.scrollY + activeRect.top - 80,
@@ -82,7 +88,6 @@ export default function ScamScreen() {
     }
   }, []);
 
-  // FlagCard reports real rendered height → refine scroll
   const handleCardMeasure = useCallback(
     (height) => {
       cardHeightRef.current = height;
@@ -91,14 +96,12 @@ export default function ScamScreen() {
     [positionAndScroll],
   );
 
-  // Trigger on phase/flag change
   useEffect(() => {
     if (phase !== 'revealing') return;
     const raf = requestAnimationFrame(() => positionAndScroll());
     return () => cancelAnimationFrame(raf);
   }, [phase, flagIndex, scamIndex, positionAndScroll]);
 
-  // ─── Analytics ────────────────────────────────────────────────────────────
   if (scamIndex >= scams.length) {
     return (
       <AnalyticsScreen
@@ -158,6 +161,8 @@ export default function ScamScreen() {
         return <InstagramScam {...props} />;
       case 'popup':
         return <PopupScam {...props} />;
+      case 'upi':
+        return <UpiScam {...props} />;
       default:
         return <SmsScam {...props} />;
     }
@@ -186,6 +191,7 @@ export default function ScamScreen() {
 
       {phase === 'idle' && (
         <div className="verdict-section">
+          {scam.guideText && <p className="guide-text">{scam.guideText}</p>}
           <div className="verdict-buttons">
             <button
               className="verdict-btn"

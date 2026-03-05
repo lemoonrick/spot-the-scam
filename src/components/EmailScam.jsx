@@ -1,6 +1,87 @@
 import './EmailScam.css';
 
+// ── Rich HTML email body (Netflix-style marketing email) ──────────────────────
+function RichEmailBody({ scam, activeFlagId }) {
+  const h = scam.richHero;
+  return (
+    <div className="gmail-rich-body">
+      <div className="rich-email-wrap">
+        {/* Brand header bar */}
+        <div className="rich-email-header">
+          <svg className="rich-netflix-n" viewBox="0 0 111 190" fill="none">
+            <path
+              d="M0 0h30.7l40 112.6V0H101v190H71L30.7 77V190H0V0z"
+              fill="#E50914"
+            />
+          </svg>
+          <div className="rich-email-header-text">
+            <span className="rich-header-tag">{h.tagline}</span>
+            <span className="rich-header-title">{h.title}</span>
+            <span className="rich-header-subtitle">{h.subtitle}</span>
+          </div>
+        </div>
+
+        {/* Dark hero area */}
+        <div className="rich-hero">
+          <div className="rich-hero-badge">New Episode</div>
+          <div className="rich-hero-title">{h.title}</div>
+          <div className="rich-hero-meta">
+            {h.meta.split('·').map((m, i) => (
+              <span key={i}>{m.trim()}</span>
+            ))}
+          </div>
+          <p className="rich-hero-desc">{h.body}</p>
+
+          <div className="rich-cta-wrap">
+            <button
+              className={`rich-cta-btn rich-flag${activeFlagId === 'real-link' ? ' active' : ''}`}
+              style={{ background: h.ctaColor }}
+            >
+              {h.ctaText}
+            </button>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="rich-footer">
+          <p className="rich-footer-text">
+            You are receiving this because you subscribed to Netflix updates.{' '}
+            <span className="rich-footer-link">Unsubscribe</span>
+            {' · '}
+            <span className="rich-footer-link">Help Center</span>
+            {'\n\n'}
+            Netflix, Inc. · 121 Albright Way, Los Gatos, CA 95032
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Plain text email body ─────────────────────────────────────────────────────
+function PlainEmailBody({ scam, activeFlagId }) {
+  return (
+    <div className="gmail-body">
+      {scam.message.map((line, i) =>
+        line.flag ? (
+          <span
+            key={i}
+            className={`gmail-flag${activeFlagId === line.flag ? ' active' : ''}`}
+          >
+            {line.text}
+          </span>
+        ) : (
+          <span key={i}>{line.text}</span>
+        ),
+      )}
+    </div>
+  );
+}
+
+// ── Main export ───────────────────────────────────────────────────────────────
 export default function EmailScam({ scam, activeFlagId }) {
+  const isRich = scam.emailStyle === 'rich';
+
   return (
     <div className="gmail-wrap">
       <div className="gmail-chrome">
@@ -36,7 +117,7 @@ export default function EmailScam({ scam, activeFlagId }) {
           </div>
         </div>
 
-        {/* Thread view */}
+        {/* Thread */}
         <div className="gmail-thread">
           <div className="gmail-subject-row">
             <h2 className="gmail-subject-line">{scam.subject}</h2>
@@ -44,7 +125,7 @@ export default function EmailScam({ scam, activeFlagId }) {
           </div>
 
           <div className="gmail-message-card">
-            {/* Sender header */}
+            {/* Sender row — always present */}
             <div className="gmail-sender-row">
               <div className="gmail-avatar-circle">
                 {scam.senderName.charAt(0)}
@@ -54,7 +135,12 @@ export default function EmailScam({ scam, activeFlagId }) {
                   <span className="gmail-sender-name">{scam.senderName}</span>
                   to:
                   <span
-                    className={`gmail-sender-addr${activeFlagId === 'spoofed-sender' || activeFlagId === 'official-domain' ? ' active' : ''}`}
+                    className={`gmail-sender-addr${
+                      activeFlagId === 'spoofed-sender' ||
+                      activeFlagId === 'official-domain'
+                        ? ' active'
+                        : ''
+                    }`}
                   >
                     {scam.senderEmail}
                   </span>
@@ -79,20 +165,11 @@ export default function EmailScam({ scam, activeFlagId }) {
             </div>
 
             {/* Body */}
-            <div className="gmail-body">
-              {scam.message.map((line, i) =>
-                line.flag ? (
-                  <span
-                    key={i}
-                    className={`gmail-flag${activeFlagId === line.flag ? ' active' : ''}`}
-                  >
-                    {line.text}
-                  </span>
-                ) : (
-                  <span key={i}>{line.text}</span>
-                ),
-              )}
-            </div>
+            {isRich ? (
+              <RichEmailBody scam={scam} activeFlagId={activeFlagId} />
+            ) : (
+              <PlainEmailBody scam={scam} activeFlagId={activeFlagId} />
+            )}
 
             {/* Reply bar */}
             <div className="gmail-reply-row">
