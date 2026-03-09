@@ -235,6 +235,38 @@ button:active {
   box-shadow: 0 8px 20px var(--green-shadow);
 }
 
+/* ── Progress bar (replaces plain 1/10 counter) ── */
+.scam-progress-bar-wrap {
+  width: 100%;
+  max-width: 580px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.scam-progress-track {
+  flex: 1;
+  height: 5px;
+  background: var(--border-soft);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.scam-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), var(--green-dark));
+  border-radius: var(--radius-pill);
+  transition: width 0.4s ease;
+}
+
+.scam-progress-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
 /* ── Verdict section ── */
 .verdict-section {
   text-align: center;
@@ -317,15 +349,12 @@ button:active {
 .flag.active {
   background: var(--red-soft);
   color: #991b1b;
-  outline: 2px solid var(--red-border);
-  outline-offset: 2px;
+  border-radius: 3px;
 }
 
 .gmail-sender-addr.active {
   background: var(--red-soft);
   color: #991b1b;
-  outline: 2px solid var(--red-border);
-  outline-offset: 1px;
   font-weight: 600;
   border-radius: 3px;
 }
@@ -334,8 +363,7 @@ button:active {
 .flag.safe-active {
   background: rgba(59, 130, 246, 0.1);
   color: #1e40af;
-  outline: 2px solid rgba(59, 130, 246, 0.4);
-  outline-offset: 2px;
+  border-radius: 3px;
 }
 
 /* confetti canvas (triggered from AnalyticsScreen) */

@@ -30,6 +30,7 @@ export default function ScamScreen() {
   const [containerPad, setContainerPad] = useState(0);
 
   const containerRef = useRef(null);
+  const scamContentRef = useRef(null);
   const cardHeightRef = useRef(260);
 
   const scam = scams[scamIndex];
@@ -64,26 +65,15 @@ export default function ScamScreen() {
 
     setCardPosition({ top: cardTop, left: cardLeft });
 
-    const neededPad = cardTop + cardHeight + PADDING;
-    setContainerPad((prev) => Math.max(prev, neededPad));
-
-    const cardBottomOnPage =
-      window.scrollY + containerRect.top + cardTop + cardHeight + PADDING;
-    const currentViewportBottom = window.scrollY + window.innerHeight;
-
-    if (cardBottomOnPage > currentViewportBottom) {
-      window.scrollTo({
-        top: cardBottomOnPage - window.innerHeight,
-        behavior: 'smooth',
-      });
+    // Only pad by how much the FlagCard bottom exceeds the phone's natural height.
+    const phoneHeight = scamContentRef.current
+      ? scamContentRef.current.scrollHeight
+      : 0;
+    const overflow = cardTop + cardHeight + PADDING - phoneHeight;
+    if (overflow > 0) {
+      setContainerPad((prev) => Math.max(prev, overflow));
     }
-
-    if (activeRect.top < 80) {
-      window.scrollTo({
-        top: window.scrollY + activeRect.top - 80,
-        behavior: 'smooth',
-      });
-    }
+    // Scroll happens in a separate useEffect once containerPad has actually been applied.
   }, []);
 
   const handleCardMeasure = useCallback(
@@ -99,6 +89,38 @@ export default function ScamScreen() {
     const raf = requestAnimationFrame(() => positionAndScroll());
     return () => cancelAnimationFrame(raf);
   }, [phase, flagIndex, scamIndex, positionAndScroll]);
+
+  // Scroll AFTER containerPad has been applied to the DOM so the card is fully in view.
+  useEffect(() => {
+    if (phase !== 'revealing' || !containerRef.current) return;
+    const raf = requestAnimationFrame(() => {
+      const activeEl = containerRef.current.querySelector(
+        '.active, .safe-active, .upi-active',
+      );
+      if (!activeEl) return;
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const cardHeight = cardHeightRef.current;
+      const PADDING = 48;
+      const cardTop =
+        activeEl.getBoundingClientRect().bottom - containerRect.top + 12;
+      const cardBottomOnPage =
+        window.scrollY + containerRect.top + cardTop + cardHeight + PADDING;
+      const currentViewportBottom = window.scrollY + window.innerHeight;
+      if (cardBottomOnPage > currentViewportBottom) {
+        window.scrollTo({
+          top: cardBottomOnPage - window.innerHeight,
+          behavior: 'smooth',
+        });
+      }
+      if (activeEl.getBoundingClientRect().top < 80) {
+        window.scrollTo({
+          top: window.scrollY + activeEl.getBoundingClientRect().top - 80,
+          behavior: 'smooth',
+        });
+      }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [containerPad, phase]);
 
   if (scamIndex >= scams.length) {
     return (
@@ -179,6 +201,18 @@ export default function ScamScreen() {
           : ''
       }`}
     >
+      <div className="scam-progress-bar-wrap">
+        <div className="scam-progress-track">
+          <div
+            className="scam-progress-fill"
+            style={{ width: `${((scamIndex + 1) / scams.length) * 100}%` }}
+          />
+        </div>
+        <span className="scam-progress-label">
+          {scamIndex + 1} / {scams.length}
+        </span>
+      </div>
+
       {phase !== 'idle' && (
         <div
           className={`verdict-header ${userVerdict === scam.verdict ? 'correct' : 'incorrect'}`}
@@ -225,7 +259,11 @@ export default function ScamScreen() {
           containerPad > 0 ? { paddingBottom: `${containerPad}px` } : undefined
         }
       >
-        <div key={scam.id} className="scam-content slide-in">
+        <div
+          key={scam.id}
+          className="scam-content slide-in"
+          ref={scamContentRef}
+        >
           {renderScam()}
         </div>
 
@@ -244,11 +282,11 @@ export default function ScamScreen() {
         )}
       </div>
 
-      <div className="scam-footer">
+      {/* <div className="scam-footer">
         <p className="progress">
           {scamIndex + 1}/{scams.length}
         </p>
-      </div>
+      </div> */}
     </div>
   );
 }
