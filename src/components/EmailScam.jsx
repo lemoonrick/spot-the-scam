@@ -88,7 +88,7 @@ export default function EmailScam({ scam, activeFlagId }) {
         {/* Gmail top bar */}
         <div className="gmail-topbar">
           <div className="gmail-topbar-left">
-            <div className="gmail-hamburger">
+            {/* <div className="gmail-hamburger">
               <span />
               <span />
               <span />
@@ -99,7 +99,39 @@ export default function EmailScam({ scam, activeFlagId }) {
               <span style={{ color: '#FBBC05' }}>a</span>
               <span style={{ color: '#34A853' }}>i</span>
               <span style={{ color: '#EA4335' }}>l</span>
-            </span>
+            </span> */}
+
+            <svg
+              className="gmail-m-icon"
+              width="64"
+              height="64"
+              viewBox="0 0 32 32"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5 11.4668V22.6591C5.07646 23.8904 6.15673 24.0003 6.15673 24.0003H9.94877L9.94014 15.0671L5 11.4668Z"
+                fill="#4285F4"
+              />
+              <path
+                d="M26.9995 11.459V22.6513C26.9219 23.8813 25.8428 23.9924 25.8428 23.9924H22.0508V15.2575L26.9995 11.459Z"
+                fill="#34A853"
+              />
+              <path
+                d="M26.9983 11.459L22.0508 15.2575V8.52292L23.6231 7.38639C26.3978 5.90258 26.9983 9.17074 26.9983 9.17074V11.459Z"
+                fill="#FBBC05"
+              />
+              <path
+                d="M9.94043 8.52295V15.0732L5.00049 11.4651C5.00049 11.4651 5.60179 5.91001 8.37646 7.39382L9.94043 8.52295Z"
+                fill="#C5221F"
+              />
+              <path
+                d="M22.0515 8.52295L15.9954 13.1954L9.94043 8.52295V15.0732L15.9954 19.8466L22.0515 15.2575V8.52295Z"
+                fill="#EA4335"
+              />
+            </svg>
+
+            <p>Gmail</p>
           </div>
           <div className="gmail-topbar-right">
             <div className="gmail-apps-icon">

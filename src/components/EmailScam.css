@@ -18,7 +18,7 @@
 
 /* Top bar */
 .gmail-topbar {
-  background: #fff;
+  background: #f8f9fa;
   padding: 10px 16px;
   display: flex;
   align-items: center;
@@ -443,4 +443,10 @@
 .rich-footer-link {
   color: #666;
   text-decoration: underline;
+}
+
+.gmail-m-icon {
+  width: 32px;
+  height: 24px;
+  flex-shrink: 0;
 }
