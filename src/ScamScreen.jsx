@@ -9,7 +9,6 @@ import PopupScam from './components/PopupScam';
 import UpiScam from './components/UpiScam';
 import FlagCard from './components/FlagCard';
 
-// Fisher-Yates shuffle — returns a new shuffled array, never mutates original
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -20,7 +19,6 @@ function shuffle(arr) {
 }
 
 export default function ScamScreen() {
-  // Shuffle once when the component first mounts — stays stable across re-renders
   const scams = useMemo(() => shuffle(allScams), []);
 
   const [scamIndex, setScamIndex] = useState(0);
@@ -125,6 +123,9 @@ export default function ScamScreen() {
   const isLastFlag = flagIndex === scam.flags.length - 1;
 
   const handleVerdictPick = (verdict) => {
+    // Haptic feedback — works on Android; silently ignored on iOS/desktop
+    if (navigator.vibrate)
+      navigator.vibrate(verdict === 'phishing' ? [40, 30, 40] : 60);
     setUserVerdict(verdict);
     setPhase('verdict-chosen');
   };

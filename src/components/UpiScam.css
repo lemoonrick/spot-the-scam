@@ -275,3 +275,17 @@
   color: unset;
   outline: unset;
 }
+
+/* .active on upi-paying-label is only used as a DOM anchor for FlagCard positioning */
+.upi-phone .upi-paying-label.active {
+  background: unset;
+  color: rgba(255, 255, 255, 0.45);
+  outline: none;
+}
+
+/* ₹1 amount is a positioning anchor — never apply App.css .active highlight to it */
+.upi-phone .upi-amount.active {
+  background: unset;
+  color: #fff;
+  outline: none;
+}

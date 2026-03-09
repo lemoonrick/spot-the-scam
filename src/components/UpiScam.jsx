@@ -84,16 +84,20 @@ export default function UpiScam({ scam, activeFlagId }) {
         <div
           className={`upi-amount-section${activeFlagId === 'collect-not-receive' ? ' upi-active' : ''}`}
         >
-          <p className="upi-paying-label">Paying</p>
           <p
-            className={`upi-amount${activeFlagId === 'collect-not-receive' ? ' active' : ''}`}
+            className={`upi-paying-label${activeFlagId === 'collect-not-receive' ? ' active' : ''}`}
+          >
+            Paying
+          </p>
+          <p
+            className={`upi-amount${activeFlagId === 'small-amount-trick' ? ' active' : ''}`}
           >
             {scam.amount}
           </p>
 
           {/* Note from sender */}
           <div
-            className={`upi-note-chip${activeFlagId === 'small-amount-trick' ? ' upi-active active' : ''}`}
+            className={`upi-note-chip${activeFlagId === 'small-amount-trick' ? ' upi-active' : ''}`}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
               <path
