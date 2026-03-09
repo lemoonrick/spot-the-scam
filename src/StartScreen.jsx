@@ -58,13 +58,13 @@ export default function StartScreen({ onStart }) {
 
           {/* Sub copy */}
           <p className="hs-body hs-reveal hs-delay-4">
-            9 real-world examples. Phishing texts, fake emails, WhatsApp scams.
-            Learn to recognise the tricks. before someone uses them on you.
+            Phishing texts, fake emails, WhatsApp scams. Learn to recognise the
+            tricks. before someone uses them on you.
           </p>
 
           {/* Trust pills */}
           <div className="hs-pills hs-reveal hs-delay-5">
-            <span className="hs-pill">🎯 9 examples</span>
+            {/* <span className="hs-pill">🎯 10 examples</span> */}
             <span className="hs-pill">⏱ ~5 minutes</span>
             <span className="hs-pill">🔒 No sign-up</span>
           </div>
