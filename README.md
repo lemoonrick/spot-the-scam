@@ -2,7 +2,7 @@
 
 > A media literacy quiz app that teaches people how to identify digital scams through real-world UI simulations, not theory.
 
-![App Screenshot](/public/app-homepage.png)
+![App Screenshot](/public/app-homepage.jpeg)
 
 [Live demo](https://spot-the-scam-ebon.vercel.app/) · Built for [FactTree](https://myfactree.org)
 
