@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import './StartScreen.css';
+import logo from './assets/logo.png';
 
 const WORDS = ['Spot', 'the', 'Scam.'];
 
@@ -162,7 +163,7 @@ export default function StartScreen({ onStart }) {
           rel="noreferrer"
           className="hs-footer-logo"
         >
-          <img src="/src/assets/logo.png" alt="FactTree" />
+          <img src={logo} alt="FactTree" />
         </a>
         <div className="hs-footer-links">
           <a

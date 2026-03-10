@@ -484,8 +484,8 @@
 }
 
 .hs-footer-logo img {
-  height: 22px;
-  opacity: 0.35;
+  height: 30px;
+  opacity: 1;
   transition: opacity 0.2s ease;
 }
 .hs-footer-logo:hover img {
