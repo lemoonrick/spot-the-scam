@@ -8,29 +8,26 @@ export default function StartScreen({ onStart }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // tiny delay so CSS transitions fire after first paint
     const t = setTimeout(() => setVisible(true), 60);
     return () => clearTimeout(t);
   }, []);
 
   return (
     <div className={`hs-root ${visible ? 'hs-visible' : ''}`}>
-      {/* Noise + glow layer */}
+      {/* Original Subtle background blobs */}
       <div className="hs-bg-glow hs-glow-red" />
       <div className="hs-bg-glow hs-glow-blue" />
       <div className="hs-noise" />
 
       {/* ── MAIN GRID ── */}
       <div className="hs-grid">
-        {/* LEFT — copy */}
+        {/* LEFT — Exact Original Copy & Spacing */}
         <div className="hs-left">
-          {/* Eyebrow */}
           <div className="hs-eyebrow hs-reveal hs-delay-0">
             <span className="hs-eyebrow-dot" />
             Media Literacy Challenge · by myfactree.org
           </div>
 
-          {/* Headline — word by word */}
           <h1 className="hs-headline">
             {WORDS.map((word, i) => (
               <span key={i} className="hs-word-wrap">
@@ -57,20 +54,16 @@ export default function StartScreen({ onStart }) {
             </span>
           </h1>
 
-          {/* Sub copy */}
           <p className="hs-body hs-reveal hs-delay-4">
             Real World Examples, Phishing texts, fake emails, WhatsApp scams.
             Learn to recognise the tricks before someone uses them on you.
           </p>
 
-          {/* Trust pills */}
           <div className="hs-pills hs-reveal hs-delay-5">
-            {/* <span className="hs-pill">🎯 10 examples</span> */}
             <span className="hs-pill">⏱ ~5 minutes</span>
             <span className="hs-pill">🔒 No sign-up</span>
           </div>
 
-          {/* CTA */}
           <div className="hs-cta-wrap hs-reveal hs-delay-6">
             <button className="hs-cta" onClick={onStart}>
               Start the Challenge
@@ -90,72 +83,66 @@ export default function StartScreen({ onStart }) {
           </div>
         </div>
 
-        {/* RIGHT — fake phone mockup built in CSS */}
+        {/* RIGHT — The New Spatial Phone UI */}
         <div className="hs-right hs-reveal hs-delay-2">
-          <div className="hs-phone-tilt">
-            {/* Glow behind phone */}
-            <div className="hs-phone-glow" />
+          <div className="hs-device-wrapper">
+            <div className="hs-device">
+              <div className="hs-device-island" />
 
-            <div className="hs-phone">
-              {/* Status bar */}
-              <div className="hs-ph-statusbar">
-                <span>9:41</span>
-                <div className="hs-ph-sb-right">
-                  <span className="hs-ph-bar" style={{ height: 5 }} />
-                  <span className="hs-ph-bar" style={{ height: 8 }} />
-                  <span className="hs-ph-bar" style={{ height: 11 }} />
-                  <span className="hs-ph-bar" style={{ height: 14 }} />
-                </div>
-              </div>
-
-              {/* Notification banner */}
-              <div className="hs-ph-notif">
-                <div className="hs-ph-notif-icon">🏦</div>
-                <div className="hs-ph-notif-body">
-                  <div className="hs-ph-notif-app">ICICI Alerts</div>
-                  <div className="hs-ph-notif-msg">
-                    Your account will be{' '}
-                    <span className="hs-ph-red">suspended in 2 hrs.</span>{' '}
-                    Verify now:
-                  </div>
-                  <div className="hs-ph-notif-link">
-                    https://icici-verify.co/login
+              <div className="hs-device-screen">
+                <div className="hs-status-bar">
+                  <span>9:41</span>
+                  <div className="hs-status-icons">
+                    <div className="hs-signal-bars">
+                      <i style={{ height: '4px' }} />
+                      <i style={{ height: '6px' }} />
+                      <i style={{ height: '8px' }} />
+                      <i style={{ height: '10px' }} />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Second notification, offset */}
-              <div className="hs-ph-notif hs-ph-notif-2">
-                <div className="hs-ph-notif-icon">📧</div>
-                <div className="hs-ph-notif-body">
-                  <div className="hs-ph-notif-app">Gmail · Amazon Billing</div>
-                  <div className="hs-ph-notif-msg">
-                    Action required: Confirm your{' '}
-                    <span className="hs-ph-red">billing details</span>{' '}
-                    immediately.
+                <div className="hs-chat-bubbles">
+                  <div className="hs-bubble hs-bubble-received">
+                    Hey, is this your new number?
+                  </div>
+                  <div className="hs-bubble hs-bubble-sent">Who is this?</div>
+                  <div className="hs-bubble hs-bubble-received hs-blur-text">
+                    I'm a recruiter for...
                   </div>
                 </div>
-              </div>
-
-              {/* Warning badge */}
-              <div className="hs-ph-warning">
-                <span className="hs-ph-warning-dot" />
-                <span>Can you spot what's wrong?</span>
               </div>
             </div>
 
-            {/* Floating flag cards */}
-            <div className="hs-flag-card hs-flag-1">
-              <span className="hs-flag-label">⚠ Fake domain</span>
+            {/* Floating Glass UI Elements */}
+            <div className="hs-glass-card hs-card-1">
+              <div className="hs-card-icon red-icon">🏦</div>
+              <div className="hs-card-content">
+                <h4>ICICI Alerts</h4>
+                <p>
+                  Account suspended. Verify immediately at{' '}
+                  <span className="hs-highlight">icici-secure-login.co</span>
+                </p>
+              </div>
+              <div className="hs-tag">⚠ Fake Domain</div>
             </div>
-            <div className="hs-flag-card hs-flag-2">
-              <span className="hs-flag-label">⏰ Urgency tactic</span>
+
+            <div className="hs-glass-card hs-card-2">
+              <div className="hs-card-icon blue-icon">📦</div>
+              <div className="hs-card-content">
+                <h4>Amazon Delivery</h4>
+                <p>
+                  Your package is stuck. Pay $1.99 clearance fee{' '}
+                  <span className="hs-highlight">within 2 hrs</span>.
+                </p>
+              </div>
+              <div className="hs-tag">⏰ Urgency</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Footer */}
+      {/* Exact Original Footer */}
       <footer className="hs-footer">
         <a
           href="https://myfactree.org"
