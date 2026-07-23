@@ -71,8 +71,12 @@ export default function WhatsAppScam({ scam, activeFlagId }) {
                       {linkPart.text}
                     </span>
                   </div>
-                  <div className="wa-link-site">jio-kyc-update.in</div>
-                  <div className="wa-link-title">Jio KYC Verification Portal</div>
+                  <div className="wa-link-site">
+                    {scam.linkSite || 'jio-kyc-update.in'}
+                  </div>
+                  <div className="wa-link-title">
+                    {scam.linkTitle || 'Jio KYC Verification Portal'}
+                  </div>
                 </div>
               )}
 

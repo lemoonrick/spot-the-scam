@@ -1,5 +1,9 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { scams as allScams } from './scams';
+import { useLocale } from './i18n/LocaleContext';
+import { localizeScam } from './i18n/localizeScam';
+import { flagsToSpeech } from './i18n/speech';
+import ReadAloudButton from './i18n/ReadAloudButton';
 import AnalyticsScreen from './AnalyticsScreen';
 import SmsScam from './components/SmsScam';
 import WhatsAppScam from './components/WhatsAppScam';
@@ -19,108 +23,50 @@ function shuffle(arr) {
 }
 
 export default function ScamScreen() {
+  const { locale, t } = useLocale();
   const scams = useMemo(() => shuffle(allScams), []);
 
   const [scamIndex, setScamIndex] = useState(0);
   const [results, setResults] = useState([]);
   const [userVerdict, setUserVerdict] = useState(null);
-  const [phase, setPhase] = useState('idle');
+  const [phase, setPhase] = useState('idle'); // idle → verdict-chosen → revealing
   const [flagIndex, setFlagIndex] = useState(0);
-  const [cardPosition, setCardPosition] = useState({ top: 0, left: 0 });
-  const [containerPad, setContainerPad] = useState(0);
 
-  const containerRef = useRef(null);
-  const scamContentRef = useRef(null);
-  const cardHeightRef = useRef(260);
+  const flagCardRef = useRef(null);
 
-  const scam = scams[scamIndex];
+  // Resolve the current scam's translatable fields for the active locale once, so the
+  // presentational components below receive plain strings exactly as before. id / type /
+  // verdict / flag ids pass through untouched.
+  const scam = useMemo(
+    () => localizeScam(scams[scamIndex], locale),
+    [scams, scamIndex, locale],
+  );
   const isLastScam = scamIndex === scams.length - 1;
 
-  const goToNextScam = () => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
+  const resetScamState = () => {
     setUserVerdict(null);
     setPhase('idle');
     setFlagIndex(0);
-    setCardPosition({ top: 0, left: 0 });
-    setContainerPad(0);
-    cardHeightRef.current = 260;
+  };
+
+  const goToNextScam = () => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    resetScamState();
     setScamIndex((prev) => prev + 1);
   };
 
-  const positionAndScroll = useCallback(() => {
-    if (!containerRef.current) return;
-    const activeEl = containerRef.current.querySelector(
-      '.active, .safe-active, .upi-active',
-    );
-    if (!activeEl) return;
-
-    const containerRect = containerRef.current.getBoundingClientRect();
-    const activeRect = activeEl.getBoundingClientRect();
-    const cardHeight = cardHeightRef.current;
-    const PADDING = 48;
-
-    const cardTop = activeRect.bottom - containerRect.top + 12;
-    const cardLeft =
-      activeRect.left - containerRect.left + activeRect.width / 2;
-
-    setCardPosition({ top: cardTop, left: cardLeft });
-
-    // Only pad by how much the FlagCard bottom exceeds the phone's natural height.
-    const phoneHeight = scamContentRef.current
-      ? scamContentRef.current.scrollHeight
-      : 0;
-    const overflow = cardTop + cardHeight + PADDING - phoneHeight;
-    if (overflow > 0) {
-      setContainerPad((prev) => Math.max(prev, overflow));
-    }
-    // Scroll happens in a separate useEffect once containerPad has actually been applied.
-  }, []);
-
-  const handleCardMeasure = useCallback(
-    (height) => {
-      cardHeightRef.current = height;
-      positionAndScroll();
-    },
-    [positionAndScroll],
-  );
-
+  // Bring the explanation card into view whenever it appears or its flag changes.
+  // In-flow layout means no measuring/padding math — the browser handles it.
   useEffect(() => {
-    if (phase !== 'revealing') return;
-    const raf = requestAnimationFrame(() => positionAndScroll());
-    return () => cancelAnimationFrame(raf);
-  }, [phase, flagIndex, scamIndex, positionAndScroll]);
-
-  // Scroll AFTER containerPad has been applied to the DOM so the card is fully in view.
-  useEffect(() => {
-    if (phase !== 'revealing' || !containerRef.current) return;
+    if (phase !== 'revealing' || !flagCardRef.current) return;
     const raf = requestAnimationFrame(() => {
-      const activeEl = containerRef.current.querySelector(
-        '.active, .safe-active, .upi-active',
-      );
-      if (!activeEl) return;
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const cardHeight = cardHeightRef.current;
-      const PADDING = 48;
-      const cardTop =
-        activeEl.getBoundingClientRect().bottom - containerRect.top + 12;
-      const cardBottomOnPage =
-        window.scrollY + containerRect.top + cardTop + cardHeight + PADDING;
-      const currentViewportBottom = window.scrollY + window.innerHeight;
-      if (cardBottomOnPage > currentViewportBottom) {
-        window.scrollTo({
-          top: cardBottomOnPage - window.innerHeight,
-          behavior: 'smooth',
-        });
-      }
-      if (activeEl.getBoundingClientRect().top < 80) {
-        window.scrollTo({
-          top: window.scrollY + activeEl.getBoundingClientRect().top - 80,
-          behavior: 'smooth',
-        });
-      }
+      flagCardRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
     });
     return () => cancelAnimationFrame(raf);
-  }, [containerPad, phase]);
+  }, [phase, flagIndex, scamIndex]);
 
   if (scamIndex >= scams.length) {
     return (
@@ -130,12 +76,7 @@ export default function ScamScreen() {
           window.scrollTo({ top: 0, behavior: 'instant' });
           setResults([]);
           setScamIndex(0);
-          setUserVerdict(null);
-          setPhase('idle');
-          setFlagIndex(0);
-          setCardPosition({ top: 0, left: 0 });
-          setContainerPad(0);
-          cardHeightRef.current = 260;
+          resetScamState();
         }}
       />
     );
@@ -218,7 +159,9 @@ export default function ScamScreen() {
           className={`verdict-header ${userVerdict === scam.verdict ? 'correct' : 'incorrect'}`}
         >
           <span className="verdict-header-label">
-            {userVerdict === scam.verdict ? '✓ Correct!' : '✗ Not quite.'}
+            {userVerdict === scam.verdict
+              ? t('scam.correct')
+              : t('scam.incorrect')}
           </span>
           <span className="verdict-header-short">{scam.explanation.short}</span>
         </div>
@@ -226,19 +169,24 @@ export default function ScamScreen() {
 
       {phase === 'idle' && (
         <div className="verdict-section">
-          {scam.guideText && <p className="guide-text">{scam.guideText}</p>}
+          {scam.guideText && (
+            <p className="guide-text">
+              <span>{scam.guideText}</span>
+              <ReadAloudButton text={scam.guideText} />
+            </p>
+          )}
           <div className="verdict-buttons">
             <button
               className="verdict-btn"
               onClick={() => handleVerdictPick('phishing')}
             >
-              Phishing
+              {t('scam.verdictPhishing')}
             </button>
             <button
               className="verdict-btn"
               onClick={() => handleVerdictPick('legitimate')}
             >
-              Legitimate
+              {t('scam.verdictLegit')}
             </button>
           </div>
         </div>
@@ -247,46 +195,31 @@ export default function ScamScreen() {
       {phase === 'verdict-chosen' && (
         <div className="verdict-section">
           <button className="show-btn show-btn-pulse" onClick={handleShowMe}>
-            Show me →
+            {t('scam.showMe')}
           </button>
         </div>
       )}
 
-      <div
-        className="scam-relative-container"
-        ref={containerRef}
-        style={
-          containerPad > 0 ? { paddingBottom: `${containerPad}px` } : undefined
-        }
-      >
-        <div
-          key={scam.id}
-          className="scam-content slide-in"
-          ref={scamContentRef}
-        >
+      <div className="scam-stack">
+        <div key={scam.id} className="scam-content slide-in">
           {renderScam()}
         </div>
 
         {phase === 'revealing' && currentFlag && (
-          <FlagCard
-            flag={currentFlag}
-            flagIndex={flagIndex}
-            totalFlags={scam.flags.length}
-            isLastFlag={isLastFlag}
-            isLastScam={isLastScam}
-            onNext={handleNextFlag}
-            coords={cardPosition}
-            verdict={scam.verdict}
-            onMeasure={handleCardMeasure}
-          />
+          <div ref={flagCardRef} className="flag-card-host">
+            <FlagCard
+              flag={currentFlag}
+              flagIndex={flagIndex}
+              totalFlags={scam.flags.length}
+              isLastFlag={isLastFlag}
+              isLastScam={isLastScam}
+              onNext={handleNextFlag}
+              verdict={scam.verdict}
+              speechText={flagsToSpeech(currentFlag)}
+            />
+          </div>
         )}
       </div>
-
-      {/* <div className="scam-footer">
-        <p className="progress">
-          {scamIndex + 1}/{scams.length}
-        </p>
-      </div> */}
     </div>
   );
 }

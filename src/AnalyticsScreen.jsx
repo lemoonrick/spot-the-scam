@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
 import { scams as allScams } from './scams';
+import { useLocale } from './i18n/LocaleContext';
+import { localizeScam } from './i18n/localizeScam';
+import MgbLogo from './assets/MgbLogo';
+import cropBand from './assets/crop-band.jpg';
 import './AnalyticsScreen.css';
 
 const TYPE_ICON = {
@@ -11,39 +15,17 @@ const TYPE_ICON = {
   upi: '💳',
 };
 
-const TYPE_LABEL = {
-  sms: 'SMS',
-  email: 'Email',
-  whatsapp: 'WhatsApp',
-  instagram: 'Instagram',
-  popup: 'Browser Popup',
-  upi: 'UPI / GPay',
-};
-
 function getScoreColor(s) {
   if (s < 40) return '#ef4444';
   if (s < 75) return '#f59e0b';
   return '#10b981';
 }
 
+// Returns the display-independent tier; the copy itself comes from strings.js via t().
 function getFeedback(score) {
-  if (score >= 80)
-    return {
-      emoji: '🧠',
-      text: 'Hard to fool. Exceptional instincts.',
-      tier: 'high',
-    };
-  if (score >= 50)
-    return {
-      emoji: '👍',
-      text: 'Good instincts — but stay sharp.',
-      tier: 'mid',
-    };
-  return {
-    emoji: '⚠️',
-    text: "You're reacting too fast. Be careful.",
-    tier: 'low',
-  };
+  if (score >= 80) return { emoji: '🧠', key: 'an.feedbackHigh', tier: 'high' };
+  if (score >= 50) return { emoji: '👍', key: 'an.feedbackMid', tier: 'mid' };
+  return { emoji: '⚠️', key: 'an.feedbackLow', tier: 'low' };
 }
 
 function triggerConfetti(color) {
@@ -84,13 +66,13 @@ function triggerConfetti(color) {
 }
 
 export default function AnalyticsScreen({ results, onRestart }) {
+  const { locale, t } = useLocale();
   const total = results.length;
   const correct = results.filter((r) => r.verdictCorrect).length;
   const score = total > 0 ? Math.round((correct / total) * 100) : 0;
 
   const [displayScore, setDisplayScore] = useState(0);
   const [revealed, setRevealed] = useState(false);
-  const [posts, setPosts] = useState([]);
 
   const scoreColor = getScoreColor(displayScore);
   const feedback = getFeedback(score);
@@ -116,31 +98,32 @@ export default function AnalyticsScreen({ results, onRestart }) {
     return () => clearTimeout(delay);
   }, [score]);
 
-  // Fetch blog posts for the bottom section
-  useEffect(() => {
-    fetch('https://myfactree.org/wp-json/wp/v2/posts?_embed&per_page=3')
-      .then((r) => {
-        if (!r.ok) throw new Error();
-        return r.json();
-      })
-      .then(setPosts)
-      .catch(() => {});
-  }, []);
-
-  // Match each result to its scam — article lives directly on the scam object
+  // Match each result to its scam (localized for the active language) — article lives
+  // directly on the scam object.
   const breakdown = results.map((r) => {
-    const scam = allScams.find((s) => s.id === r.scamId);
-    return { ...r, scam };
+    const raw = allScams.find((s) => s.id === r.scamId);
+    return { ...r, scam: localizeScam(raw, locale) };
   });
 
   return (
     <div className="an-page">
+      {/* ── Image band (real crop photo) ── */}
+      <header className="an-band">
+        <img src={cropBand} alt="" className="an-band-img" />
+        <div className="an-band-overlay" />
+        <div className="an-band-content">
+          <div className="an-band-brand">
+            <MgbLogo size={30} />
+            <span>{t('start.bankName')}</span>
+          </div>
+          <h1 className="an-band-title">{t('an.yourResults')}</h1>
+        </div>
+      </header>
+
       {/* ── Hero ── */}
       <section className="an-hero">
         {/* LEFT — score */}
         <div className="an-score-side">
-          <p className="an-eyebrow">Your Results</p>
-
           <div className="an-ring-wrap">
             <div className="an-ring-glow" style={{ background: scoreColor }} />
             <svg className="an-ring-svg" viewBox="0 0 120 120">
@@ -175,22 +158,20 @@ export default function AnalyticsScreen({ results, onRestart }) {
             </div>
           </div>
 
-          <p className="an-tally">
-            <strong>{correct}</strong> correct out of <strong>{total}</strong>
-          </p>
+          <p className="an-tally">{t('an.tally', { correct, total })}</p>
 
           <div className={`an-badge an-badge-${feedback.tier}`}>
-            {feedback.emoji} {feedback.text}
+            {feedback.emoji} {t(feedback.key)}
           </div>
 
           <button className="an-restart" onClick={onRestart}>
-            Try Again
+            {t('an.tryAgain')}
           </button>
         </div>
 
         {/* RIGHT — breakdown */}
         <div className="an-breakdown-side">
-          <p className="an-breakdown-title">Question Breakdown</p>
+          <p className="an-breakdown-title">{t('an.breakdownTitle')}</p>
           <div className="an-breakdown-grid">
             {breakdown.map((item, i) => {
               const { scam, verdictCorrect, verdictChosen } = item;
@@ -208,15 +189,15 @@ export default function AnalyticsScreen({ results, onRestart }) {
 
                   <div className="an-item-body">
                     <span className="an-item-type">
-                      {TYPE_LABEL[scam.type]}
+                      {t(`type.${scam.type}`)}
                     </span>
 
                     <span className="an-item-verdict">
-                      You said:{' '}
+                      {t('an.youSaid')}{' '}
                       <strong>
                         {verdictChosen === 'phishing'
-                          ? 'Phishing'
-                          : 'Legitimate'}
+                          ? t('scam.verdictPhishing')
+                          : t('scam.verdictLegit')}
                       </strong>
                       {' · '}
                       <span
@@ -225,8 +206,13 @@ export default function AnalyticsScreen({ results, onRestart }) {
                         }}
                       >
                         {verdictCorrect
-                          ? 'Correct ✓'
-                          : `Wrong — it was ${scam.verdict === 'phishing' ? 'Phishing' : 'Legitimate'}`}
+                          ? t('an.correctMark')
+                          : t('an.wrongWas', {
+                              verdict:
+                                scam.verdict === 'phishing'
+                                  ? t('scam.verdictPhishing')
+                                  : t('scam.verdictLegit'),
+                            })}
                       </span>
                     </span>
 
@@ -272,53 +258,6 @@ export default function AnalyticsScreen({ results, onRestart }) {
           </div>
         </div>
       </section>
-
-      {/* ── Blog section ── */}
-      {posts.length > 0 && (
-        <section className="an-blog">
-          <div className="an-blog-header">
-            <h3 className="an-blog-title">Continue Learning</h3>
-            <p className="an-blog-sub">
-              Latest investigations from our researchers
-            </p>
-          </div>
-          <div className="an-blog-grid">
-            {posts.map((post) => {
-              const image =
-                post._embedded?.['wp:featuredmedia']?.[0]?.source_url;
-              return (
-                <a
-                  key={post.id}
-                  href={post.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="an-blog-card"
-                >
-                  {image && (
-                    <div
-                      className="an-blog-img"
-                      style={{ backgroundImage: `url(${image})` }}
-                    />
-                  )}
-                  <div className="an-blog-content">
-                    <h4
-                      dangerouslySetInnerHTML={{ __html: post.title.rendered }}
-                    />
-                    <p
-                      dangerouslySetInnerHTML={{
-                        __html:
-                          post.excerpt.rendered
-                            .replace(/<[^>]+>/g, '')
-                            .slice(0, 110) + '…',
-                      }}
-                    />
-                  </div>
-                </a>
-              );
-            })}
-          </div>
-        </section>
-      )}
     </div>
   );
 }

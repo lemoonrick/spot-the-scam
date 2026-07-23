@@ -1,13 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+/* Poppins covers Latin (English); Mukta adds Devanagari so Marathi renders in the
+   same visual family. Both weights 400–700 are loaded once here. */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Mukta:wght@400;500;600;700&display=swap');
 
 /* ============================================================
    DESIGN TOKENS
    ============================================================ */
 :root {
-  --bg-page: linear-gradient(160deg, #f8fafc 0%, #eef2f7 100%);
+  --bg-page: linear-gradient(160deg, #f4f8fc 0%, #e8eff7 100%);
 
   --text-main: #0f172a;
-  --text-muted: #64748b;
+  --text-muted: #5b6b7f;
+
+  /* MGB brand — sampled from the bank's blue+green identity (leaf-drop logo, poster
+     navy, app green). Blue drives primary actions/progress; green is the accent used in
+     the logo/wordmark. Both are kept distinct from the correct/incorrect green/red below
+     so quiz feedback stays legible. */
+  --brand-primary: #14539a;
+  --brand-primary-dark: #0e3d73;
+  --brand-shadow: rgba(20, 83, 154, 0.28);
+
+  --brand-green: #4ca62f;
+  --brand-green-dark: #3c8a24;
+  --brand-navy: #14315f;
 
   --green: #22c55e;
   --green-dark: #16a34a;
@@ -51,7 +65,7 @@
 
 html,
 body {
-  font-family: 'Poppins', system-ui, sans-serif;
+  font-family: 'Poppins', 'Mukta', system-ui, sans-serif;
   color: var(--text-main);
   background: var(--bg-page);
   -webkit-font-smoothing: antialiased;
@@ -62,7 +76,7 @@ button {
   cursor: pointer;
   font-family: inherit;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 16px;
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease,
@@ -71,6 +85,12 @@ button {
 
 button:active {
   transform: scale(0.97) !important;
+}
+
+/* Visible keyboard focus for accessibility (was missing). */
+:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
 }
 
 .app {
@@ -87,7 +107,8 @@ button:active {
   align-items: center;
   justify-content: center;
   gap: 24px;
-  padding: 40px 16px 48px;
+  /* extra top padding keeps content clear of the fixed language toggle */
+  padding: 72px 16px 48px;
 }
 
 .correct-glow {
@@ -137,7 +158,15 @@ button:active {
   line-height: 1.5;
 }
 
-/* ── Scam content ── */
+/* ── Scam content + explanation stack (in-flow, no absolute positioning) ── */
+.scam-stack {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
 .scam-content {
   width: 100%;
   display: flex;
@@ -145,42 +174,61 @@ button:active {
   animation: slideInRight 0.35s ease forwards;
 }
 
-.scam-relative-container {
-  position: relative;
+.flag-card-host {
   width: 100%;
   display: flex;
   justify-content: center;
 }
 
-/* ── Flag card ── */
+/* ── Flag card (renders directly below the phone) ── */
 .flag-card-wrap {
-  position: absolute;
-  z-index: 2000;
-  width: 280px;
-  pointer-events: auto;
-  transition:
-    top 0.3s ease,
-    left 0.3s ease;
+  width: 100%;
+  max-width: 400px;
+  animation: flagCardIn 0.3s ease forwards;
+}
+
+@keyframes flagCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .flag-card {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 16px;
   position: relative;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.2);
-  border-top: 4px solid var(--red);
+  background: #ffffff;
+  border-radius: var(--radius-card);
+  padding: 20px 20px 18px;
+  box-shadow: var(--shadow-card-hover);
+  border-top: 5px solid var(--flag-theme);
 }
 
-.flag-card::before {
-  content: '';
+/* verdict theming: scam = red, legit = green */
+.flag-card[data-verdict='scam'] {
+  --flag-theme: var(--red);
+  --flag-theme-soft: var(--red-soft);
+  --flag-theme-text: var(--red-dark);
+}
+.flag-card[data-verdict='legit'] {
+  --flag-theme: var(--green);
+  --flag-theme-soft: var(--correct-bg);
+  --flag-theme-text: var(--correct-text);
+}
+
+/* small upward pointer linking the card to the highlighted message above */
+.flag-card-pointer {
   position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom: 12px solid var(--current-theme);
+  top: -11px;
+  left: 32px;
+  width: 0;
+  height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-bottom: 11px solid var(--flag-theme);
 }
 
 .flag-dots {
@@ -190,8 +238,8 @@ button:active {
 }
 
 .flag-dot {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: #e2e8f0;
   transition:
@@ -199,40 +247,76 @@ button:active {
     transform 0.2s ease;
 }
 .flag-dot.active {
+  background: var(--flag-theme);
   transform: scale(1.25);
+}
+
+.flag-card-labelrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .flag-card-label {
   display: inline-block;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.7px;
+  letter-spacing: 0.4px;
   text-transform: uppercase;
-  padding: 3px 10px;
+  padding: 5px 12px;
   border-radius: var(--radius-pill);
-  margin-bottom: 8px;
+  color: var(--flag-theme-text);
+  background: var(--flag-theme-soft);
 }
 
 .flag-card-text {
-  font-size: 14px;
+  font-size: 16.5px;
   line-height: 1.65;
   color: #1e293b;
-  margin: 0 0 14px;
+  margin: 0 0 16px;
+}
+
+/* ── Read-aloud (Listen) button ── */
+.read-aloud-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 8px 14px;
+  min-height: 40px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+.read-aloud-btn.speaking {
+  background: var(--brand-primary-dark);
+}
+.read-aloud-icon {
+  font-size: 15px;
+  line-height: 1;
 }
 
 .flag-next-btn {
   width: 100%;
   padding: 11px 0;
   border-radius: var(--radius-pill);
-  background: linear-gradient(135deg, var(--green), var(--green-dark));
+  background: linear-gradient(
+    135deg,
+    var(--brand-primary),
+    var(--brand-primary-dark)
+  );
   color: white;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
-  box-shadow: 0 4px 14px var(--green-shadow);
+  box-shadow: 0 4px 14px var(--brand-shadow);
 }
 .flag-next-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px var(--green-shadow);
+  box-shadow: 0 8px 20px var(--brand-shadow);
 }
 
 /* ── Progress bar (replaces plain 1/10 counter) ── */
@@ -254,7 +338,11 @@ button:active {
 
 .scam-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--green), var(--green-dark));
+  background: linear-gradient(
+    90deg,
+    var(--brand-primary),
+    var(--brand-primary-dark)
+  );
   border-radius: var(--radius-pill);
   transition: width 0.4s ease;
 }
@@ -273,11 +361,15 @@ button:active {
 }
 
 .guide-text {
-  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
   font-weight: 500;
-  color: var(--text-muted);
+  color: #334155;
   line-height: 1.6;
-  max-width: 520px;
+  max-width: 540px;
   margin: 0 auto 18px;
   padding: 0 8px;
 }
@@ -289,12 +381,17 @@ button:active {
 }
 
 .verdict-btn {
-  padding: 13px 32px;
+  min-height: 52px;
+  padding: 15px 34px;
   border-radius: var(--radius-pill);
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 600;
   color: white;
-  background: linear-gradient(135deg, var(--green), var(--green-dark));
+  background: linear-gradient(
+    135deg,
+    var(--brand-primary),
+    var(--brand-primary-dark)
+  );
   border: 1.5px solid transparent;
   box-shadow: var(--shadow-card);
 }
@@ -304,11 +401,12 @@ button:active {
 }
 
 .show-btn {
-  padding: 13px 36px;
+  min-height: 52px;
+  padding: 15px 38px;
   border-radius: var(--radius-pill);
-  background: var(--blue);
+  background: var(--brand-primary);
   color: white;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 600;
 }
 .show-btn-pulse {
@@ -432,7 +530,7 @@ button:active {
 @keyframes pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 var(--blue-shadow);
+    box-shadow: 0 0 0 0 var(--brand-shadow);
   }
   50% {
     box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
@@ -452,11 +550,22 @@ button:active {
     font-size: 18px;
   }
   .verdict-btn {
-    padding: 12px 24px;
-    font-size: 14px;
+    padding: 14px 28px;
+    font-size: 16px;
   }
   .flag-card-wrap {
-    width: 240px;
-    left: 50% !important;
+    max-width: 100%;
+  }
+}
+
+/* Respect users who ask for less motion (older / low-end rural phones benefit too). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }

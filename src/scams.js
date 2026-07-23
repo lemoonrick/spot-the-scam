@@ -1,450 +1,370 @@
-// article: { title, url } — real articles from myfactree.org
-// If no exact match exists, closest relevant article is used.
+// Rural-financial scam examples for Maharashtra Gramin Bank (MGB).
+// Audience: rural Maharashtra, low digital literacy. Content is bilingual — every
+// user-facing string is stored as { en, mr }. Marathi uses simple everyday words.
+//
+// A resolver (src/i18n/localizeScam.js) flattens these to plain strings for the active
+// locale BEFORE they reach the presentational components, so the components stay
+// language-agnostic. Rules:
+//   • `verdict` is a machine value — keep it exactly 'phishing' | 'legitimate'.
+//   • `flag` ids inside message segments must match a flags[].id — never translate ids.
+//   • `linkSite` is a URL string (not translated); `linkTitle` is translatable.
+//
+// article URLs point to real official resources for follow-up (cybercrime helpline 1930,
+// pmkisan.gov.in, mahadiscom.in).
 
 export const scams = [
-  // 1 — SMS — ICICI phishing
+  // 1 — SMS — OTP fraud (phishing)
   {
     id: 1,
     type: 'sms',
     verdict: 'phishing',
-    article: {
-      title: 'Beware of Scam Calls in the Name of TRAI',
-      url: 'https://myfactree.org/beware-of-scam-calls-in-the-name-of-trai/',
+    sender: { en: 'MGB-ALERT', mr: 'MGB-ALERT' },
+    guideText: {
+      en: 'This text just arrived on your phone. Should you do what it says?',
+      mr: 'हा मेसेज आत्ताच तुमच्या फोनवर आला. यात सांगितलं तसं करावं का?',
     },
-    sender: 'ICICI Alerts',
-    guideText:
-      'You just received this text message. Does the timing and the link look suspicious?',
-    message: [
-      { text: 'ICICI: Your account access will be ', flag: null },
-      { text: 'restricted within 2 hours', flag: 'urgency' },
-      { text: ' due to unusual login activity.\n\nVerify now:\n', flag: null },
-      { text: 'https://icici-verify.co/login', flag: 'fake-link' },
-    ],
+    message: {
+      en: [
+        { text: 'Your Maharashtra Gramin Bank account will be ', flag: null },
+        { text: 'closed today', flag: 'urgency' },
+        { text: '. To keep it active, ', flag: null },
+        { text: 'share the OTP', flag: 'share-otp' },
+        { text: ' our officer sends you. Call ', flag: null },
+        { text: '90XXXXXXXX', flag: 'fake-number' },
+        { text: ' now.', flag: null },
+      ],
+      mr: [
+        { text: 'तुमचं महाराष्ट्र ग्रामीण बँक खातं ', flag: null },
+        { text: 'आज बंद होणार', flag: 'urgency' },
+        { text: ' आहे. ते चालू ठेवण्यासाठी आमचा अधिकारी पाठवेल तो ', flag: null },
+        { text: 'ओटीपी सांगा', flag: 'share-otp' },
+        { text: '. लगेच ', flag: null },
+        { text: '९०XXXXXXXX', flag: 'fake-number' },
+        { text: ' वर कॉल करा.', flag: null },
+      ],
+    },
     flags: [
       {
         id: 'urgency',
-        label: 'Urgency tactic',
-        text: 'Scammers create fake deadlines — "2 hours" — to stop you from thinking clearly and acting fast.',
+        label: { en: 'Creates panic', mr: 'घाबरवतं' },
+        text: {
+          en: 'Scammers say "today" or "now" so you act before you think. Your bank never closes your account through an SMS.',
+          mr: 'फसवणारे "आज" किंवा "लगेच" म्हणतात, म्हणजे तुम्ही विचार न करता कृती करता. बँक कधीही एसएमएसने खातं बंद करत नाही.',
+        },
       },
       {
-        id: 'fake-link',
-        label: 'Fake domain',
-        text: 'ICICI Bank\'s real domain is icicibank.com — not "icici-verify.co". Banks never send login links via SMS.',
+        id: 'share-otp',
+        label: { en: 'Asks for your OTP', mr: 'ओटीपी मागतं' },
+        text: {
+          en: 'No bank or officer EVER asks for your OTP. Anyone who asks you to share an OTP is a thief. The OTP is only for you to type yourself.',
+          mr: 'कोणतीही बँक किंवा अधिकारी कधीही ओटीपी मागत नाही. जो कोणी ओटीपी मागतो तो चोर असतो. ओटीपी फक्त तुम्ही स्वतः टाकायचा असतो.',
+        },
+      },
+      {
+        id: 'fake-number',
+        label: { en: 'Unknown mobile number', mr: 'अनोळखी मोबाईल नंबर' },
+        text: {
+          en: 'A real bank does not ask you to call a random personal mobile number. This call goes straight to the fraudster.',
+          mr: 'खरी बँक तुम्हाला अनोळखी मोबाईल नंबरवर कॉल करायला सांगत नाही. हा कॉल थेट फसवणाऱ्याकडे जातो.',
+        },
       },
     ],
+    article: {
+      title: {
+        en: 'Cheated? Call 1930 or visit cybercrime.gov.in',
+        mr: 'फसवणूक झाली? 1930 वर कॉल करा',
+      },
+      url: 'https://cybercrime.gov.in',
+    },
     explanation: {
-      short: 'A phishing SMS using urgency and a fake look-alike link.',
+      short: {
+        en: 'A phishing SMS using panic and a fake number to steal your OTP.',
+        mr: 'घाबरवून आणि खोट्या नंबरने ओटीपी चोरणारा फसवा एसएमएस.',
+      },
     },
   },
 
-  // 2 — SMS — SBI OTP (legit)
+  // 2 — WhatsApp — Fake PM-Kisan / crop subsidy (phishing)
   {
     id: 2,
-    type: 'sms',
-    verdict: 'legitimate',
-    article: {
-      title: 'Electricity Bill Scam: The Midnight Power-Cut Panic',
-      url: 'https://myfactree.org/electricity-bill-scam-the-midnight-power-cut-panic/',
-    },
-    sender: 'SBI Bank',
-    guideText:
-      'You initiated a transaction and this arrives. Does this message check out?',
-    message: [
-      { text: 'SBI: Your OTP for transaction of ', flag: null },
-      { text: '₹499 at Swiggy', flag: 'real-context' },
-      { text: ' is ', flag: null },
-      { text: '738291', flag: 'otp' },
-      { text: '. Valid for 10 mins. ', flag: null },
-      { text: 'Do not share this OTP with anyone.', flag: 'otp-warning' },
-    ],
-    flags: [
-      {
-        id: 'real-context',
-        label: 'Specific context',
-        text: 'The message states the exact merchant and amount. Legitimate OTP messages reference your actual transaction — vague messages do not.',
-      },
-      {
-        id: 'otp',
-        label: 'OTP, not a link',
-        text: 'Real banks send a one-time code for you to enter — they never ask you to click a link to "verify" a transaction.',
-      },
-      {
-        id: 'otp-warning',
-        label: 'Warns you to protect it',
-        text: 'Legitimate bank messages remind you not to share the OTP. Scammers do the opposite — they ask you to share it.',
-      },
-    ],
-    explanation: {
-      short:
-        'A genuine OTP from your bank — specific, link-free, and protective.',
-    },
-  },
-
-  // 3 — Email — Amazon phishing
-  {
-    id: 3,
-    type: 'email',
-    verdict: 'phishing',
-    article: {
-      title: 'Social Engineering: Why Smart People Fall for Scams',
-      url: 'https://myfactree.org/social-engineering-why-smart-people-fall-for-scams/',
-    },
-    subject: 'Action required: Confirm your Amazon billing details',
-    senderName: 'Amazon Billing',
-    senderEmail: '<billing@amaz0n-support.com>',
-    guideText:
-      'Amazon has reached out regarding a billing issue. Check the sender before clicking anything.',
-    time: '9:14 AM',
-    message: [
-      { text: 'Hello,\n\n', flag: null },
-      {
-        text: 'We were unable to process your recent order due to a billing issue.\n\n',
-        flag: null,
-      },
-      {
-        text: 'Please review the attached invoice to avoid account suspension.\n\n',
-        flag: 'attachment',
-      },
-      { text: 'You can securely verify your information here:\n', flag: null },
-      {
-        text: 'https://amaz0n-support-verification.com/login\n\n',
-        flag: 'fake-link',
-      },
-      { text: 'Regards,\nAmazon Billing Team', flag: null },
-    ],
-    flags: [
-      {
-        id: 'spoofed-sender',
-        label: 'Spoofed sender',
-        text: '"amaz0n-support.com" — the letter "o" is replaced with a zero. Amazon only emails from amazon.com.',
-      },
-      {
-        id: 'attachment',
-        label: 'Suspicious attachment',
-        text: "Legitimate companies don't email you unsolicited invoices. Attachments from strangers can carry malware.",
-      },
-      {
-        id: 'fake-link',
-        label: 'Fake URL',
-        text: "This link leads to a scammer's domain, not amazon.com. Never click billing or account links inside emails.",
-      },
-    ],
-    explanation: {
-      short:
-        'An email impersonating Amazon with a spoofed sender and malicious link.',
-    },
-  },
-
-  // 4 — Email — Netflix (legit, rich HTML)
-  {
-    id: 4,
-    type: 'email',
-    emailStyle: 'rich',
-    verdict: 'legitimate',
-    article: {
-      title: 'Social Engineering: Why Smart People Fall for Scams',
-      url: 'https://myfactree.org/social-engineering-why-smart-people-fall-for-scams/',
-    },
-    subject: 'Now on Netflix: Demon Slayer: Kimetsu no Yaiba',
-    senderName: 'Netflix',
-    senderEmail: '<info@mailer.netflix.com>',
-    guideText:
-      'Netflix sent you an email. Is this a legitimate marketing email or a phishing attempt?',
-    time: '8:45 AM',
-    richHero: {
-      bgColor: '#141414',
-      tagline: 'Now on Netflix',
-      title: 'Demon Slayer: Kimetsu no Yaiba',
-      subtitle: 'Swordsmith Village Arc',
-      meta: '2023  ·  U/A 16+  ·  11 Episodes',
-      body: 'While in Swordsmith Village to repair his damaged blade, Tanjiro is joined by the Love and Mist Hashiras in their fight against a new demonic threat.',
-      ctaText: 'Watch Now',
-      ctaColor: '#E50914',
-    },
-    message: [
-      { text: 'info@mailer.netflix.com', flag: 'official-domain' },
-      {
-        text: 'Watch Now → https://www.netflix.com/title/81091393',
-        flag: 'real-link',
-      },
-      { text: 'No password or payment info requested', flag: 'no-ask' },
-    ],
-    flags: [
-      {
-        id: 'official-domain',
-        label: 'Verified sender',
-        text: '"mailer.netflix.com" is Netflix\'s official email marketing subdomain. Phishing emails use domains like "netflix-billing.com" or misspellings.',
-      },
-      {
-        id: 'real-link',
-        label: 'Link goes to netflix.com',
-        text: 'The CTA button links directly to netflix.com — the real domain. You can hover any link to verify the destination before clicking.',
-      },
-      {
-        id: 'no-ask',
-        label: 'Asks for nothing sensitive',
-        text: 'This is a content recommendation email. It asks you to watch — not to verify your payment, reset your password, or log in via a link.',
-      },
-    ],
-    explanation: {
-      short:
-        'A genuine Netflix marketing email — correct domain, real links, asks for nothing.',
-    },
-  },
-
-  // 5 — WhatsApp — Jio KYC (phishing)
-  {
-    id: 5,
     type: 'whatsapp',
     verdict: 'phishing',
-    article: {
-      title: 'Beware of Scam Calls in the Name of TRAI',
-      url: 'https://myfactree.org/beware-of-scam-calls-in-the-name-of-trai/',
+    sender: { en: 'PM-Kisan Yojana', mr: 'पीएम-किसान योजना' },
+    guideText: {
+      en: 'A message about your farmer subsidy arrives on WhatsApp. Is it genuine?',
+      mr: 'तुमच्या शेतकरी अनुदानाबद्दल व्हॉट्सॲपवर मेसेज आला. तो खरा आहे का?',
     },
-    sender: 'Jio Support',
-    guideText:
-      'Your mobile service is at risk according to this message. Is this an official communication?',
-    message: [
-      { text: 'Dear customer, your SIM will be ', flag: null },
-      { text: 'deactivated today', flag: 'authority' },
-      {
-        text: ' due to KYC not completed.\n\nComplete verification immediately:',
-        flag: null,
-      },
-      { text: 'http://jio-kyc-update.in', flag: 'fake-link' },
-    ],
+    message: {
+      en: [
+        { text: 'Dear farmer, your PM-Kisan installment of ', flag: null },
+        { text: '₹2,000 is on hold', flag: 'authority' },
+        { text: '. Complete your e-KYC before ', flag: null },
+        { text: 'tonight', flag: 'urgency' },
+        { text: ' to receive it:\n', flag: null },
+        { text: 'https://pmkisan-kyc-update.in/verify', flag: 'fake-link' },
+      ],
+      mr: [
+        { text: 'प्रिय शेतकरी, तुमचा पीएम-किसानचा ', flag: null },
+        { text: '₹२,००० चा हप्ता अडकला', flag: 'authority' },
+        { text: ' आहे. तो मिळवण्यासाठी ', flag: null },
+        { text: 'आज रात्रीपूर्वी', flag: 'urgency' },
+        { text: ' ई-केवायसी करा:\n', flag: null },
+        { text: 'https://pmkisan-kyc-update.in/verify', flag: 'fake-link' },
+      ],
+    },
+    linkSite: 'pmkisan-kyc-update.in',
+    linkTitle: { en: 'PM-Kisan e-KYC Verification', mr: 'पीएम-किसान ई-केवायसी' },
     flags: [
       {
         id: 'authority',
-        label: 'Fake authority',
-        text: 'Jio never contacts customers on WhatsApp to demand KYC. This impersonates an official brand to create panic.',
-      },
-      {
-        id: 'fake-link',
-        label: 'Fake domain',
-        text: 'Jio\'s real site is jio.com. The domain "jio-kyc-update.in" is fake — hyphenated unofficial domains are a major red flag.',
-      },
-    ],
-    explanation: {
-      short: 'A telecom impersonation scam using panic and a fake KYC link.',
-    },
-  },
-
-  // 6 — WhatsApp — Swiggy order update (legit)
-  {
-    id: 6,
-    type: 'whatsapp',
-    verdict: 'legitimate',
-    article: {
-      title:
-        'Fake Delivery Calls: When "Your Parcel Is Stuck" Becomes a Threat',
-      url: 'https://myfactree.org/fake-delivery-calls-when-your-parcel-is-stuck-becomes-a-threat/',
-    },
-    sender: 'Swiggy',
-    guideText:
-      'You just placed a food order and this WhatsApp message arrives. Is it genuine?',
-    message: [
-      { text: 'Hi! Your Swiggy order ', flag: null },
-      { text: '#SW-48291', flag: 'order-id' },
-      { text: ' from ', flag: null },
-      { text: 'Pizza Hut, Koramangala', flag: 'merchant' },
-      { text: ' has been confirmed.\n\n', flag: null },
-      { text: 'Estimated delivery: 35 mins.', flag: 'eta' },
-      { text: '\n\nTrack your order in the Swiggy app.', flag: 'no-link' },
-    ],
-    flags: [
-      {
-        id: 'order-id',
-        label: 'Specific order ID',
-        text: 'A real confirmation includes your actual order number. Generic messages without order details are a red flag.',
-      },
-      {
-        id: 'merchant',
-        label: 'Exact merchant details',
-        text: 'The restaurant and location match what you ordered. Scam messages are always vague about specifics.',
-      },
-      {
-        id: 'no-link',
-        label: 'Directs to the app',
-        text: 'Swiggy tells you to track in their app — not via a link in the message. Legitimate services use their own app, not SMS links.',
-      },
-    ],
-    explanation: {
-      short:
-        'A genuine Swiggy order update — specific, no shady links, matches your actual order.',
-    },
-  },
-
-  // 7 — Instagram — brand collab (phishing)
-  {
-    id: 7,
-    type: 'instagram',
-    verdict: 'phishing',
-    article: {
-      title: 'Investment Scam: The "Guaranteed Return" That Guarantees a Loss',
-      url: 'https://myfactree.org/investment-scam-the-guaranteed-return-that-guarantees-a-loss/',
-    },
-    sender: 'brand.collabs_official',
-    followers: '1,284 followers',
-    posts: '12 posts',
-    guideText:
-      "A brand wants to pay you for a collaboration. Does the offer match the account's credibility?",
-    message: [
-      { text: 'Hello! We are selecting creators for a ', flag: null },
-      { text: 'paid brand collaboration', flag: 'too-good' },
-      {
-        text: '. You have been shortlisted for a ₹85,000 campaign.\n\nTo confirm, register here:\n',
-        flag: null,
-      },
-      { text: 'https://brand-collabs-verify.com/apply', flag: 'fake-link' },
-      { text: '\n\nLimited slots. Respond ASAP.', flag: 'urgency' },
-    ],
-    flags: [
-      {
-        id: 'too-good',
-        label: 'Too good to be true',
-        text: 'Unsolicited ₹85,000 brand deals from unknown accounts are almost always scams. Real brands research you first.',
-      },
-      {
-        id: 'fake-link',
-        label: 'Shady domain',
-        text: 'Legitimate brands onboard creators through official contracts and emails — not random "verify" links from DMs.',
+        label: { en: 'Fake government message', mr: 'खोटा सरकारी मेसेज' },
+        text: {
+          en: 'Schemes like PM-Kisan are never handled through WhatsApp links. Real updates come from the official pmkisan.gov.in site or your bank.',
+          mr: 'पीएम-किसानसारख्या योजना कधीही व्हॉट्सॲप लिंकवरून चालत नाहीत. खरी माहिती फक्त अधिकृत pmkisan.gov.in किंवा बँकेकडून येते.',
+        },
       },
       {
         id: 'urgency',
-        label: 'Fake urgency',
-        text: '"Limited slots" and "Respond ASAP" are classic pressure tactics designed to stop you from verifying the offer.',
+        label: { en: 'False deadline', mr: 'खोटी मुदत' },
+        text: {
+          en: '"Before tonight" is pressure to make you hurry. Your subsidy does not disappear in one night.',
+          mr: '"आज रात्रीपूर्वी" म्हणजे तुम्हाला घाई करायला लावतात. तुमचं अनुदान एका रात्रीत नाहीसं होत नाही.',
+        },
+      },
+      {
+        id: 'fake-link',
+        label: { en: 'Fake website', mr: 'खोटी वेबसाइट' },
+        text: {
+          en: 'The real portal is pmkisan.gov.in. A hyphenated address like "pmkisan-kyc-update.in" is fake and steals your Aadhaar and bank details.',
+          mr: 'खरी वेबसाइट pmkisan.gov.in आहे. "pmkisan-kyc-update.in" सारखा पत्ता खोटा असतो आणि तुमचा आधार व बँक तपशील चोरतो.',
+        },
       },
     ],
+    article: {
+      title: {
+        en: 'Check only on the official pmkisan.gov.in',
+        mr: 'फक्त अधिकृत pmkisan.gov.in वर तपासा',
+      },
+      url: 'https://pmkisan.gov.in',
+    },
     explanation: {
-      short: 'A fake Instagram brand collab using unrealistic pay and urgency.',
+      short: {
+        en: 'A fake subsidy message using a look-alike link to steal your details.',
+        mr: 'तुमचा तपशील चोरण्यासाठी खोट्या लिंकचा वापर करणारा फसवा मेसेज.',
+      },
     },
   },
 
-  // 8 — Popup — Windows alert (phishing)
+  // 3 — WhatsApp — Fake subsidized loan scheme (phishing)
   {
-    id: 8,
-    type: 'popup',
+    id: 3,
+    type: 'whatsapp',
     verdict: 'phishing',
-    article: {
-      title: 'Social Engineering: Why Smart People Fall for Scams',
-      url: 'https://myfactree.org/social-engineering-why-smart-people-fall-for-scams/',
+    sender: { en: 'MGB Loan Yojana', mr: 'MGB कर्ज योजना' },
+    guideText: {
+      en: 'You never applied, but this loan offer arrives. Should you trust it?',
+      mr: 'तुम्ही अर्जच केला नाही, तरी हे कर्जाचं ऑफर आलं. यावर विश्वास ठेवावा का?',
     },
-    sender: 'System Alert',
-    guideText:
-      'A sudden warning appears while browsing. Is this your operating system or a website trick?',
-    message: [
-      {
-        text: 'WARNING: Your device has been infected with malware.\n\n',
-        flag: null,
-      },
-      {
-        text: 'Immediate action required to prevent data loss and identity theft.\n\n',
-        flag: 'fear',
-      },
-      {
-        text: 'Call Microsoft Support NOW: +91-98XXXXXXX',
-        flag: 'fake-support',
-      },
-    ],
+    message: {
+      en: [
+        { text: 'Congratulations! Maharashtra Gramin Bank has ', flag: null },
+        {
+          text: 'pre-approved your ₹50,000 loan at 0% interest',
+          flag: 'too-good',
+        },
+        { text: '. To release it, first ', flag: null },
+        { text: 'pay a ₹499 processing fee', flag: 'advance-fee' },
+        { text: ' and register here:\n', flag: null },
+        { text: 'https://mgb-loan-subsidy.in/apply', flag: 'fake-link' },
+      ],
+      mr: [
+        { text: 'अभिनंदन! महाराष्ट्र ग्रामीण बँकेने तुमचं ', flag: null },
+        {
+          text: '₹५०,००० चं कर्ज ०% व्याजाने मंजूर केलं',
+          flag: 'too-good',
+        },
+        { text: ' आहे. ते मिळवण्यासाठी आधी ', flag: null },
+        { text: '₹४९९ प्रोसेसिंग फी भरा', flag: 'advance-fee' },
+        { text: ' आणि इथे नोंदणी करा:\n', flag: null },
+        { text: 'https://mgb-loan-subsidy.in/apply', flag: 'fake-link' },
+      ],
+    },
+    linkSite: 'mgb-loan-subsidy.in',
+    linkTitle: {
+      en: 'MGB Subsidy Loan Registration',
+      mr: 'MGB अनुदान कर्ज नोंदणी',
+    },
     flags: [
       {
-        id: 'fear',
-        label: 'Fear tactic',
-        text: 'Real OS security warnings never appear as browser popups. This dialog is designed to make you panic and act without thinking.',
+        id: 'too-good',
+        label: { en: 'Too good to be true', mr: 'खरं वाटण्याइतकं चांगलं' },
+        text: {
+          en: 'A ₹50,000 loan at 0% interest that you never applied for is bait. No bank pre-approves loans over WhatsApp.',
+          mr: 'तुम्ही अर्जच केला नाही असं ₹५०,००० चं ०% व्याजाचं कर्ज म्हणजे आमिष. कोणतीही बँक व्हॉट्सॲपवर कर्ज आधी मंजूर करत नाही.',
+        },
       },
       {
-        id: 'fake-support',
-        label: 'Fake helpline',
-        text: 'Microsoft never puts a phone number in a browser alert. Calling this number connects you to scammers who will ask for money or access.',
+        id: 'advance-fee',
+        label: { en: 'Asks for money first', mr: 'आधी पैसे मागतं' },
+        text: {
+          en: 'A real bank cuts any fee from the loan — it never asks you to pay first. "Pay ₹499 to get ₹50,000" is the classic advance-fee trap.',
+          mr: 'खरी बँक फी कर्जातूनच कापते — आधी पैसे मागत नाही. "₹५०,००० मिळवण्यासाठी ₹४९९ भरा" हा जुनाच फसवा सापळा आहे.',
+        },
+      },
+      {
+        id: 'fake-link',
+        label: { en: 'Fake website', mr: 'खोटी वेबसाइट' },
+        text: {
+          en: 'Maharashtra Gramin Bank uses its official website and branches, not a random site like "mgb-loan-subsidy.in".',
+          mr: 'महाराष्ट्र ग्रामीण बँक फक्त अधिकृत वेबसाइट व शाखा वापरते, "mgb-loan-subsidy.in" सारखी अनोळखी साइट नाही.',
+        },
       },
     ],
+    article: {
+      title: {
+        en: 'Never pay to receive a loan — report at cybercrime.gov.in',
+        mr: 'कर्ज मिळवण्यासाठी कधीही पैसे भरू नका',
+      },
+      url: 'https://cybercrime.gov.in',
+    },
     explanation: {
-      short:
-        'A fake Windows security popup using fear to push you to call scammers.',
+      short: {
+        en: 'A fake loan offer that traps you with an upfront "processing fee".',
+        mr: '"प्रोसेसिंग फी"च्या नावाखाली आधी पैसे उकळणारं खोटं कर्ज ऑफर.',
+      },
     },
   },
 
-  // 9 — Email — FactTree impact report (legit)
+  // 4 — SMS — Fake electricity bill disconnection (phishing)
   {
-    id: 9,
-    type: 'email',
+    id: 4,
+    type: 'sms',
+    verdict: 'phishing',
+    sender: { en: 'VM-MSEB', mr: 'VM-MSEB' },
+    guideText: {
+      en: 'A warning about your electricity bill arrives late at night. Is it real?',
+      mr: 'रात्री उशिरा वीज बिलाबद्दल इशारा देणारा मेसेज आला. तो खरा आहे का?',
+    },
+    message: {
+      en: [
+        { text: 'Dear customer, your electricity will be ', flag: null },
+        { text: 'disconnected tonight at 9:30 PM', flag: 'urgency' },
+        {
+          text: ' as your previous bill is not updated. Immediately contact our officer ',
+          flag: null,
+        },
+        { text: '76XXXXXXXX', flag: 'fake-number' },
+        { text: '. -MSEB', flag: null },
+      ],
+      mr: [
+        { text: 'प्रिय ग्राहक, तुमचं मागचं बिल अपडेट न झाल्याने ', flag: null },
+        { text: 'आज रात्री ९:३० वाजता वीज कापली जाईल', flag: 'urgency' },
+        { text: '. लगेच आमच्या अधिकाऱ्याशी संपर्क करा ', flag: null },
+        { text: '७६XXXXXXXX', flag: 'fake-number' },
+        { text: '. -MSEB', flag: null },
+      ],
+    },
+    flags: [
+      {
+        id: 'urgency',
+        label: { en: 'Threat with a deadline', mr: 'धमकी आणि मुदत' },
+        text: {
+          en: 'A "tonight at 9:30" cut-off is meant to scare you into calling fast. The real electricity board gives written notice, not midnight threats.',
+          mr: '"आज रात्री ९:३०" ही मुदत तुम्हाला घाबरवून लगेच कॉल करायला लावते. खरं वीज मंडळ लेखी सूचना देतं, रात्रीची धमकी नाही.',
+        },
+      },
+      {
+        id: 'fake-number',
+        label: { en: 'Personal mobile number', mr: 'खाजगी मोबाईल नंबर' },
+        text: {
+          en: 'MSEDCL never asks you to call a personal 10-digit mobile number. That number goes straight to the scammer, who will ask you to pay through a link or app.',
+          mr: 'महावितरण कधीही खाजगी १० अंकी मोबाईल नंबरवर कॉल करायला सांगत नाही. तो नंबर थेट फसवणाऱ्याकडे जातो, जो लिंक किंवा ॲपने पैसे भरायला सांगतो.',
+        },
+      },
+    ],
+    article: {
+      title: {
+        en: 'Pay electricity bills only on mahadiscom.in',
+        mr: 'वीज बिल फक्त mahadiscom.in वर भरा',
+      },
+      url: 'https://www.mahadiscom.in',
+    },
+    explanation: {
+      short: {
+        en: 'A fake power-cut threat pushing you to call a scammer.',
+        mr: 'फसवणाऱ्याला कॉल करायला भाग पाडणारी खोटी वीज-कपात धमकी.',
+      },
+    },
+  },
+
+  // 5 — SMS — Genuine MGB OTP (legitimate)
+  {
+    id: 5,
+    type: 'sms',
     verdict: 'legitimate',
-    article: {
-      title: 'What is Lateral Reading?',
-      url: 'https://myfactree.org/what-is-lateral-reading/',
+    sender: { en: 'VK-MGBANK', mr: 'VK-MGBANK' },
+    guideText: {
+      en: 'You just started a money transfer in your bank app, and this arrives. Is it safe?',
+      mr: 'तुम्ही आत्ताच बँक ॲपमध्ये पैसे पाठवायला सुरुवात केली, आणि हा मेसेज आला. तो सुरक्षित आहे का?',
     },
-    subject: 'Your Monthly FactTree Impact Report',
-    senderName: 'FactTree Team',
-    senderEmail: '<hello@myfactree.org>',
-    guideText:
-      'A trusted organization sent you an impact report. Check the sender details carefully.',
-    time: '10:30 AM',
-    message: [
-      { text: 'Hi there,\n\n', flag: null },
-      {
-        text: 'Your monthly impact report is ready! Thanks to your support, we reached 5,000 students this month.\n\n',
-        flag: null,
-      },
-      {
-        text: 'You can view the full report on our official dashboard:\n',
-        flag: null,
-      },
-      { text: 'https://myfactree.org/dashboard', flag: 'safe-link' },
-      { text: '\n\nBest,\nThe FactTree Team', flag: null },
-    ],
+    message: {
+      en: [
+        { text: 'MGB: ', flag: null },
+        { text: '452318', flag: 'otp-code' },
+        { text: ' is your OTP for ', flag: null },
+        { text: '₹500 transfer to Ramesh K', flag: 'real-context' },
+        { text: '. Valid 5 min. ', flag: null },
+        { text: 'Do NOT share it with anyone', flag: 'protect-otp' },
+        { text: '. -Maharashtra Gramin Bank', flag: null },
+      ],
+      mr: [
+        { text: 'MGB: ', flag: null },
+        { text: '४५२३१८', flag: 'otp-code' },
+        { text: ' हा तुमचा ओटीपी आहे — ', flag: null },
+        { text: 'रमेश के. यांना ₹५०० पाठवण्यासाठी', flag: 'real-context' },
+        { text: '. ५ मिनिटं वैध. ', flag: null },
+        { text: 'हा कोणालाही सांगू नका', flag: 'protect-otp' },
+        { text: '. -महाराष्ट्र ग्रामीण बँक', flag: null },
+      ],
+    },
     flags: [
       {
-        id: 'official-domain',
-        label: 'Verified sender',
-        text: 'The email comes from the official "myfactree.org" domain, matching the organization exactly.',
+        id: 'real-context',
+        label: { en: 'Matches what you did', mr: 'तुमच्या कृतीशी जुळतं' },
+        text: {
+          en: 'It names the exact amount and the person you are paying. Genuine OTP messages describe your real transaction — fake ones stay vague.',
+          mr: 'यात नेमकी रक्कम आणि तुम्ही कोणाला पैसे देताय ते नाव आहे. खरे ओटीपी मेसेज तुमच्या खऱ्या व्यवहाराचा उल्लेख करतात — खोटे मोघम असतात.',
+        },
       },
       {
-        id: 'safe-link',
-        label: 'Official link',
-        text: 'The URL leads directly to the main website with no strange hyphens or misspellings.',
+        id: 'otp-code',
+        label: { en: 'A code to type, not a link', mr: 'टाकायचा कोड, लिंक नाही' },
+        text: {
+          en: 'The bank sends a number for YOU to enter in the app. It does not ask you to click a link or call anyone.',
+          mr: 'बँक तुम्हाला ॲपमध्ये टाकण्यासाठी एक नंबर पाठवते. लिंकवर क्लिक करा किंवा कॉल करा असं सांगत नाही.',
+        },
+      },
+      {
+        id: 'protect-otp',
+        label: { en: 'Tells you to protect it', mr: 'जपायला सांगतं' },
+        text: {
+          en: 'Real bank messages remind you never to share the OTP. Scammers do the opposite — they beg you to share it.',
+          mr: 'खरे बँक मेसेज ओटीपी कोणालाही सांगू नका असं सांगतात. फसवणारे उलट — तो सांगण्यासाठी विनवणी करतात.',
+        },
       },
     ],
-    explanation: {
-      short: 'A genuine update from a verified organization domain.',
-    },
-  },
-
-  // 10 — UPI — Fake "accidental" collect request (phishing)
-  {
-    id: 10,
-    type: 'upi',
-    verdict: 'phishing',
     article: {
-      title: 'QR Code Scam: The New Face of Everyday Fraud',
-      url: 'https://myfactree.org/qr-code-restaurant-parking-scam-the-new-face-of-everyday-fraud/',
+      title: {
+        en: 'Golden rule: never share your OTP with anyone',
+        mr: 'सोनेरी नियम: ओटीपी कोणालाही सांगू नका',
+      },
+      url: 'https://cybercrime.gov.in',
     },
-    sender: 'Rahul Sharma',
-    upiId: 'refund.support@okaxis',
-    amount: '₹1',
-    note: 'Flipkart refund for order #FL-9920183. Accept to receive ₹4,800 back.',
-    guideText:
-      'Someone says they sent you a refund on GPay. This screen appears asking for your UPI PIN. What do you do?',
-    flags: [
-      {
-        id: 'collect-not-receive',
-        label: '"Paying" means money LEAVES your account',
-        text: 'This screen says "Paying" — not "Receiving". A UPI collect request debits YOU. You never need to enter your PIN to receive money. If someone says "enter your PIN to get a refund", it\'s a scam.',
-      },
-      {
-        id: 'fake-upi-id',
-        label: 'No company sends refunds from personal UPI IDs',
-        text: 'Flipkart refunds go directly to your original payment method. "refund.support@okaxis" is a personal/fraudulent ID — no e-commerce brand uses a handle like this.',
-      },
-      {
-        id: 'small-amount-trick',
-        label: '₹1 is a test — bigger amounts follow',
-        text: "Scammers start small to make you comfortable. Once you've entered your PIN for ₹1, they know it works and immediately send another request for thousands. Each approval also teaches them your pattern.",
-      },
-    ],
     explanation: {
-      short:
-        'A fake GPay collect request disguised as a Flipkart refund. Entering your PIN sends money — it never receives it.',
+      short: {
+        en: 'A genuine bank OTP — specific, link-free, and it tells you to protect it.',
+        mr: 'खरा बँक ओटीपी — नेमका, लिंकशिवाय, आणि तो जपायला सांगणारा.',
+      },
     },
   },
 ];

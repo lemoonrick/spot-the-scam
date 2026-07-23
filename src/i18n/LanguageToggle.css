@@ -1,0 +1,42 @@
+.lang-toggle {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 3000;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-soft, #e2e8f0);
+  border-radius: var(--radius-pill, 999px);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1);
+  -webkit-backdrop-filter: saturate(1.1);
+  backdrop-filter: saturate(1.1);
+}
+
+.lang-opt {
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill, 999px);
+  background: transparent;
+  color: var(--text-muted, #64748b);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.lang-opt.active {
+  background: var(--brand-primary, #0b4da2);
+  color: #fff;
+}
+
+@media (max-width: 480px) {
+  .lang-toggle {
+    top: 10px;
+    right: 10px;
+  }
+  .lang-opt {
+    padding: 8px 14px;
+    font-size: 14px;
+  }
+}
