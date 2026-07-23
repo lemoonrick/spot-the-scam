@@ -158,13 +158,13 @@ button:active {
   line-height: 1.5;
 }
 
-/* ── Scam content + explanation stack (in-flow, no absolute positioning) ── */
+/* ── Scam content + anchored explanation tooltip ── */
 .scam-stack {
+  position: relative;
   width: 100%;
+  max-width: 460px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
+  justify-content: center;
 }
 
 .scam-content {
@@ -174,16 +174,18 @@ button:active {
   animation: slideInRight 0.35s ease forwards;
 }
 
+/* Tooltip is absolutely positioned under the highlighted flag (top/left/width set
+   inline from measurements in ScamScreen). */
 .flag-card-host {
-  width: 100%;
-  display: flex;
-  justify-content: center;
+  position: absolute;
+  z-index: 50;
+  /* default width so the pre-position height measurement is representative;
+     overridden inline once measured */
+  width: min(340px, calc(100% - 16px));
 }
 
-/* ── Flag card (renders directly below the phone) ── */
 .flag-card-wrap {
   width: 100%;
-  max-width: 400px;
   animation: flagCardIn 0.3s ease forwards;
 }
 
@@ -219,11 +221,12 @@ button:active {
   --flag-theme-text: var(--correct-text);
 }
 
-/* small upward pointer linking the card to the highlighted message above */
+/* upward pointer aimed at the exact highlighted flag (x set from measurement) */
 .flag-card-pointer {
   position: absolute;
   top: -11px;
-  left: 32px;
+  left: var(--pointer-left, 32px);
+  transform: translateX(-50%);
   width: 0;
   height: 0;
   border-left: 9px solid transparent;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 import { scams as allScams } from './scams';
 import { useLocale } from './i18n/LocaleContext';
 import { localizeScam } from './i18n/localizeScam';
@@ -32,7 +32,11 @@ export default function ScamScreen() {
   const [phase, setPhase] = useState('idle'); // idle → verdict-chosen → revealing
   const [flagIndex, setFlagIndex] = useState(0);
 
-  const flagCardRef = useRef(null);
+  // Anchored tooltip geometry — computed from the highlighted flag element.
+  const [cardPos, setCardPos] = useState(null); // { top, left, width, pointerLeft }
+  const [stackPad, setStackPad] = useState(0); // reserve space so the card is never cut
+  const stackRef = useRef(null);
+  const cardRef = useRef(null);
 
   // Resolve the current scam's translatable fields for the active locale once, so the
   // presentational components below receive plain strings exactly as before. id / type /
@@ -55,18 +59,54 @@ export default function ScamScreen() {
     setScamIndex((prev) => prev + 1);
   };
 
-  // Bring the explanation card into view whenever it appears or its flag changes.
-  // In-flow layout means no measuring/padding math — the browser handles it.
+  // Position the tooltip directly under the highlighted flag, pointing at it. Clamp it
+  // inside the phone column so it never overflows, and reserve bottom space so it is
+  // never clipped. Runs before paint (useLayoutEffect) to avoid a position flicker, and
+  // re-runs on flag/scam/language change and on resize.
+  /* eslint-disable react-hooks/set-state-in-effect --
+     measuring layout and writing the result to state is the intended use here */
+  useLayoutEffect(() => {
+    if (phase !== 'revealing') {
+      setCardPos(null);
+      setStackPad(0);
+      return;
+    }
+    const stack = stackRef.current;
+    if (!stack) return;
+
+    const measure = () => {
+      const active = stack.querySelector('.active, .safe-active, .upi-active');
+      if (!active) return;
+      const sRect = stack.getBoundingClientRect();
+      const aRect = active.getBoundingClientRect();
+
+      const width = Math.min(340, sRect.width - 16);
+      const flagCenter = aRect.left - sRect.left + aRect.width / 2;
+      const left = Math.max(8, Math.min(flagCenter - width / 2, sRect.width - width - 8));
+      const top = aRect.bottom - sRect.top + 12;
+      const pointerLeft = Math.max(20, Math.min(flagCenter - left, width - 20));
+      setCardPos({ top, left, width, pointerLeft });
+
+      const cardH = cardRef.current ? cardRef.current.offsetHeight : 280;
+      const phoneEl = stack.querySelector('.scam-content');
+      const phoneH = phoneEl ? phoneEl.offsetHeight : sRect.height;
+      setStackPad(Math.max(0, top + cardH + 24 - phoneH));
+    };
+
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [phase, flagIndex, scamIndex, locale]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  // Scroll the positioned card into view.
   useEffect(() => {
-    if (phase !== 'revealing' || !flagCardRef.current) return;
+    if (phase !== 'revealing' || !cardRef.current || !cardPos) return;
     const raf = requestAnimationFrame(() => {
-      flagCardRef.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
+      cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
     return () => cancelAnimationFrame(raf);
-  }, [phase, flagIndex, scamIndex]);
+  }, [phase, flagIndex, scamIndex, cardPos]);
 
   if (scamIndex >= scams.length) {
     return (
@@ -200,13 +240,29 @@ export default function ScamScreen() {
         </div>
       )}
 
-      <div className="scam-stack">
+      <div
+        className="scam-stack"
+        ref={stackRef}
+        style={stackPad > 0 ? { paddingBottom: `${stackPad}px` } : undefined}
+      >
         <div key={scam.id} className="scam-content slide-in">
           {renderScam()}
         </div>
 
         {phase === 'revealing' && currentFlag && (
-          <div ref={flagCardRef} className="flag-card-host">
+          <div
+            ref={cardRef}
+            className="flag-card-host"
+            style={
+              cardPos
+                ? {
+                    top: `${cardPos.top}px`,
+                    left: `${cardPos.left}px`,
+                    width: `${cardPos.width}px`,
+                  }
+                : { visibility: 'hidden' }
+            }
+          >
             <FlagCard
               flag={currentFlag}
               flagIndex={flagIndex}
@@ -215,6 +271,7 @@ export default function ScamScreen() {
               isLastScam={isLastScam}
               onNext={handleNextFlag}
               verdict={scam.verdict}
+              pointerLeft={cardPos?.pointerLeft}
               speechText={flagsToSpeech(currentFlag)}
             />
           </div>

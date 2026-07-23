@@ -13,6 +13,7 @@ export default function FlagCard({
   isLastScam,
   onNext,
   verdict,
+  pointerLeft,
   speechText,
 }) {
   const { t } = useLocale();
@@ -20,7 +21,11 @@ export default function FlagCard({
 
   return (
     <div className="flag-card-wrap">
-      <div className="flag-card" data-verdict={isLegit ? 'legit' : 'scam'}>
+      <div
+        className="flag-card"
+        data-verdict={isLegit ? 'legit' : 'scam'}
+        style={pointerLeft != null ? { '--pointer-left': `${pointerLeft}px` } : undefined}
+      >
         <span className="flag-card-pointer" aria-hidden="true" />
 
         {totalFlags > 1 && (
