@@ -21,7 +21,7 @@ export const scams = [
     sender: { en: 'MGB-ALERT', mr: 'MGB-ALERT' },
     guideText: {
       en: 'This text just arrived on your phone. Should you do what it says?',
-      mr: 'हा मेसेज आत्ताच तुमच्या फोनवर आला. यात सांगितलं तसं करावं का?',
+      mr: 'फोनवर आत्ताच हा मेसेज आला. यात सांगितलंय तसं करायचं, की जरा थांबायचं?',
     },
     message: {
       en: [
@@ -79,7 +79,7 @@ export const scams = [
     explanation: {
       short: {
         en: 'A phishing SMS using panic and a fake number to steal your OTP.',
-        mr: 'घाबरवून आणि खोट्या नंबरने ओटीपी चोरणारा फसवा एसएमएस.',
+        mr: 'भीती दाखवून ओटीपी उकळणारा हा सापळा — खरी बँक असं कधीच करत नाही.',
       },
     },
   },
@@ -92,7 +92,7 @@ export const scams = [
     sender: { en: 'PM-Kisan Yojana', mr: 'पीएम-किसान योजना' },
     guideText: {
       en: 'A message about your farmer subsidy arrives on WhatsApp. Is it genuine?',
-      mr: 'तुमच्या शेतकरी अनुदानाबद्दल व्हॉट्सॲपवर मेसेज आला. तो खरा आहे का?',
+      mr: 'व्हॉट्सॲपवर अनुदानाचा मेसेज! पैसे मिळणार म्हणून खूश व्हायचं, की तपासून बघायचं?',
     },
     message: {
       en: [
@@ -150,7 +150,7 @@ export const scams = [
     explanation: {
       short: {
         en: 'A fake subsidy message using a look-alike link to steal your details.',
-        mr: 'तुमचा तपशील चोरण्यासाठी खोट्या लिंकचा वापर करणारा फसवा मेसेज.',
+        mr: 'अनुदानाच्या नावाखाली खोटी लिंक पाठवून माहिती चोरणारी चलाखी.',
       },
     },
   },
@@ -163,7 +163,7 @@ export const scams = [
     sender: { en: 'MGB Loan Yojana', mr: 'MGB कर्ज योजना' },
     guideText: {
       en: 'You never applied, but this loan offer arrives. Should you trust it?',
-      mr: 'तुम्ही अर्जच केला नाही, तरी हे कर्जाचं ऑफर आलं. यावर विश्वास ठेवावा का?',
+      mr: 'अर्ज न करताच ५०,००० चं कर्ज मंजूर? असं खरंच घडतं का — जरा विचार करा.',
     },
     message: {
       en: [
@@ -230,7 +230,7 @@ export const scams = [
     explanation: {
       short: {
         en: 'A fake loan offer that traps you with an upfront "processing fee".',
-        mr: '"प्रोसेसिंग फी"च्या नावाखाली आधी पैसे उकळणारं खोटं कर्ज ऑफर.',
+        mr: 'आधी "फी" भरा म्हणणारं हे कर्ज म्हणजे निव्वळ जाळं — खरी बँक आधी पैसे मागत नाही.',
       },
     },
   },
@@ -243,7 +243,7 @@ export const scams = [
     sender: { en: 'VM-MSEB', mr: 'VM-MSEB' },
     guideText: {
       en: 'A warning about your electricity bill arrives late at night. Is it real?',
-      mr: 'रात्री उशिरा वीज बिलाबद्दल इशारा देणारा मेसेज आला. तो खरा आहे का?',
+      mr: 'रात्रीच वीज कापायची धमकी देणारा मेसेज! खरंच घाबरायचं, की डोकं शांत ठेवायचं?',
     },
     message: {
       en: [
@@ -292,7 +292,7 @@ export const scams = [
     explanation: {
       short: {
         en: 'A fake power-cut threat pushing you to call a scammer.',
-        mr: 'फसवणाऱ्याला कॉल करायला भाग पाडणारी खोटी वीज-कपात धमकी.',
+        mr: 'घाबरवून त्यांच्याच नंबरवर फोन करायला लावणारी खोटी धमकी.',
       },
     },
   },
@@ -305,7 +305,7 @@ export const scams = [
     sender: { en: 'VK-MGBANK', mr: 'VK-MGBANK' },
     guideText: {
       en: 'You just started a money transfer in your bank app, and this arrives. Is it safe?',
-      mr: 'तुम्ही आत्ताच बँक ॲपमध्ये पैसे पाठवायला सुरुवात केली, आणि हा मेसेज आला. तो सुरक्षित आहे का?',
+      mr: 'तुम्ही स्वतः पैसे पाठवायला सुरुवात केली आणि हा ओटीपी आला. हा खरा, की खोटा?',
     },
     message: {
       en: [
@@ -363,7 +363,7 @@ export const scams = [
     explanation: {
       short: {
         en: 'A genuine bank OTP — specific, link-free, and it tells you to protect it.',
-        mr: 'खरा बँक ओटीपी — नेमका, लिंकशिवाय, आणि तो जपायला सांगणारा.',
+        mr: 'हा खरा बँक ओटीपी — नेमका, लिंकशिवाय, आणि "कुणाला सांगू नका" म्हणणारा.',
       },
     },
   },

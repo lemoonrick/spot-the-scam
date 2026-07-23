@@ -350,13 +350,13 @@ button:active {
   border-radius: var(--radius-pill);
   font-size: var(--fs-md);
   font-weight: 600;
-  color: var(--brand-primary);
-  background: var(--c-surface);
-  border: 1.5px solid var(--c-border-strong);
+  color: #fff;
+  background: var(--brand-primary);
+  border: 1.5px solid var(--brand-primary);
 }
 .verdict-btn:hover {
-  border-color: var(--brand-primary);
-  background: var(--brand-tint);
+  background: var(--brand-primary-dark);
+  border-color: var(--brand-primary-dark);
 }
 
 .show-btn {
