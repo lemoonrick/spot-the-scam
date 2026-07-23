@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ShieldCheck, Clock, Gift, Lock, ArrowRight } from '@phosphor-icons/react';
 import './StartScreen.css';
 import farmerHero from './assets/farmer-hero.jpg';
 import MgbLogo from './assets/MgbLogo';
@@ -9,110 +10,75 @@ export default function StartScreen({ onStart }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const tmo = setTimeout(() => setVisible(true), 60);
+    const tmo = setTimeout(() => setVisible(true), 40);
     return () => clearTimeout(tmo);
   }, []);
 
-  // Split the localized headline into words for the staggered reveal; the final word
-  // gets the accent highlight. Works in any language.
-  const words = t('start.headlineMain').split(' ');
+  // Emphasise the final word of the headline in the brand accent (same font family).
+  const headline = t('start.headlineMain').trim();
+  const lastSpace = headline.lastIndexOf(' ');
+  const headLead = lastSpace > -1 ? headline.slice(0, lastSpace) : '';
+  const headAccent = lastSpace > -1 ? headline.slice(lastSpace + 1) : headline;
 
   return (
     <div className={`hs-root ${visible ? 'hs-visible' : ''}`}>
-      <div className="hs-bg-glow hs-glow-blue" />
-      <div className="hs-bg-glow hs-glow-green" />
-
-      {/* Brand bar */}
-      <header className="hs-brandbar hs-reveal hs-delay-0">
+      <header className="hs-brandbar">
         <MgbLogo size={34} className="hs-brand-logo" />
         <span className="hs-brand-name">{t('start.bankName')}</span>
       </header>
 
-      {/* ── HERO ── */}
       <main className="hs-grid">
-        {/* Real farmer photo — the visual anchor */}
-        <div className="hs-hero-media hs-reveal hs-delay-2">
-          <div className="hs-hero-frame">
+        <div className="hs-left">
+          <h1 className="hs-headline">
+            {headLead && <span>{headLead} </span>}
+            <span className="hs-accent">{headAccent}</span>
+            <br />
+            <span className="hs-headline-sub">{t('start.headlineSub')}</span>
+          </h1>
+
+          <p className="hs-body">{t('start.body')}</p>
+
+          <button className="hs-cta" onClick={onStart}>
+            {t('start.cta')}
+            <ArrowRight size={20} weight="bold" />
+          </button>
+
+          <ul className="hs-facts">
+            <li className="hs-fact">
+              <Clock size={18} weight="regular" />
+              {t('start.pillTime')}
+            </li>
+            <li className="hs-fact">
+              <Gift size={18} weight="regular" />
+              {t('start.pillFree')}
+            </li>
+            <li className="hs-fact">
+              <Lock size={18} weight="regular" />
+              {t('start.pillNoSignup')}
+            </li>
+          </ul>
+        </div>
+
+        <div className="hs-media">
+          <div className="hs-media-frame">
             <img
               src={farmerHero}
               alt={t('start.heroAlt')}
-              className="hs-hero-img"
+              className="hs-media-img"
               loading="eager"
             />
           </div>
-          <div className="hs-hero-badge">
-            <span className="hs-hero-badge-icon" aria-hidden="true">
-              🛡️
-            </span>
+          <div className="hs-media-badge">
+            <ShieldCheck size={20} weight="fill" />
             <span>{t('start.heroBadge')}</span>
-          </div>
-        </div>
-
-        {/* Copy + CTA */}
-        <div className="hs-left">
-          <div className="hs-eyebrow hs-reveal hs-delay-3">
-            <span className="hs-eyebrow-dot" />
-            {t('start.eyebrow')}
-          </div>
-
-          <h1 className="hs-headline">
-            {words.map((word, i) => (
-              <span key={i} className="hs-word-wrap">
-                <span
-                  className="hs-word"
-                  style={{ animationDelay: `${0.18 + i * 0.13}s` }}
-                >
-                  {i === words.length - 1 ? (
-                    <span className="hs-gradient-word">{word}</span>
-                  ) : (
-                    word
-                  )}
-                  {i < words.length - 1 ? ' ' : ''}
-                </span>
-              </span>
-            ))}
-            <br />
-            <span className="hs-word-wrap">
-              <span
-                className="hs-word hs-subtitle-line"
-                style={{ animationDelay: '0.6s' }}
-              >
-                {t('start.headlineSub')}
-              </span>
-            </span>
-          </h1>
-
-          <p className="hs-body hs-reveal hs-delay-4">{t('start.body')}</p>
-
-          <div className="hs-pills hs-reveal hs-delay-5">
-            <span className="hs-pill">{t('start.pillTime')}</span>
-            <span className="hs-pill">{t('start.pillFree')}</span>
-            <span className="hs-pill">{t('start.pillNoSignup')}</span>
-          </div>
-
-          <div className="hs-cta-wrap hs-reveal hs-delay-6">
-            <button className="hs-cta" onClick={onStart}>
-              {t('start.cta')}
-              <svg className="hs-cta-arrow" viewBox="0 0 20 20" fill="none">
-                <path
-                  d="M4 10h12M11 5l5 5-5 5"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            <p className="hs-cta-hint">{t('start.ctaHint')}</p>
           </div>
         </div>
       </main>
 
-      {/* Footer — MGB wordmark + fraud helpline */}
       <footer className="hs-footer">
-        <div className="hs-footer-wordmark" aria-label={t('start.bankName')}>
-          <MgbLogo size={28} />
-          <span className="hs-footer-name">{t('start.bankName')}</span>
+        <div className="hs-footer-brand" aria-label={t('start.bankName')}>
+          <MgbLogo size={26} />
+          <span>{t('start.bankName')}</span>
         </div>
         <p className="hs-footer-help">{t('start.footerHelp')}</p>
       </footer>

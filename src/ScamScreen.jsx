@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
+import { CheckCircle, XCircle, ArrowRight } from '@phosphor-icons/react';
 import { scams as allScams } from './scams';
 import { useLocale } from './i18n/LocaleContext';
 import { localizeScam } from './i18n/localizeScam';
@@ -198,12 +199,23 @@ export default function ScamScreen() {
         <div
           className={`verdict-header ${userVerdict === scam.verdict ? 'correct' : 'incorrect'}`}
         >
-          <span className="verdict-header-label">
-            {userVerdict === scam.verdict
-              ? t('scam.correct')
-              : t('scam.incorrect')}
+          <span className="verdict-header-icon">
+            {userVerdict === scam.verdict ? (
+              <CheckCircle size={26} weight="fill" />
+            ) : (
+              <XCircle size={26} weight="fill" />
+            )}
           </span>
-          <span className="verdict-header-short">{scam.explanation.short}</span>
+          <span className="verdict-header-body">
+            <span className="verdict-header-label">
+              {userVerdict === scam.verdict
+                ? t('scam.correct')
+                : t('scam.incorrect')}
+            </span>
+            <span className="verdict-header-short">
+              {scam.explanation.short}
+            </span>
+          </span>
         </div>
       )}
 
@@ -234,8 +246,9 @@ export default function ScamScreen() {
 
       {phase === 'verdict-chosen' && (
         <div className="verdict-section">
-          <button className="show-btn show-btn-pulse" onClick={handleShowMe}>
+          <button className="show-btn" onClick={handleShowMe}>
             {t('scam.showMe')}
+            <ArrowRight size={18} weight="bold" />
           </button>
         </div>
       )}

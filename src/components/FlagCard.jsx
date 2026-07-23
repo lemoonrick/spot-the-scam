@@ -1,3 +1,4 @@
+import { Warning, ShieldCheck, ArrowRight } from '@phosphor-icons/react';
 import { useLocale } from '../i18n/LocaleContext';
 import ReadAloudButton from '../i18n/ReadAloudButton';
 
@@ -40,7 +41,14 @@ export default function FlagCard({
         )}
 
         <div className="flag-card-labelrow">
-          <span className="flag-card-label">{flag.label}</span>
+          <span className="flag-card-label">
+            {isLegit ? (
+              <ShieldCheck size={15} weight="fill" />
+            ) : (
+              <Warning size={15} weight="fill" />
+            )}
+            {flag.label}
+          </span>
           <ReadAloudButton text={speechText || `${flag.label}. ${flag.text}`} />
         </div>
 
@@ -52,6 +60,7 @@ export default function FlagCard({
               ? t('flag.seeScore')
               : t('flag.nextExample')
             : t('flag.next')}
+          <ArrowRight size={17} weight="bold" />
         </button>
       </div>
     </div>

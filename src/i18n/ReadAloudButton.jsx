@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { SpeakerHigh, Pause } from '@phosphor-icons/react';
 import { useLocale } from './LocaleContext';
 import {
   SPEECH_ENABLED,
@@ -42,7 +43,11 @@ export default function ReadAloudButton({ text }) {
       onClick={toggle}
     >
       <span className="read-aloud-icon" aria-hidden="true">
-        {speaking ? '⏸' : '🔊'}
+        {speaking ? (
+          <Pause size={17} weight="fill" />
+        ) : (
+          <SpeakerHigh size={17} weight="regular" />
+        )}
       </span>
       <span className="read-aloud-text">{label}</span>
     </button>

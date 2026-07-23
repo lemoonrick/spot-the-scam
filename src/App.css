@@ -4,52 +4,84 @@
 
 /* ============================================================
    DESIGN TOKENS
+   ------------------------------------------------------------
+   Spacing: 4px base scale.  Type: modular scale.
+   Radius lock: interactive controls = pill; cards = --r-lg;
+   chips/inputs = --r-sm. (documented rule, followed everywhere)
+   Colour: one accent (MGB blue) over slate neutrals; green/red
+   reserved for correct/incorrect feedback only.
+   Elevation: two tinted, low shadows — no glows.
    ============================================================ */
 :root {
-  --bg-page: linear-gradient(160deg, #f4f8fc 0%, #e8eff7 100%);
+  /* spacing */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
 
-  --text-main: #0f172a;
-  --text-muted: #5b6b7f;
+  /* type scale */
+  --fs-xs: 12.5px;
+  --fs-sm: 14px;
+  --fs-base: 16px;
+  --fs-md: 18px;
+  --fs-lg: 21px;
+  --fs-xl: 26px;
+  --fs-2xl: 32px;
+  --fs-3xl: 40px;
 
-  /* MGB brand — sampled from the bank's blue+green identity (leaf-drop logo, poster
-     navy, app green). Blue drives primary actions/progress; green is the accent used in
-     the logo/wordmark. Both are kept distinct from the correct/incorrect green/red below
-     so quiz feedback stays legible. */
+  /* radius lock */
+  --r-sm: 8px;
+  --r-lg: 14px;
+  --radius-card: 14px; /* legacy alias */
+  --radius-pill: 999px;
+
+  /* neutrals (slate) */
+  --c-bg: #f4f6f9;
+  --c-surface: #ffffff;
+  --c-border: #e3e8ef;
+  --c-border-strong: #cdd5e0;
+  --c-ink: #17233a;
+  --c-ink-2: #4a5a70;
+  --c-ink-3: #6b7889;
+
+  /* brand — single accent (MGB blue), green kept for logo/secondary */
   --brand-primary: #14539a;
   --brand-primary-dark: #0e3d73;
-  --brand-shadow: rgba(20, 83, 154, 0.28);
-
-  --brand-green: #4ca62f;
-  --brand-green-dark: #3c8a24;
+  --brand-tint: #eaf1fa;
+  --brand-shadow: rgba(20, 83, 154, 0.18);
+  --brand-green: #3d8a24;
   --brand-navy: #14315f;
 
-  --green: #22c55e;
-  --green-dark: #16a34a;
-  --green-shadow: rgba(34, 197, 94, 0.25);
+  /* semantic feedback (functional, not decorative) */
+  --green: #157f43;
+  --green-dark: #0f6b38;
+  --red: #c5372f;
+  --red-dark: #a72d26;
+  --red-soft: rgba(197, 55, 47, 0.1);
+  --red-border: rgba(197, 55, 47, 0.3);
+  --correct-bg: #e9f5ee;
+  --correct-border: #c2e2cf;
+  --correct-text: #157f43;
+  --incorrect-bg: #fbeceb;
+  --incorrect-border: #efc3bf;
+  --incorrect-text: #b5322b;
 
-  --red: #ef4444;
-  --red-dark: #dc2626;
-  --red-soft: rgba(239, 68, 68, 0.12);
-  --red-border: rgba(239, 68, 68, 0.35);
+  /* legacy aliases still referenced by device-skin components */
+  --blue: #14539a;
+  --text-main: var(--c-ink);
+  --text-muted: var(--c-ink-2);
+  --bg-page: var(--c-bg);
+  --card-bg: var(--c-surface);
+  --border-soft: var(--c-border);
 
-  --correct-bg: #f0fdf4;
-  --correct-border: #bbf7d0;
-  --correct-text: #16a34a;
-
-  --incorrect-bg: #fef2f2;
-  --incorrect-border: #fecaca;
-  --incorrect-text: #dc2626;
-
-  --blue: #3b82f6;
-  --blue-shadow: rgba(59, 130, 246, 0.35);
-
-  --card-bg: #ffffff;
-  --border-soft: #e2e8f0;
-  --shadow-card: 0 8px 24px rgba(15, 23, 42, 0.07);
-  --shadow-card-hover: 0 16px 40px rgba(15, 23, 42, 0.12);
-
-  --radius-pill: 999px;
-  --radius-card: 16px;
+  /* elevation — low, tinted to brand navy */
+  --shadow-card:
+    0 1px 2px rgba(20, 49, 95, 0.05), 0 2px 8px rgba(20, 49, 95, 0.06);
+  --shadow-card-hover: 0 6px 20px rgba(20, 49, 95, 0.1);
 }
 
 /* ============================================================
@@ -66,8 +98,8 @@
 html,
 body {
   font-family: 'Poppins', 'Mukta', system-ui, sans-serif;
-  color: var(--text-main);
-  background: var(--bg-page);
+  color: var(--c-ink);
+  background: var(--c-bg);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -76,74 +108,80 @@ button {
   cursor: pointer;
   font-family: inherit;
   font-weight: 600;
-  font-size: 16px;
+  font-size: var(--fs-base);
   transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease,
-    background 0.15s ease;
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
 }
-
 button:active {
-  transform: scale(0.97) !important;
+  transform: translateY(1px);
 }
 
-/* Visible keyboard focus for accessibility (was missing). */
 :focus-visible {
-  outline: 3px solid var(--brand-primary);
+  outline: 2px solid var(--brand-primary);
   outline-offset: 2px;
 }
 
 .app {
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* ============================================================
    SCAM FLOW LAYOUT
    ============================================================ */
 .scam-wrapper {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 24px;
-  /* extra top padding keeps content clear of the fixed language toggle */
-  padding: 72px 16px 48px;
+  gap: var(--sp-5);
+  padding: 80px 16px 56px; /* top clears the fixed language toggle */
 }
 
-.correct-glow {
-  animation: correctFlash 0.8s ease;
-}
+/* feedback flash removed — kept as no-op hooks for JS state classes */
+.correct-glow,
 .incorrect-glow {
-  animation: incorrectFlash 0.8s ease;
+  /* intentionally empty: feedback is shown in the verdict header, not a flash */
 }
 
 /* ── Verdict header ── */
 .verdict-header {
   width: 100%;
   max-width: 580px;
-  padding: 18px 24px;
-  border-radius: var(--radius-card);
+  padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--r-lg);
   display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 10px;
-  animation: fadeDown 0.3s ease forwards;
+  align-items: center;
+  gap: var(--sp-3);
+  animation: fadeDown 0.25s ease forwards;
 }
-
 .verdict-header.correct {
   background: var(--correct-bg);
-  border: 1.5px solid var(--correct-border);
+  border: 1px solid var(--correct-border);
 }
 .verdict-header.incorrect {
   background: var(--incorrect-bg);
-  border: 1.5px solid var(--incorrect-border);
+  border: 1px solid var(--incorrect-border);
 }
-
+.verdict-header-icon {
+  flex-shrink: 0;
+  display: flex;
+}
+.verdict-header.correct .verdict-header-icon {
+  color: var(--correct-text);
+}
+.verdict-header.incorrect .verdict-header-icon {
+  color: var(--incorrect-text);
+}
+.verdict-header-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 .verdict-header-label {
-  font-size: 22px;
+  font-size: var(--fs-md);
   font-weight: 700;
-  white-space: nowrap;
 }
 .verdict-header.correct .verdict-header-label {
   color: var(--correct-text);
@@ -151,10 +189,9 @@ button:active {
 .verdict-header.incorrect .verdict-header-label {
   color: var(--incorrect-text);
 }
-
 .verdict-header-short {
-  font-size: 14px;
-  color: #374151;
+  font-size: var(--fs-sm);
+  color: var(--c-ink-2);
   line-height: 1.5;
 }
 
@@ -166,50 +203,34 @@ button:active {
   display: flex;
   justify-content: center;
 }
-
 .scam-content {
   width: 100%;
   display: flex;
   justify-content: center;
-  animation: slideInRight 0.35s ease forwards;
+  animation: contentIn 0.3s ease forwards;
 }
 
-/* Tooltip is absolutely positioned under the highlighted flag (top/left/width set
-   inline from measurements in ScamScreen). */
+/* Tooltip absolutely positioned under the highlighted flag (top/left/width
+   set inline from measurement in ScamScreen). */
 .flag-card-host {
   position: absolute;
   z-index: 50;
-  /* default width so the pre-position height measurement is representative;
-     overridden inline once measured */
   width: min(340px, calc(100% - 16px));
 }
-
 .flag-card-wrap {
   width: 100%;
-  animation: flagCardIn 0.3s ease forwards;
-}
-
-@keyframes flagCardIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  animation: flagCardIn 0.25s ease forwards;
 }
 
 .flag-card {
   position: relative;
-  background: #ffffff;
-  border-radius: var(--radius-card);
-  padding: 20px 20px 18px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-top: 3px solid var(--flag-theme);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4) var(--sp-4) var(--sp-4);
   box-shadow: var(--shadow-card-hover);
-  border-top: 5px solid var(--flag-theme);
 }
-
-/* verdict theming: scam = red, legit = green */
 .flag-card[data-verdict='scam'] {
   --flag-theme: var(--red);
   --flag-theme-soft: var(--red-soft);
@@ -221,64 +242,59 @@ button:active {
   --flag-theme-text: var(--correct-text);
 }
 
-/* upward pointer aimed at the exact highlighted flag (x set from measurement) */
 .flag-card-pointer {
   position: absolute;
-  top: -11px;
+  top: -8px;
   left: var(--pointer-left, 32px);
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 9px solid transparent;
-  border-right: 9px solid transparent;
-  border-bottom: 11px solid var(--flag-theme);
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid var(--flag-theme);
 }
 
 .flag-dots {
   display: flex;
-  gap: 6px;
-  margin-bottom: 12px;
+  gap: var(--sp-1);
+  margin-bottom: var(--sp-3);
 }
-
 .flag-dot {
-  width: 9px;
-  height: 9px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: #e2e8f0;
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
+  background: var(--c-border-strong);
+  transition: background 0.2s ease;
 }
 .flag-dot.active {
   background: var(--flag-theme);
-  transform: scale(1.25);
 }
 
 .flag-card-labelrow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
 }
-
 .flag-card-label {
-  display: inline-block;
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
   font-weight: 700;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.3px;
   text-transform: uppercase;
-  padding: 5px 12px;
-  border-radius: var(--radius-pill);
+  padding: 5px 10px;
+  border-radius: var(--r-sm);
   color: var(--flag-theme-text);
   background: var(--flag-theme-soft);
 }
-
 .flag-card-text {
-  font-size: 16.5px;
-  line-height: 1.65;
-  color: #1e293b;
-  margin: 0 0 16px;
+  font-size: var(--fs-md);
+  line-height: 1.6;
+  color: var(--c-ink);
+  margin: 0 0 var(--sp-4);
 }
 
 /* ── Read-aloud (Listen) button ── */
@@ -287,147 +303,133 @@ button:active {
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
-  padding: 8px 14px;
-  min-height: 40px;
+  padding: 7px 12px;
+  min-height: 38px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-tint);
+  color: var(--brand-primary);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+.read-aloud-btn:hover {
+  background: #dfeaf7;
+}
+.read-aloud-btn.speaking {
+  background: var(--brand-primary);
+  color: #fff;
+}
+.read-aloud-icon {
+  display: flex;
+}
+
+/* ── Buttons ── */
+.flag-next-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 0;
   border-radius: var(--radius-pill);
   background: var(--brand-primary);
   color: #fff;
-  font-size: 14px;
+  font-size: var(--fs-base);
   font-weight: 600;
-}
-.read-aloud-btn.speaking {
-  background: var(--brand-primary-dark);
-}
-.read-aloud-icon {
-  font-size: 15px;
-  line-height: 1;
-}
-
-.flag-next-btn {
-  width: 100%;
-  padding: 11px 0;
-  border-radius: var(--radius-pill);
-  background: linear-gradient(
-    135deg,
-    var(--brand-primary),
-    var(--brand-primary-dark)
-  );
-  color: white;
-  font-size: 15px;
-  font-weight: 600;
-  box-shadow: 0 4px 14px var(--brand-shadow);
 }
 .flag-next-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 20px var(--brand-shadow);
+  background: var(--brand-primary-dark);
 }
 
-/* ── Progress bar (replaces plain 1/10 counter) ── */
+.verdict-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 54px;
+  padding: 15px 34px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--brand-primary);
+  background: var(--c-surface);
+  border: 1.5px solid var(--c-border-strong);
+}
+.verdict-btn:hover {
+  border-color: var(--brand-primary);
+  background: var(--brand-tint);
+}
+
+.show-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 54px;
+  padding: 15px 40px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-primary);
+  color: #fff;
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+.show-btn:hover {
+  background: var(--brand-primary-dark);
+}
+
+/* ── Progress bar ── */
 .scam-progress-bar-wrap {
   width: 100%;
   max-width: 580px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--sp-3);
 }
-
 .scam-progress-track {
   flex: 1;
-  height: 5px;
-  background: var(--border-soft);
+  height: 6px;
+  background: var(--c-border);
   border-radius: var(--radius-pill);
   overflow: hidden;
 }
-
 .scam-progress-fill {
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    var(--brand-primary),
-    var(--brand-primary-dark)
-  );
+  background: var(--brand-primary);
   border-radius: var(--radius-pill);
   transition: width 0.4s ease;
 }
-
 .scam-progress-label {
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--c-ink-2);
   white-space: nowrap;
-  letter-spacing: 0.3px;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── Verdict section ── */
 .verdict-section {
+  width: 100%;
+  max-width: 580px;
   text-align: center;
 }
-
 .guide-text {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  font-size: 18px;
+  gap: var(--sp-3);
+  font-size: var(--fs-lg);
   font-weight: 500;
-  color: #334155;
-  line-height: 1.6;
-  max-width: 540px;
-  margin: 0 auto 18px;
-  padding: 0 8px;
+  color: var(--c-ink);
+  line-height: 1.5;
+  max-width: 30ch;
+  margin: 0 auto var(--sp-5);
 }
-
 .verdict-buttons {
   display: flex;
   justify-content: center;
-  gap: 14px;
+  gap: var(--sp-3);
 }
 
-.verdict-btn {
-  min-height: 52px;
-  padding: 15px 34px;
-  border-radius: var(--radius-pill);
-  font-size: 17px;
-  font-weight: 600;
-  color: white;
-  background: linear-gradient(
-    135deg,
-    var(--brand-primary),
-    var(--brand-primary-dark)
-  );
-  border: 1.5px solid transparent;
-  box-shadow: var(--shadow-card);
-}
-.verdict-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-card-hover);
-}
-
-.show-btn {
-  min-height: 52px;
-  padding: 15px 38px;
-  border-radius: var(--radius-pill);
-  background: var(--brand-primary);
-  color: white;
-  font-size: 17px;
-  font-weight: 600;
-}
-.show-btn-pulse {
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.scam-footer {
-  text-align: center;
-}
-
-.progress {
-  font-size: 13px;
-  color: var(--text-muted);
-  letter-spacing: 0.4px;
-  font-weight: 500;
-}
-
-/* ── Flag active states ── */
+/* ── Flag highlight inside the fake message (functional) ── */
 .sms-flag,
 .wa-flag,
 .insta-flag,
@@ -437,106 +439,62 @@ button:active {
 .flag {
   border-radius: 4px;
   transition:
-    background 0.22s ease,
-    color 0.22s ease;
+    background 0.2s ease,
+    color 0.2s ease;
 }
-
 .sms-flag.active,
 .wa-flag.active,
 .insta-flag.active,
 .popup-flag.active,
 .gmail-flag.active,
 .rich-flag.active,
-.flag.active {
-  background: var(--red-soft);
-  color: #991b1b;
-  border-radius: 3px;
-}
-
+.flag.active,
 .gmail-sender-addr.active {
   background: var(--red-soft);
-  color: #991b1b;
-  font-weight: 600;
+  color: var(--red-dark);
   border-radius: 3px;
 }
-
+.gmail-sender-addr.active {
+  font-weight: 600;
+}
 .gmail-flag.safe-active,
 .flag.safe-active {
-  background: rgba(59, 130, 246, 0.1);
-  color: #1e40af;
+  background: var(--brand-tint);
+  color: var(--brand-primary-dark);
   border-radius: 3px;
-}
-
-/* confetti canvas (triggered from AnalyticsScreen) */
-.confetti-canvas {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9999;
 }
 
 /* ============================================================
-   ANIMATIONS
+   ANIMATIONS (minimal)
    ============================================================ */
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 @keyframes fadeDown {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-6px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
-@keyframes slideInRight {
+@keyframes contentIn {
   from {
     opacity: 0;
-    transform: translateX(32px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
   }
 }
-@keyframes correctFlash {
-  0% {
-    background-color: transparent;
+@keyframes flagCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
   }
-  40% {
-    background-color: rgba(34, 197, 94, 0.07);
-  }
-  100% {
-    background-color: transparent;
-  }
-}
-@keyframes incorrectFlash {
-  0% {
-    background-color: transparent;
-  }
-  40% {
-    background-color: rgba(239, 68, 68, 0.07);
-  }
-  100% {
-    background-color: transparent;
-  }
-}
-@keyframes pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 var(--brand-shadow);
-  }
-  50% {
-    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -545,23 +503,17 @@ button:active {
    ============================================================ */
 @media (max-width: 480px) {
   .verdict-header {
-    flex-direction: column;
-    gap: 4px;
-    padding: 14px 18px;
-  }
-  .verdict-header-label {
-    font-size: 18px;
+    padding: var(--sp-3) var(--sp-4);
   }
   .verdict-btn {
-    padding: 14px 28px;
-    font-size: 16px;
+    padding: 14px 26px;
+    font-size: var(--fs-base);
   }
   .flag-card-wrap {
     max-width: 100%;
   }
 }
 
-/* Respect users who ask for less motion (older / low-end rural phones benefit too). */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

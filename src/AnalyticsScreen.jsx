@@ -1,4 +1,19 @@
 import { useEffect, useState } from 'react';
+import {
+  ChatText,
+  WhatsappLogo,
+  EnvelopeSimple,
+  InstagramLogo,
+  Warning,
+  Wallet,
+  DeviceMobile,
+  ShieldCheck,
+  ThumbsUp,
+  Check,
+  X,
+  ArrowClockwise,
+  ArrowUpRight,
+} from '@phosphor-icons/react';
 import { scams as allScams } from './scams';
 import { useLocale } from './i18n/LocaleContext';
 import { localizeScam } from './i18n/localizeScam';
@@ -7,62 +22,27 @@ import cropBand from './assets/crop-band.jpg';
 import './AnalyticsScreen.css';
 
 const TYPE_ICON = {
-  sms: '💬',
-  email: '📧',
-  whatsapp: '💚',
-  instagram: '📸',
-  popup: '⚠️',
-  upi: '💳',
+  sms: ChatText,
+  email: EnvelopeSimple,
+  whatsapp: WhatsappLogo,
+  instagram: InstagramLogo,
+  popup: Warning,
+  upi: Wallet,
 };
 
 function getScoreColor(s) {
-  if (s < 40) return '#ef4444';
-  if (s < 75) return '#f59e0b';
-  return '#10b981';
+  if (s < 40) return '#c5372f';
+  if (s < 75) return '#b8730a';
+  return '#157f43';
 }
 
-// Returns the display-independent tier; the copy itself comes from strings.js via t().
+// Returns the display-independent tier + icon; the copy comes from strings.js via t().
 function getFeedback(score) {
-  if (score >= 80) return { emoji: '🧠', key: 'an.feedbackHigh', tier: 'high' };
-  if (score >= 50) return { emoji: '👍', key: 'an.feedbackMid', tier: 'mid' };
-  return { emoji: '⚠️', key: 'an.feedbackLow', tier: 'low' };
-}
-
-function triggerConfetti(color) {
-  const canvas = document.createElement('canvas');
-  canvas.className = 'confetti-canvas';
-  document.body.appendChild(canvas);
-  const ctx = canvas.getContext('2d');
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-
-  const colors = [color, '#22c55e', '#3b82f6', '#f59e0b', '#ec4899'];
-  const pieces = Array.from({ length: 120 }, () => ({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height - canvas.height,
-    size: Math.random() * 8 + 4,
-    speed: Math.random() * 4 + 2,
-    color: colors[Math.floor(Math.random() * colors.length)],
-    rotation: Math.random() * 360,
-    spin: (Math.random() - 0.5) * 4,
-  }));
-
-  const animate = () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    pieces.forEach((p) => {
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate((p.rotation * Math.PI) / 180);
-      ctx.fillStyle = p.color;
-      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
-      ctx.restore();
-      p.y += p.speed;
-      p.rotation += p.spin;
-    });
-    if (pieces[0].y < canvas.height + 100) requestAnimationFrame(animate);
-  };
-  animate();
-  setTimeout(() => canvas.remove(), 4000);
+  if (score >= 80)
+    return { Icon: ShieldCheck, key: 'an.feedbackHigh', tier: 'high' };
+  if (score >= 50)
+    return { Icon: ThumbsUp, key: 'an.feedbackMid', tier: 'mid' };
+  return { Icon: Warning, key: 'an.feedbackLow', tier: 'low' };
 }
 
 export default function AnalyticsScreen({ results, onRestart }) {
@@ -76,6 +56,7 @@ export default function AnalyticsScreen({ results, onRestart }) {
 
   const scoreColor = getScoreColor(displayScore);
   const feedback = getFeedback(score);
+  const FeedbackIcon = feedback.Icon;
 
   useEffect(() => {
     const delay = setTimeout(() => {
@@ -89,17 +70,13 @@ export default function AnalyticsScreen({ results, onRestart }) {
         setDisplayScore(current);
       }, 18);
       return () => clearInterval(step);
-    }, 400);
+    }, 300);
 
-    if (score >= 80)
-      setTimeout(() => triggerConfetti(getScoreColor(score)), 600);
-    setTimeout(() => setRevealed(true), 300);
-
+    setTimeout(() => setRevealed(true), 250);
     return () => clearTimeout(delay);
   }, [score]);
 
-  // Match each result to its scam (localized for the active language) — article lives
-  // directly on the scam object.
+  // Match each result to its scam (localized for the active language).
   const breakdown = results.map((r) => {
     const raw = allScams.find((s) => s.id === r.scamId);
     return { ...r, scam: localizeScam(raw, locale) };
@@ -113,27 +90,25 @@ export default function AnalyticsScreen({ results, onRestart }) {
         <div className="an-band-overlay" />
         <div className="an-band-content">
           <div className="an-band-brand">
-            <MgbLogo size={30} />
+            <MgbLogo size={28} />
             <span>{t('start.bankName')}</span>
           </div>
           <h1 className="an-band-title">{t('an.yourResults')}</h1>
         </div>
       </header>
 
-      {/* ── Hero ── */}
       <section className="an-hero">
         {/* LEFT — score */}
-        <div className="an-score-side">
+        <aside className="an-score-side">
           <div className="an-ring-wrap">
-            <div className="an-ring-glow" style={{ background: scoreColor }} />
             <svg className="an-ring-svg" viewBox="0 0 120 120">
               <circle
                 cx="60"
                 cy="60"
                 r="52"
                 fill="none"
-                stroke="#e2e8f0"
-                strokeWidth="10"
+                stroke="var(--c-border)"
+                strokeWidth="9"
               />
               <circle
                 cx="60"
@@ -141,14 +116,13 @@ export default function AnalyticsScreen({ results, onRestart }) {
                 r="52"
                 fill="none"
                 stroke={scoreColor}
-                strokeWidth="10"
+                strokeWidth="9"
                 strokeLinecap="round"
                 strokeDasharray={`${2 * Math.PI * 52}`}
                 strokeDashoffset={`${2 * Math.PI * 52 * (1 - displayScore / 100)}`}
                 transform="rotate(-90 60 60)"
                 style={{
-                  transition:
-                    'stroke-dashoffset 0.04s linear, stroke 0.3s ease',
+                  transition: 'stroke-dashoffset 0.04s linear, stroke 0.3s ease',
                 }}
               />
             </svg>
@@ -161,36 +135,37 @@ export default function AnalyticsScreen({ results, onRestart }) {
           <p className="an-tally">{t('an.tally', { correct, total })}</p>
 
           <div className={`an-badge an-badge-${feedback.tier}`}>
-            {feedback.emoji} {t(feedback.key)}
+            <FeedbackIcon size={18} weight="fill" />
+            <span>{t(feedback.key)}</span>
           </div>
 
           <button className="an-restart" onClick={onRestart}>
+            <ArrowClockwise size={18} weight="bold" />
             {t('an.tryAgain')}
           </button>
-        </div>
+        </aside>
 
         {/* RIGHT — breakdown */}
         <div className="an-breakdown-side">
-          <p className="an-breakdown-title">{t('an.breakdownTitle')}</p>
-          <div className="an-breakdown-grid">
+          <h2 className="an-breakdown-title">{t('an.breakdownTitle')}</h2>
+          <ol className="an-breakdown-grid">
             {breakdown.map((item, i) => {
               const { scam, verdictCorrect, verdictChosen } = item;
               if (!scam) return null;
+              const ChannelIcon = TYPE_ICON[scam.type] || DeviceMobile;
 
               return (
-                <div
+                <li
                   key={i}
                   className={`an-item ${verdictCorrect ? 'an-item-correct' : 'an-item-wrong'}`}
-                  style={{ animationDelay: revealed ? `${i * 0.06}s` : '0s' }}
+                  style={{ animationDelay: revealed ? `${i * 0.05}s` : '0s' }}
                 >
                   <div className="an-item-icon">
-                    {TYPE_ICON[scam.type] || '📱'}
+                    <ChannelIcon size={20} weight="regular" />
                   </div>
 
                   <div className="an-item-body">
-                    <span className="an-item-type">
-                      {t(`type.${scam.type}`)}
-                    </span>
+                    <span className="an-item-type">{t(`type.${scam.type}`)}</span>
 
                     <span className="an-item-verdict">
                       {t('an.youSaid')}{' '}
@@ -201,9 +176,9 @@ export default function AnalyticsScreen({ results, onRestart }) {
                       </strong>
                       {' · '}
                       <span
-                        style={{
-                          color: verdictCorrect ? '#16a34a' : '#dc2626',
-                        }}
+                        className={
+                          verdictCorrect ? 'an-verdict-ok' : 'an-verdict-bad'
+                        }
                       >
                         {verdictCorrect
                           ? t('an.correctMark')
@@ -220,7 +195,6 @@ export default function AnalyticsScreen({ results, onRestart }) {
                       {scam.explanation.short}
                     </span>
 
-                    {/* Real article link — always present since it's hardcoded on each scam */}
                     {scam.article && (
                       <a
                         href={scam.article.url}
@@ -228,34 +202,26 @@ export default function AnalyticsScreen({ results, onRestart }) {
                         rel="noopener noreferrer"
                         className="an-item-article"
                       >
-                        <svg
-                          width="11"
-                          height="11"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                        >
-                          <path
-                            d="M12 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-6M16 2h6m0 0v6m0-6L10 14"
-                            stroke="currentColor"
-                            strokeWidth="2.2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
                         {scam.article.title}
+                        <ArrowUpRight size={13} weight="bold" />
                       </a>
                     )}
                   </div>
 
                   <div
                     className={`an-item-tick ${verdictCorrect ? 'tick-yes' : 'tick-no'}`}
+                    aria-hidden="true"
                   >
-                    {verdictCorrect ? '✓' : '✗'}
+                    {verdictCorrect ? (
+                      <Check size={15} weight="bold" />
+                    ) : (
+                      <X size={15} weight="bold" />
+                    )}
                   </div>
-                </div>
+                </li>
               );
             })}
-          </div>
+          </ol>
         </div>
       </section>
     </div>
