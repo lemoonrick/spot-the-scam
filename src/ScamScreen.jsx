@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { scams as allScams } from './scams';
+import { buildMatchedRounds, roundFor } from './session';
 import AnalyticsScreen from './AnalyticsScreen';
 import SmsScam from './components/SmsScam';
 import WhatsAppScam from './components/WhatsAppScam';
@@ -9,17 +10,8 @@ import PopupScam from './components/PopupScam';
 import UpiScam from './components/UpiScam';
 import FlagCard from './components/FlagCard';
 
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
 export default function ScamScreen() {
-  const scams = useMemo(() => shuffle(allScams), []);
+  const scams = useMemo(() => buildMatchedRounds(allScams), []);
 
   const [scamIndex, setScamIndex] = useState(0);
   const [results, setResults] = useState([]);
@@ -28,10 +20,13 @@ export default function ScamScreen() {
   const [flagIndex, setFlagIndex] = useState(0);
   const [cardPosition, setCardPosition] = useState({ top: 0, left: 0 });
   const [containerPad, setContainerPad] = useState(0);
+  const [showHalftime, setShowHalftime] = useState(false);
 
   const containerRef = useRef(null);
   const scamContentRef = useRef(null);
   const cardHeightRef = useRef(260);
+  const questionShownAtRef = useRef(0);
+  const responseMsRef = useRef(0);
 
   const scam = scams[scamIndex];
   const isLastScam = scamIndex === scams.length - 1;
@@ -46,6 +41,12 @@ export default function ScamScreen() {
     cardHeightRef.current = 260;
     setScamIndex((prev) => prev + 1);
   };
+
+  // Start the response clock whenever a fresh question is put on screen.
+  useEffect(() => {
+    if (phase === 'idle' && !showHalftime)
+      questionShownAtRef.current = Date.now();
+  }, [scamIndex, phase, showHalftime]);
 
   const positionAndScroll = useCallback(() => {
     if (!containerRef.current) return;
@@ -135,6 +136,7 @@ export default function ScamScreen() {
           setFlagIndex(0);
           setCardPosition({ top: 0, left: 0 });
           setContainerPad(0);
+          setShowHalftime(false);
           cardHeightRef.current = 260;
         }}
       />
@@ -148,6 +150,9 @@ export default function ScamScreen() {
     // Haptic feedback — works on Android; silently ignored on iOS/desktop
     if (navigator.vibrate)
       navigator.vibrate(verdict === 'phishing' ? [40, 30, 40] : 60);
+    // How long they deliberated — a proxy for confidence, and one of the
+    // clearest signals that training landed (people slow down, then speed up).
+    responseMsRef.current = Date.now() - questionShownAtRef.current;
     setUserVerdict(verdict);
     setPhase('verdict-chosen');
   };
@@ -163,14 +168,33 @@ export default function ScamScreen() {
         ...prev,
         {
           scamId: scam.id,
+          type: scam.type,
+          round: roundFor(scamIndex, scams.length),
           verdictChosen: userVerdict,
+          actualVerdict: scam.verdict,
           verdictCorrect: userVerdict === scam.verdict,
+          responseMs: responseMsRef.current,
         },
       ]);
-      goToNextScam();
+      // Crossing from the baseline round into the trained round is the
+      // hinge of the whole experience — mark it so the user (and the
+      // results screen) can see the two halves as separate attempts.
+      const finishedRound = roundFor(scamIndex, scams.length);
+      const nextRound = roundFor(scamIndex + 1, scams.length);
+      if (finishedRound === 1 && nextRound === 2) {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        setShowHalftime(true);
+      } else {
+        goToNextScam();
+      }
     } else {
       setFlagIndex((prev) => prev + 1);
     }
+  };
+
+  const dismissHalftime = () => {
+    setShowHalftime(false);
+    goToNextScam();
   };
 
   const renderScam = () => {
@@ -190,6 +214,42 @@ export default function ScamScreen() {
         return <SmsScam {...props} />;
     }
   };
+
+  if (showHalftime) {
+    const half = Math.floor(scams.length / 2);
+    return (
+      <div className="halftime">
+        <div className="halftime-card">
+          <span className="halftime-eyebrow">Halfway</span>
+          <h2 className="halftime-title">
+            You&rsquo;ve worked through {half} real-world examples &mdash; and
+            every red flag inside them.
+          </h2>
+          <p className="halftime-body">
+            The next {scams.length - half} are a fresh set you haven&rsquo;t
+            seen. Same mix, same difficulty. We&rsquo;ll compare how you do
+            against your first {half} to show you exactly what stuck.
+          </p>
+          <div className="halftime-meter">
+            <div className="halftime-meter-half halftime-meter-done">
+              <span>1&ndash;{half}</span>
+              <small>Baseline</small>
+            </div>
+            <div className="halftime-meter-half">
+              <span>
+                {half + 1}&ndash;{scams.length}
+              </span>
+              <small>After learning</small>
+            </div>
+          </div>
+          <button className="halftime-btn" onClick={dismissHalftime}>
+            Continue &rarr;
+          </button>
+          <p className="halftime-hint">Your score is revealed at the end.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

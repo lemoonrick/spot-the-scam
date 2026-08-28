@@ -1,6 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { scams as allScams } from './scams';
+import { buildSessionSummary } from './session';
+import ImpactPanel from './components/ImpactPanel';
+import ShareCard from './components/ShareCard';
 import './AnalyticsScreen.css';
+
+const SHARE_URL = 'https://spot-the-scam-ebon.vercel.app/';
 
 const TYPE_ICON = {
   sms: '💬',
@@ -84,9 +89,9 @@ function triggerConfetti(color) {
 }
 
 export default function AnalyticsScreen({ results, onRestart }) {
-  const total = results.length;
-  const correct = results.filter((r) => r.verdictCorrect).length;
-  const score = total > 0 ? Math.round((correct / total) * 100) : 0;
+  // One anonymous record per run — the same shape Phase 2 will store.
+  const summary = useMemo(() => buildSessionSummary(results), [results]);
+  const { total, correct, score } = summary;
 
   const [displayScore, setDisplayScore] = useState(0);
   const [revealed, setRevealed] = useState(false);
@@ -272,6 +277,12 @@ export default function AnalyticsScreen({ results, onRestart }) {
           </div>
         </div>
       </section>
+
+      {/* ── Learning impact: baseline vs trained ── */}
+      <ImpactPanel summary={summary} />
+
+      {/* ── Share ── */}
+      <ShareCard summary={summary} shareUrl={SHARE_URL} />
 
       {/* ── Blog section ── */}
       {posts.length > 0 && (
