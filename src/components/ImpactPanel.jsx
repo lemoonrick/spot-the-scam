@@ -107,9 +107,13 @@ export default function ImpactPanel({ summary }) {
 function Bar({ label, caption, value, variant }) {
   return (
     <div className={`ip-bar ip-bar-${variant}`}>
+      {/* Value sits above the bar so it stays readable at any height. */}
+      <span className="ip-bar-value">{value}%</span>
       <div className="ip-bar-track">
-        <div className="ip-bar-fill" style={{ height: `${Math.max(value, 3)}%` }} />
-        <span className="ip-bar-value">{value}%</span>
+        <div
+          className="ip-bar-fill"
+          style={{ height: `${Math.max(value, 2)}%` }}
+        />
       </div>
       <span className="ip-bar-label">{label}</span>
       <small className="ip-bar-caption">{caption}</small>
