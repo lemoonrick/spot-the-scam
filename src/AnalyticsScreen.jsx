@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { scams as allScams } from './scams';
 import { buildSessionSummary } from './session';
+import { saveSession } from './lib/saveSession';
 import ImpactPanel from './components/ImpactPanel';
 import ShareCard from './components/ShareCard';
 import './AnalyticsScreen.css';
@@ -96,6 +97,16 @@ export default function AnalyticsScreen({ results, onRestart }) {
   const [displayScore, setDisplayScore] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [posts, setPosts] = useState([]);
+  const savedRef = useRef(false);
+
+  // Record the run once. StrictMode runs effects twice in development,
+  // and a "Try Again" remount would fire it again — the ref keeps one
+  // completed quiz to exactly one row.
+  useEffect(() => {
+    if (savedRef.current) return;
+    savedRef.current = true;
+    saveSession(summary);
+  }, [summary]);
 
   const scoreColor = getScoreColor(displayScore);
   const feedback = getFeedback(score);
