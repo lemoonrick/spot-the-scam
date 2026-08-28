@@ -463,133 +463,173 @@ button:active {
 
 /* ============================================================
    HALFTIME INTERSTITIAL
-   The hinge between the baseline round and the trained round.
+   The hinge between the warm-up round and the scored round.
+   Leads with position (the track), not prose.
    ============================================================ */
 .halftime {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
   place-items: center;
   padding: 32px 20px;
 }
 
 .halftime-card {
-  max-width: 520px;
+  max-width: 460px;
   width: 100%;
   background: var(--card-bg);
   border: 1px solid var(--border-soft);
   border-radius: 24px;
-  padding: 44px 36px 36px;
+  padding: 40px 36px 32px;
   box-shadow: var(--shadow-card);
-  text-align: center;
-  animation: halftime-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: ht-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-@keyframes halftime-in {
+@keyframes ht-in {
   from {
     opacity: 0;
-    transform: translateY(16px) scale(0.98);
+    transform: translateY(14px);
   }
 }
 
-.halftime-eyebrow {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  color: var(--blue);
-  background: rgba(59, 130, 246, 0.1);
-  padding: 6px 14px;
-  border-radius: var(--radius-pill);
-  margin-bottom: 22px;
+/* ── Progress track ─────────────────────────────────────────
+   Deliberately not boxed and not tappable: earlier the two
+   halves were bordered panels, which read as buttons and made
+   people stop to work out whether they had to choose one. ── */
+.ht-progress {
+  margin-bottom: 30px;
 }
 
-.halftime-title {
-  font-size: 22px;
-  line-height: 1.35;
-  font-weight: 700;
-  color: var(--text-main);
-  margin-bottom: 14px;
+.ht-segments {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
 }
 
-.halftime-body {
-  font-size: 14.5px;
-  line-height: 1.65;
-  color: var(--text-muted);
-  margin-bottom: 28px;
+.ht-seg {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: #e8edf2;
 }
 
-.halftime-meter {
+.ht-seg-done {
+  background: var(--green-dark);
+  transform-origin: left;
+  animation: ht-fill 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i) * 70ms + 180ms);
+}
+
+/* The fill sweeping to the midpoint is the one animation here, and it
+   carries the message: you have just arrived at the halfway point. */
+@keyframes ht-fill {
+  from {
+    transform: scaleX(0);
+    background: #e8edf2;
+  }
+}
+
+.ht-legend {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 28px;
+  gap: 4px;
 }
 
-.halftime-meter-half {
-  border: 1px solid var(--border-soft);
-  border-radius: 14px;
-  padding: 14px 10px;
-  background: #f8fafc;
-}
-
-.halftime-meter-half span {
-  display: block;
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--text-muted);
-}
-
-.halftime-meter-half small {
-  display: block;
-  margin-top: 3px;
-  font-size: 11px;
+.ht-leg {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
   font-weight: 600;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
   color: #94a3b8;
 }
 
-.halftime-meter-done {
-  background: var(--correct-bg);
-  border-color: var(--correct-border);
+.ht-leg:last-child {
+  justify-content: flex-end;
+  text-align: right;
 }
 
-.halftime-meter-done span,
-.halftime-meter-done small {
-  color: var(--correct-text);
+.ht-leg-done {
+  color: var(--green-dark);
 }
 
-.halftime-btn {
-  width: 100%;
-  padding: 15px;
-  font-family: inherit;
+.ht-leg svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+}
+
+/* ── Copy ── */
+.ht-title {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+
+.ht-body {
   font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+}
+
+/* ── Action ── */
+.ht-btn {
+  width: 100%;
+  padding: 16px;
+  font-family: inherit;
+  font-size: 15.5px;
   font-weight: 600;
   color: #fff;
   background: var(--text-main);
   border: none;
   border-radius: var(--radius-pill);
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+    background 0.15s ease;
 }
 
-.halftime-btn:hover {
-  transform: translateY(-2px);
+.ht-btn:hover {
+  background: #1e293b;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
 }
 
-.halftime-hint {
-  margin-top: 14px;
-  font-size: 12px;
+.ht-btn:active {
+  transform: scale(0.985);
+}
+
+.ht-btn:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.ht-hint {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 12.5px;
   color: #94a3b8;
 }
 
-@media (max-width: 520px) {
+@media (max-width: 480px) {
   .halftime-card {
-    padding: 34px 22px 28px;
+    padding: 32px 22px 26px;
   }
-  .halftime-title {
-    font-size: 19px;
+  .ht-title {
+    font-size: 26px;
+  }
+  .ht-leg {
+    font-size: 11.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .halftime-card,
+  .ht-seg-done {
+    animation: none;
+  }
+  .ht-btn {
+    transition: none;
   }
 }

@@ -220,32 +220,47 @@ export default function ScamScreen() {
     return (
       <div className="halftime">
         <div className="halftime-card">
-          <span className="halftime-eyebrow">Halfway</span>
-          <h2 className="halftime-title">
-            You&rsquo;ve worked through {half} real-world examples &mdash; and
-            every red flag inside them.
-          </h2>
-          <p className="halftime-body">
-            The next {scams.length - half} are a fresh set you haven&rsquo;t
-            seen. Same mix, same difficulty. We&rsquo;ll compare how you do
-            against your first {half} to show you exactly what stuck.
-          </p>
-          <div className="halftime-meter">
-            <div className="halftime-meter-half halftime-meter-done">
-              <span>1&ndash;{half}</span>
-              <small>Baseline</small>
+          {/* Position first, words second. The filled half of the track
+              answers "where am I" before anything has to be read. */}
+          <div className="ht-progress">
+            <div className="ht-segments" aria-hidden="true">
+              {scams.map((_, i) => (
+                <span
+                  key={i}
+                  className={`ht-seg ${i < half ? 'ht-seg-done' : ''}`}
+                  style={{ '--i': i }}
+                />
+              ))}
             </div>
-            <div className="halftime-meter-half">
-              <span>
-                {half + 1}&ndash;{scams.length}
+            <div className="ht-legend">
+              <span className="ht-leg ht-leg-done">
+                <svg viewBox="0 0 20 20" aria-hidden="true">
+                  <path
+                    d="M4 10.5l4 4 8-9"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                Warm-up
               </span>
-              <small>After learning</small>
+              <span className="ht-leg">The real test</span>
             </div>
           </div>
-          <button className="halftime-btn" onClick={dismissHalftime}>
-            Continue &rarr;
+
+          <h2 className="ht-title">Halfway there.</h2>
+          <p className="ht-body">
+            The next {scams.length - half} are messages you haven&rsquo;t seen.
+            We&rsquo;ll compare them against your first {half} to show you what
+            stuck.
+          </p>
+
+          <button className="ht-btn" onClick={dismissHalftime}>
+            Continue
           </button>
-          <p className="halftime-hint">Your score is revealed at the end.</p>
+          <p className="ht-hint">Your score comes at the end.</p>
         </div>
       </div>
     );
