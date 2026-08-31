@@ -42,7 +42,7 @@ function getFeedback(score) {
   if (score >= 50)
     return {
       emoji: '👍',
-      text: 'Good instincts — but stay sharp.',
+      text: 'Good instincts, but stay sharp.',
       tier: 'mid',
     };
   return {
@@ -100,6 +100,7 @@ export default function AnalyticsScreen({ results, onRestart, identity }) {
   const [displayScore, setDisplayScore] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [posts, setPosts] = useState([]);
+  const [filter, setFilter] = useState('all');
   const savedRef = useRef(false);
 
   // Record the run once. StrictMode runs effects twice in development,
@@ -152,145 +153,58 @@ export default function AnalyticsScreen({ results, onRestart, identity }) {
     return { ...r, scam };
   });
 
+  const wrongCount = breakdown.filter((b) => !b.verdictCorrect).length;
+  const shown =
+    filter === 'wrong' ? breakdown.filter((b) => !b.verdictCorrect) : breakdown;
+
   return (
     <div className="an-page">
-      {/* ── Hero ── */}
-      <section className="an-hero">
-        {/* LEFT — score */}
-        <div className="an-score-side">
-          <p className="an-eyebrow">
-            {identity?.name ? `${identity.name}'s Results` : 'Your Results'}
-          </p>
-
-          <div className="an-ring-wrap">
-            <div className="an-ring-glow" style={{ background: scoreColor }} />
-            <svg className="an-ring-svg" viewBox="0 0 120 120">
-              <circle
-                cx="60"
-                cy="60"
-                r="52"
-                fill="none"
-                stroke="#e2e8f0"
-                strokeWidth="10"
-              />
-              <circle
-                cx="60"
-                cy="60"
-                r="52"
-                fill="none"
-                stroke={scoreColor}
-                strokeWidth="10"
-                strokeLinecap="round"
-                strokeDasharray={`${2 * Math.PI * 52}`}
-                strokeDashoffset={`${2 * Math.PI * 52 * (1 - displayScore / 100)}`}
-                transform="rotate(-90 60 60)"
-                style={{
-                  transition:
-                    'stroke-dashoffset 0.04s linear, stroke 0.3s ease',
-                }}
-              />
-            </svg>
-            <div className="an-ring-inner">
-              <span className="an-score-num">{displayScore}</span>
-              <span className="an-score-pct">%</span>
-            </div>
+      {/* ── Headline: who, and how they did ── */}
+      <section className="an-top">
+        <div className="an-ring-wrap">
+          <div className="an-ring-glow" style={{ background: scoreColor }} />
+          <svg className="an-ring-svg" viewBox="0 0 120 120">
+            <circle
+              cx="60"
+              cy="60"
+              r="52"
+              fill="none"
+              stroke="#e2e8f0"
+              strokeWidth="10"
+            />
+            <circle
+              cx="60"
+              cy="60"
+              r="52"
+              fill="none"
+              stroke={scoreColor}
+              strokeWidth="10"
+              strokeLinecap="round"
+              strokeDasharray={`${2 * Math.PI * 52}`}
+              strokeDashoffset={`${2 * Math.PI * 52 * (1 - displayScore / 100)}`}
+              transform="rotate(-90 60 60)"
+              style={{
+                transition: 'stroke-dashoffset 0.04s linear, stroke 0.3s ease',
+              }}
+            />
+          </svg>
+          <div className="an-ring-inner">
+            <span className="an-score-num">{displayScore}</span>
+            <span className="an-score-pct">%</span>
           </div>
-
-          <p className="an-tally">
-            <strong>{correct}</strong> correct out of <strong>{total}</strong>
-          </p>
-
-          <div className={`an-badge an-badge-${feedback.tier}`}>
-            {feedback.emoji} {feedback.text}
-          </div>
-
-          <button className="an-restart" onClick={onRestart}>
-            Try Again
-          </button>
         </div>
 
-        {/* RIGHT — breakdown */}
-        <div className="an-breakdown-side">
-          <p className="an-breakdown-title">Question Breakdown</p>
-          <div className="an-breakdown-grid">
-            {breakdown.map((item, i) => {
-              const { scam, verdictCorrect, verdictChosen } = item;
-              if (!scam) return null;
-
-              return (
-                <div
-                  key={i}
-                  className={`an-item ${verdictCorrect ? 'an-item-correct' : 'an-item-wrong'}`}
-                  style={{ animationDelay: revealed ? `${i * 0.06}s` : '0s' }}
-                >
-                  <div className="an-item-icon">
-                    {TYPE_ICON[scam.type] || '📱'}
-                  </div>
-
-                  <div className="an-item-body">
-                    <span className="an-item-type">
-                      {TYPE_LABEL[scam.type]}
-                    </span>
-
-                    <span className="an-item-verdict">
-                      You said:{' '}
-                      <strong>
-                        {verdictChosen === 'phishing'
-                          ? 'Phishing'
-                          : 'Legitimate'}
-                      </strong>
-                      {' · '}
-                      <span
-                        style={{
-                          color: verdictCorrect ? '#16a34a' : '#dc2626',
-                        }}
-                      >
-                        {verdictCorrect
-                          ? 'Correct ✓'
-                          : `Wrong — it was ${scam.verdict === 'phishing' ? 'Phishing' : 'Legitimate'}`}
-                      </span>
-                    </span>
-
-                    <span className="an-item-short">
-                      {scam.explanation.short}
-                    </span>
-
-                    {/* Real article link — always present since it's hardcoded on each scam */}
-                    {scam.article && (
-                      <a
-                        href={scam.article.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="an-item-article"
-                      >
-                        <svg
-                          width="11"
-                          height="11"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                        >
-                          <path
-                            d="M12 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-6M16 2h6m0 0v6m0-6L10 14"
-                            stroke="currentColor"
-                            strokeWidth="2.2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        {scam.article.title}
-                      </a>
-                    )}
-                  </div>
-
-                  <div
-                    className={`an-item-tick ${verdictCorrect ? 'tick-yes' : 'tick-no'}`}
-                  >
-                    {verdictCorrect ? '✓' : '✗'}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+        <div className="an-top-copy">
+          <h1 className="an-headline">
+            {identity?.name ? `${identity.name}, you got ` : 'You got '}
+            <strong>
+              {correct} of {total}
+            </strong>{' '}
+            right.
+          </h1>
+          <p className={`an-verdict an-verdict-${feedback.tier}`}>
+            {feedback.text}
+          </p>
         </div>
       </section>
 
@@ -299,6 +213,86 @@ export default function AnalyticsScreen({ results, onRestart, identity }) {
 
       {/* ── Share ── */}
       <ShareCard summary={summary} shareUrl={SHARE_URL} />
+
+      {/* ── Answer by answer. Reference detail, so it sits after the
+             finding rather than burying it. ── */}
+      <section className="an-review">
+        <div className="an-review-head">
+          <h2 className="an-review-title">Every answer</h2>
+          {wrongCount > 0 && (
+            <div className="an-filter" role="group" aria-label="Filter answers">
+              <button
+                className={filter === 'all' ? 'is-on' : ''}
+                onClick={() => setFilter('all')}
+              >
+                All {total}
+              </button>
+              <button
+                className={filter === 'wrong' ? 'is-on' : ''}
+                onClick={() => setFilter('wrong')}
+              >
+                Got wrong ({wrongCount})
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="an-review-grid">
+          {shown.map((item, i) => {
+            const { scam, verdictCorrect, verdictChosen } = item;
+            if (!scam) return null;
+            return (
+              <article
+                key={`${scam.id}-${i}`}
+                className={`an-row ${verdictCorrect ? 'an-row-ok' : 'an-row-bad'}`}
+                style={{ animationDelay: revealed ? `${i * 0.04}s` : '0s' }}
+              >
+                <span className="an-row-icon" aria-hidden="true">
+                  {TYPE_ICON[scam.type] || '📱'}
+                </span>
+
+                <div className="an-row-main">
+                  <div className="an-row-top">
+                    <span className="an-row-type">{TYPE_LABEL[scam.type]}</span>
+                    <span className="an-row-chip">
+                      {verdictCorrect ? 'Correct' : 'Wrong'}
+                    </span>
+                  </div>
+
+                  {/* Only spell out the mix-up when they got it wrong.
+                      On a correct answer it is noise. */}
+                  {!verdictCorrect && (
+                    <p className="an-row-said">
+                      You said{' '}
+                      {verdictChosen === 'phishing' ? 'Phishing' : 'Legitimate'}
+                      . It was{' '}
+                      <strong>
+                        {scam.verdict === 'phishing'
+                          ? 'Phishing'
+                          : 'Legitimate'}
+                      </strong>
+                      .
+                    </p>
+                  )}
+
+                  <p className="an-row-why">{scam.explanation.short}</p>
+
+                  {scam.article && (
+                    <a
+                      href={scam.article.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="an-row-link"
+                    >
+                      {scam.article.title}
+                    </a>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
 
       {/* ── Blog section ── */}
       {posts.length > 0 && (
@@ -346,6 +340,15 @@ export default function AnalyticsScreen({ results, onRestart, identity }) {
           </div>
         </section>
       )}
+
+      <section className="an-again">
+        <button className="an-restart" onClick={onRestart}>
+          Try again
+        </button>
+        <p className="an-again-hint">
+          A fresh set, shuffled. Your score is not saved between runs.
+        </p>
+      </section>
     </div>
   );
 }

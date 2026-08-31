@@ -12,7 +12,7 @@ function secs(ms) {
 }
 
 /**
- * Describe the before/after result honestly — including when it went
+ * Describe the before/after result honestly, including when it went
  * down. Overstating a null result is the fastest way to lose a
  * stakeholder's trust in every other number on the page.
  */
@@ -33,12 +33,12 @@ function readImprovement({ improvement, baselineScore, trainedScore }) {
     return {
       tone: 'flat',
       headline: 'Held steady',
-      sub: 'You scored the same on both halves — consistent, but there is room to sharpen.',
+      sub: 'You scored the same on both halves. Consistent, but there is room to sharpen.',
     };
   return {
     tone: 'down',
     headline: `${improvement} points`,
-    sub: 'You did better on the first half. Worth a second run — speed is often the culprit.',
+    sub: 'You did better on the first half. Worth a second run: speed is often the culprit.',
   };
 }
 
@@ -74,8 +74,8 @@ export default function ImpactPanel({ summary }) {
           label="Typical decision time"
           note={
             faster
-              ? `${secs(summary.medianResponseMsBaseline)} at the start — you got quicker`
-              : `${secs(summary.medianResponseMsBaseline)} at the start — you slowed down to think`
+              ? `Down from ${secs(summary.medianResponseMsBaseline)} at the start`
+              : `Up from ${secs(summary.medianResponseMsBaseline)}. You slowed down to think`
           }
         />
         <Stat
@@ -85,7 +85,7 @@ export default function ImpactPanel({ summary }) {
               ? 'Scam waved through'
               : 'Scams waved through'
           }
-          note="Real scams you marked as safe — the costly kind of mistake"
+          note="Real scams you marked as safe. The costly kind of mistake."
           danger={summary.scamsWavedThrough > 0}
         />
         <Stat
