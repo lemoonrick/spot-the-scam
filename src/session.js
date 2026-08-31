@@ -66,7 +66,7 @@ function median(nums) {
  * Turn a finished run into the numbers stakeholders actually ask for.
  * `results` is the array collected by ScamScreen.
  */
-export function buildSessionSummary(results) {
+export function buildSessionSummary(results, { personalised = false } = {}) {
   const total = results.length;
   const correct = results.filter((r) => r.verdictCorrect).length;
 
@@ -122,6 +122,11 @@ export function buildSessionSummary(results) {
     scamsWavedThrough,
     typeBreakdown,
     weakestType: missed[0]?.type ?? null,
+
+    // Whether the player gave a name, so we can compare how people do
+    // against scams that address them personally versus generic ones.
+    // The name itself is never recorded; only this true/false.
+    personalised,
 
     // Kept minimal and non-identifying — useful for segmenting reach later.
     device: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop',

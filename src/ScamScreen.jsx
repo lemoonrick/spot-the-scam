@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { scams as allScams } from './scams';
 import { buildMatchedRounds, roundFor } from './session';
+import { EMPTY_IDENTITY, personalizeScam } from './identity';
 import AnalyticsScreen from './AnalyticsScreen';
 import SmsScam from './components/SmsScam';
 import WhatsAppScam from './components/WhatsAppScam';
@@ -10,8 +11,13 @@ import PopupScam from './components/PopupScam';
 import UpiScam from './components/UpiScam';
 import FlagCard from './components/FlagCard';
 
-export default function ScamScreen() {
-  const scams = useMemo(() => buildMatchedRounds(allScams), []);
+export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
+  // The player's name is woven into the message text here, so every
+  // simulated scam addresses them the way a real one would.
+  const scams = useMemo(
+    () => buildMatchedRounds(allScams).map((s) => personalizeScam(s, identity)),
+    [identity],
+  );
 
   const [scamIndex, setScamIndex] = useState(0);
   const [results, setResults] = useState([]);
@@ -127,6 +133,7 @@ export default function ScamScreen() {
     return (
       <AnalyticsScreen
         results={results}
+        identity={identity}
         onRestart={() => {
           window.scrollTo({ top: 0, behavior: 'instant' });
           setResults([]);
@@ -198,7 +205,7 @@ export default function ScamScreen() {
   };
 
   const renderScam = () => {
-    const props = { scam, activeFlagId: currentFlag?.id };
+    const props = { scam, activeFlagId: currentFlag?.id, identity };
     switch (scam.type) {
       case 'whatsapp':
         return <WhatsAppScam {...props} />;

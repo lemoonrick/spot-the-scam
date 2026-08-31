@@ -96,7 +96,7 @@ export const scams = [
       'Amazon has reached out regarding a billing issue. Check the sender before clicking anything.',
     time: '9:14 AM',
     message: [
-      { text: 'Hello,\n\n', flag: null },
+      { text: 'Hello {name|there},\n\n', flag: null },
       {
         text: 'We were unable to process your recent order due to a billing issue.\n\n',
         flag: null,
@@ -205,7 +205,7 @@ export const scams = [
     guideText:
       'Your mobile service is at risk according to this message. Is this an official communication?',
     message: [
-      { text: 'Dear customer, your SIM will be ', flag: null },
+      { text: 'Dear {name|customer}, your SIM will be ', flag: null },
       { text: 'deactivated today', flag: 'authority' },
       {
         text: ' due to KYC not completed.\n\nComplete verification immediately:',
@@ -290,7 +290,7 @@ export const scams = [
     guideText:
       "A brand wants to pay you for a collaboration. Does the offer match the account's credibility?",
     message: [
-      { text: 'Hello! We are selecting creators for a ', flag: null },
+      { text: 'Hello {name|there}! We are selecting creators for a ', flag: null },
       { text: 'paid brand collaboration', flag: 'too-good' },
       {
         text: '. You have been shortlisted for a ₹85,000 campaign.\n\nTo confirm, register here:\n',
@@ -381,7 +381,7 @@ export const scams = [
       'A trusted organization sent you an impact report. Check the sender details carefully.',
     time: '10:30 AM',
     message: [
-      { text: 'Hi there,\n\n', flag: null },
+      { text: 'Hi {name|there},\n\n', flag: null },
       {
         text: 'Your monthly impact report is ready! Thanks to your support, we reached 5,000 students this month.\n\n',
         flag: null,

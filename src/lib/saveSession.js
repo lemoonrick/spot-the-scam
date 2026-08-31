@@ -33,6 +33,7 @@ export async function saveSession(summary) {
       weakest_type: summary.weakestType,
       type_breakdown: summary.typeBreakdown,
 
+      personalised: summary.personalised,
       device: summary.device,
       language: summary.language,
       // NOTE: completedAt is deliberately not sent. The database stamps

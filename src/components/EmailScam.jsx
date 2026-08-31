@@ -79,7 +79,7 @@ function PlainEmailBody({ scam, activeFlagId }) {
 }
 
 // ── Main export ───────────────────────────────────────────────────────────────
-export default function EmailScam({ scam, activeFlagId }) {
+export default function EmailScam({ scam, activeFlagId, identity }) {
   const isRich = scam.emailStyle === 'rich';
 
   return (
@@ -145,7 +145,9 @@ export default function EmailScam({ scam, activeFlagId }) {
               <span />
               <span />
             </div>
-            <div className="gmail-user-avatar">Y</div>
+            <div className="gmail-user-avatar">
+              {identity?.name ? identity.name.charAt(0).toUpperCase() : 'Y'}
+            </div>
           </div>
         </div>
 
@@ -178,7 +180,10 @@ export default function EmailScam({ scam, activeFlagId }) {
                   </span>
                 </div>
                 <div className="gmail-to-line">
-                  to <span className="gmail-to-me">me</span>
+                  to{' '}
+                  <span className="gmail-to-me">
+                    {identity?.email || 'me'}
+                  </span>
                   <svg
                     className="gmail-chevron"
                     viewBox="0 0 12 12"

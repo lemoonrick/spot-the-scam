@@ -89,9 +89,12 @@ function triggerConfetti(color) {
   setTimeout(() => canvas.remove(), 4000);
 }
 
-export default function AnalyticsScreen({ results, onRestart }) {
+export default function AnalyticsScreen({ results, onRestart, identity }) {
   // One anonymous record per run — the same shape Phase 2 will store.
-  const summary = useMemo(() => buildSessionSummary(results), [results]);
+  const summary = useMemo(
+    () => buildSessionSummary(results, { personalised: !!identity?.personalised }),
+    [results, identity],
+  );
   const { total, correct, score } = summary;
 
   const [displayScore, setDisplayScore] = useState(0);
@@ -155,7 +158,9 @@ export default function AnalyticsScreen({ results, onRestart }) {
       <section className="an-hero">
         {/* LEFT — score */}
         <div className="an-score-side">
-          <p className="an-eyebrow">Your Results</p>
+          <p className="an-eyebrow">
+            {identity?.name ? `${identity.name}'s Results` : 'Your Results'}
+          </p>
 
           <div className="an-ring-wrap">
             <div className="an-ring-glow" style={{ background: scoreColor }} />

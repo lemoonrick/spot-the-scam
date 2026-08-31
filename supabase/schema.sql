@@ -31,6 +31,10 @@ create table if not exists public.sessions (
   weakest_type   text,
   type_breakdown jsonb,
 
+  -- Did the player give a name, so the scams addressed them personally?
+  -- The name itself is never sent to the database. Only this flag.
+  personalised boolean not null default false,
+
   -- Reach, not identity
   device   text check (device in ('mobile', 'desktop')),
   language text
