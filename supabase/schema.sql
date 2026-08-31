@@ -72,3 +72,11 @@ create policy "anyone may submit a result"
 -- Postgres denies anything not explicitly allowed, so raw rows stay
 -- private. You can still read everything from the Supabase dashboard,
 -- which connects as the owner and bypasses RLS.
+
+-- ------------------------------------------------------------
+--  Additions after the first release.
+--  `create table if not exists` above does nothing to an existing
+--  table, so new columns are added explicitly and idempotently.
+-- ------------------------------------------------------------
+alter table public.sessions
+  add column if not exists personalised boolean not null default false;
