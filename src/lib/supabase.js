@@ -14,6 +14,8 @@ export const isConfigured = Boolean(url && anonKey);
  * plain fetch is all an insert needs. We skip the official SDK on
  * purpose: it costs ~58KB gzipped, and this app is aimed at people on
  * slow rural connections. Every kilobyte is someone waiting.
+ *
+ * Resolves to { ok } or { ok: false, status, body }.
  */
 export async function restInsert(table, row) {
   const res = await fetch(`${url}/rest/v1/${table}`, {
@@ -27,5 +29,20 @@ export async function restInsert(table, row) {
     body: JSON.stringify(row),
   });
 
-  if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
+  if (res.ok) return { ok: true };
+  return { ok: false, status: res.status, body: await res.text() };
+}
+
+/**
+ * Pull the offending column name out of a Postgres or PostgREST error.
+ * Both name it, in different shapes:
+ *   42703   column sessions.personalised does not exist
+ *   PGRST204  Could not find the 'personalised' column of 'sessions' ...
+ */
+export function missingColumnFrom(body) {
+  if (!body) return null;
+  const quoted = body.match(/Could not find the '([a-z0-9_]+)' column/i);
+  if (quoted) return quoted[1];
+  const bare = body.match(/column [a-z0-9_]*\.?([a-z0-9_]+) does not exist/i);
+  return bare ? bare[1] : null;
 }
