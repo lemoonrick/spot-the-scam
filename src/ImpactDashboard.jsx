@@ -4,8 +4,8 @@ import {
   CalendarBlank,
   ChartBar,
   ChatsCircle,
-  Envelope,
   Eye,
+  Gauge,
   IdentificationCard,
   ShieldWarning,
   Timer,
@@ -124,13 +124,13 @@ export default function ImpactDashboard() {
           icon={<ChartBar weight="duotone" />}
           value={num(n)}
           label="Quizzes completed"
-          sub="Each finished play counts once"
+          sub={`${num(summary.scams_reviewed)} answers given in total`}
         />
         <Tile
-          icon={<Envelope weight="duotone" />}
-          value={num(summary.scams_reviewed)}
-          label="Messages examined"
-          sub="Roughly six in ten were fakes"
+          icon={<Gauge weight="duotone" />}
+          value={summary.avg_score == null ? '—' : summary.avg_score}
+          label="Average score"
+          sub="Out of 100"
         />
         <Tile
           icon={<TrendUp weight="duotone" />}
@@ -139,8 +139,8 @@ export default function ImpactDashboard() {
               ? '—'
               : `${summary.avg_improvement > 0 ? '+' : ''}${summary.avg_improvement}`
           }
-          label="Average score increase"
-          sub="Out of 100, first half to second"
+          label="Improvement"
+          sub="Points gained, first half to second"
           good={summary.avg_improvement > 0}
         />
         <Tile
