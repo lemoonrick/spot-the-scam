@@ -1,0 +1,688 @@
+/* ============================================================
+   IMPACT DASHBOARD  (/impact)
+
+   Colour by job, not by taste:
+   - Magnitude charts (accuracy, spread, sessions) use ONE sequential
+     hue. They show a single measure, so a second hue would encode
+     rank, which is meaningless here. Sort order carries the ranking.
+   - Green is reserved for the improvement story, where up really is
+     good. It never appears on a magnitude bar.
+   Validated against a #ffffff surface: all six checks pass.
+
+   Light only, matching the rest of the app. A dark mode here alone
+   would be inconsistent with every other screen.
+   ============================================================ */
+.im-page {
+  --surface: #ffffff;
+  --plane: #f6f8fa;
+  --ink: #0f172a;
+  --ink-2: #475569;
+  --muted: #7c8da0;
+  --rule: #e3e9ee;
+  --axis: #cbd5e1;
+
+  --series: #2a78d6; /* sequential hue: magnitude */
+  --series-soft: #e8f1fc;
+  --gain: #006300; /* delta up, good */
+  --gain-soft: #e7f3e7;
+  --neutral: #94a7b8; /* the "before" bar */
+
+  min-height: 100vh;
+  background: var(--plane);
+  color: var(--ink);
+  font-family: 'Poppins', system-ui, sans-serif;
+  padding: 56px 20px 80px;
+}
+
+.im-centered {
+  display: grid;
+  place-items: center;
+}
+
+/* ── Head ── */
+.im-head {
+  max-width: 940px;
+  margin: 0 auto 26px;
+}
+
+.im-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.im-title {
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 10px;
+}
+
+.im-sub {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  max-width: 620px;
+}
+
+.im-updated {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Small samples are labelled, not hidden. */
+.im-provisional {
+  max-width: 940px;
+  margin: 0 auto 22px;
+  padding: 11px 16px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #7a4a12;
+  background: #fdf5e8;
+  border: 1px solid #f3dfbe;
+  border-radius: 10px;
+}
+
+/* ── Tiles ── */
+.im-tiles {
+  max-width: 940px;
+  margin: 0 auto 18px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.im-tile {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.im-tile-value {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.im-good {
+  color: var(--gain);
+}
+
+.im-tile-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.im-tile-sub {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+/* ── Cards ── */
+.im-card {
+  max-width: 940px;
+  margin: 0 auto 18px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 18px;
+  padding: 26px 26px 28px;
+}
+
+.im-split {
+  max-width: 940px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.im-split .im-card {
+  max-width: none;
+  margin: 0 0 18px;
+}
+
+.im-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.im-h2 {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin-bottom: 6px;
+}
+
+.im-note {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 560px;
+}
+
+.im-none {
+  margin-top: 14px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.im-toggle {
+  flex: none;
+  padding: 8px 15px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  background: var(--plane);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.im-toggle:hover {
+  color: var(--ink);
+  border-color: var(--axis);
+}
+
+.im-toggle:focus-visible {
+  outline: 2px solid var(--series);
+  outline-offset: 2px;
+}
+
+/* ── Before / after ── */
+.im-beforeafter {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 26px;
+  margin-top: 22px;
+}
+
+.im-col {
+  width: 118px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.im-col-value {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 8px;
+}
+
+.im-col-up .im-col-value {
+  color: var(--gain);
+}
+
+.im-col-track {
+  width: 100%;
+  height: 132px;
+  background: #fbfcfd;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.im-col-fill {
+  width: 100%;
+  background: var(--neutral);
+  border-radius: 5px 5px 0 0;
+}
+
+.im-col-up .im-col-fill {
+  background: var(--gain);
+}
+
+.im-col-label {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.im-col-caption {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.im-arrow {
+  font-size: 22px;
+  color: var(--axis);
+  padding-bottom: 58px;
+}
+
+/* ── Horizontal bars ── */
+.im-bars {
+  list-style: none;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.im-bar-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr) 46px;
+  align-items: center;
+  gap: 12px;
+}
+
+.im-bar-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  text-align: right;
+}
+
+.im-bar-track {
+  height: 20px;
+  background: var(--series-soft);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.im-bar-fill {
+  height: 100%;
+  background: var(--series);
+  border-radius: 0 4px 4px 0;
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.im-bar-value {
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+/* Hover readout, so exact counts are reachable without a table. */
+.im-bar-tip {
+  position: absolute;
+  left: 128px;
+  bottom: calc(100% + 6px);
+  z-index: 5;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+  background: var(--ink);
+  border-radius: 7px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+
+.im-bar-row:hover .im-bar-tip,
+.im-band:hover .im-bar-tip {
+  opacity: 1;
+}
+
+/* The band chart is a centred column, so its readout centres too. */
+.im-band .im-bar-tip {
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(100% - 18px);
+}
+
+/* ── Table view ── */
+.im-tablewrap {
+  margin-top: 18px;
+  overflow-x: auto;
+}
+
+.im-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.im-table th,
+.im-table td {
+  text-align: left;
+  padding: 9px 12px 9px 0;
+  border-bottom: 1px solid var(--rule);
+  font-variant-numeric: tabular-nums;
+}
+
+.im-table th {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── Score bands ── */
+.im-bands {
+  list-style: none;
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.im-band {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.im-band-value {
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  margin-bottom: 6px;
+}
+
+.im-band-track {
+  width: 100%;
+  height: 92px;
+  background: #fbfcfd;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.im-band-fill {
+  width: 100%;
+  background: var(--series);
+  border-radius: 4px 4px 0 0;
+}
+
+.im-band-label {
+  margin-top: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ── Personalisation ── */
+.im-compare {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  text-align: center;
+}
+
+.im-compare > div {
+  padding: 16px 10px;
+  background: var(--plane);
+  border-radius: 12px;
+}
+
+.im-compare-value {
+  display: block;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.im-compare-label {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.im-compare > div small {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.im-compare-note {
+  margin-top: 14px;
+}
+
+/* ── Line chart ── */
+.im-line {
+  margin-top: 18px;
+}
+
+.im-line svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.im-grid {
+  stroke: var(--rule);
+  stroke-width: 1;
+}
+
+.im-axis {
+  stroke: var(--axis);
+  stroke-width: 1;
+}
+
+.im-tick {
+  fill: var(--muted);
+  font-size: 11px;
+  font-family: inherit;
+}
+
+.im-area {
+  fill: var(--series);
+  opacity: 0.1;
+}
+
+.im-stroke {
+  fill: none;
+  stroke: var(--series);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.im-dot {
+  fill: var(--series);
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+
+.im-line-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+/* ── Behaviour facts ── */
+.im-facts {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.im-fact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.im-fact-value {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.im-fact-label {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+/* ── Foot ── */
+.im-foot {
+  max-width: 940px;
+  margin: 26px auto 0;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.im-foot p + p {
+  margin-top: 10px;
+}
+
+.im-foot a {
+  color: var(--series);
+  font-weight: 600;
+}
+
+/* ── States ── */
+.im-message {
+  max-width: 420px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 18px;
+  padding: 40px 32px;
+}
+
+.im-message p {
+  margin-top: 10px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.im-error {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+  word-break: break-word;
+}
+
+.im-cta {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 12px 26px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--ink);
+  border-radius: 999px;
+  text-decoration: none;
+}
+
+.im-skel {
+  display: block;
+  background: linear-gradient(100deg, #eef2f5 30%, #e2e8ee 50%, #eef2f5 70%);
+  background-size: 220% 100%;
+  animation: im-shimmer 1.4s linear infinite;
+  border-radius: 8px;
+}
+
+.im-skel-lg {
+  height: 34px;
+  width: 70%;
+}
+.im-skel-sm {
+  height: 13px;
+  width: 90%;
+  margin-top: 8px;
+}
+.im-skel-block {
+  height: 180px;
+}
+
+@keyframes im-shimmer {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+
+/* ── Responsive ── */
+@media (max-width: 880px) {
+  .im-page {
+    padding: 36px 16px 56px;
+  }
+  .im-title {
+    font-size: 30px;
+  }
+  .im-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .im-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .im-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .im-card {
+    padding: 22px 18px 24px;
+  }
+  .im-bar-row {
+    grid-template-columns: 86px minmax(0, 1fr) 40px;
+    gap: 8px;
+  }
+  .im-bar-name {
+    font-size: 12px;
+  }
+  .im-bar-tip {
+    left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .im-tiles {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .im-bands {
+    gap: 6px;
+  }
+  .im-band-label {
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .im-skel,
+  .im-bar-fill {
+    animation: none;
+    transition: none;
+  }
+}

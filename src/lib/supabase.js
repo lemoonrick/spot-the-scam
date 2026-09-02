@@ -34,6 +34,21 @@ export async function restInsert(table, row) {
 }
 
 /**
+ * Read one of the public aggregate views.
+ *
+ * The `sessions` table itself is unreadable with this key. These views
+ * expose only counts and averages, which is what makes a public
+ * dashboard possible without exposing anyone's run.
+ */
+export async function restSelect(view, query = 'select=*') {
+  const res = await fetch(`${url}/rest/v1/${view}?${query}`, {
+    headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+  });
+  if (!res.ok) throw new Error(`${view}: ${res.status} ${await res.text()}`);
+  return res.json();
+}
+
+/**
  * Pull the offending column name out of a Postgres or PostgREST error.
  * Both name it, in different shapes:
  *   42703   column sessions.personalised does not exist
