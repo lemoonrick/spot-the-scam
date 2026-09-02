@@ -30,13 +30,21 @@ const EMPTY_SUMMARY = {
 export async function loadImpact() {
   if (!isConfigured) throw new Error('No database configured');
 
-  const [summary, byType, personalisation, daily, bands] = await Promise.all([
-    restSelect('impact_summary'),
-    restSelect('impact_by_type', 'select=*&order=accuracy_pct.asc'),
-    restSelect('impact_personalisation'),
-    restSelect('impact_daily', 'select=*&order=day.asc'),
-    restSelect('impact_score_bands', 'select=*&order=band.asc'),
-  ]);
+  const [summary, byType, personalisation, daily, bands, byScam, errors] =
+    await Promise.all([
+      restSelect('impact_summary'),
+      restSelect('impact_by_type', 'select=*&order=accuracy_pct.asc'),
+      restSelect('impact_personalisation'),
+      restSelect('impact_daily', 'select=*&order=day.asc'),
+      restSelect('impact_score_bands', 'select=*&order=band.asc'),
+      // Per-question detail only exists for plays recorded after
+      // migration 004, so these two are allowed to come back empty
+      // without failing the page.
+      restSelect('impact_by_scam', 'select=*&order=wrong_pct.desc').catch(
+        () => [],
+      ),
+      restSelect('impact_error_types').catch(() => []),
+    ]);
 
   return {
     summary: { ...EMPTY_SUMMARY, ...(summary[0] || {}) },
@@ -44,5 +52,7 @@ export async function loadImpact() {
     personalisation: personalisation || [],
     daily: daily || [],
     bands: bands || [],
+    byScam: byScam || [],
+    errors: errors[0] || null,
   };
 }

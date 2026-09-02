@@ -15,22 +15,33 @@ export const isConfigured = Boolean(url && anonKey);
  * purpose: it costs ~58KB gzipped, and this app is aimed at people on
  * slow rural connections. Every kilobyte is someone waiting.
  *
- * Resolves to { ok } or { ok: false, status, body }.
+ * Pass `returning: true` when the caller needs the created row back,
+ * which is how the answers get linked to their session.
+ *
+ * Resolves to { ok, rows? } or { ok: false, status, body }.
  */
-export async function restInsert(table, row) {
+export async function restInsert(table, row, { returning = false } = {}) {
   const res = await fetch(`${url}/rest/v1/${table}`, {
     method: 'POST',
     headers: {
       apikey: anonKey,
       Authorization: `Bearer ${anonKey}`,
       'Content-Type': 'application/json',
-      Prefer: 'return=minimal', // don't send the row back; we don't need it
+      Prefer: returning ? 'return=representation' : 'return=minimal',
     },
     body: JSON.stringify(row),
   });
 
-  if (res.ok) return { ok: true };
-  return { ok: false, status: res.status, body: await res.text() };
+  if (!res.ok) return { ok: false, status: res.status, body: await res.text() };
+  if (!returning) return { ok: true };
+
+  // A returned body that will not parse is not worth failing the save
+  // over: the row is already written.
+  try {
+    return { ok: true, rows: await res.json() };
+  } catch {
+    return { ok: true, rows: [] };
+  }
 }
 
 /**

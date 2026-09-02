@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import './App.css';
 import StartScreen from './StartScreen';
 import NameScreen from './NameScreen';
 import ScamScreen from './ScamScreen';
-import ImpactDashboard from './ImpactDashboard';
 import { EMPTY_IDENTITY, makeIdentity } from './identity';
+
+// Loaded on demand. The dashboard and its icon set are a separate
+// destination from the quiz, and people on slow connections should not
+// download them just to answer ten questions.
+const ImpactDashboard = lazy(() => import('./ImpactDashboard'));
 
 // One extra page does not justify a router and the kilobytes it costs.
 // The dashboard is a separate destination, not a step in the quiz, so a
@@ -15,7 +19,13 @@ function isImpactPath() {
 }
 
 export default function App() {
-  if (isImpactPath()) return <ImpactDashboard />;
+  if (isImpactPath()) {
+    return (
+      <Suspense fallback={<div className="im-boot" />}>
+        <ImpactDashboard />
+      </Suspense>
+    );
+  }
   return <Quiz />;
 }
 

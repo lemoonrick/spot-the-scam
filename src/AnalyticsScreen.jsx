@@ -109,8 +109,10 @@ export default function AnalyticsScreen({ results, onRestart, identity }) {
   useEffect(() => {
     if (savedRef.current) return;
     savedRef.current = true;
-    saveSession(summary);
-  }, [summary]);
+    // The raw per-question results go along with the summary, so the
+    // detail is stored instead of averaged away.
+    saveSession(summary, results);
+  }, [summary, results]);
 
   const scoreColor = getScoreColor(displayScore);
   const feedback = getFeedback(score);

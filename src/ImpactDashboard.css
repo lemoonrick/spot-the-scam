@@ -39,6 +39,13 @@
   place-items: center;
 }
 
+/* Painted while the dashboard chunk downloads, so the page does not
+   flash white on a slow connection. */
+.im-boot {
+  min-height: 100vh;
+  background: #f6f8fa;
+}
+
 /* ── Head ── */
 .im-head {
   max-width: 940px;
@@ -69,23 +76,46 @@
   max-width: 620px;
 }
 
+.im-sub-quiet {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
 .im-updated {
-  margin-top: 10px;
+  margin-top: 14px;
   font-size: 13px;
   color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.im-updated svg {
+  font-size: 15px;
 }
 
 /* Small samples are labelled, not hidden. */
 .im-provisional {
   max-width: 940px;
   margin: 0 auto 22px;
-  padding: 11px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 12px 16px;
   font-size: 13.5px;
   font-weight: 500;
   color: #7a4a12;
   background: #fdf5e8;
   border: 1px solid #f3dfbe;
   border-radius: 10px;
+  line-height: 1.55;
+}
+
+.im-provisional svg {
+  flex: none;
+  font-size: 18px;
+  margin-top: 1px;
 }
 
 /* ── Tiles ── */
@@ -105,6 +135,13 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.im-tile-icon {
+  display: inline-flex;
+  font-size: 22px;
+  color: var(--series);
+  margin-bottom: 6px;
 }
 
 .im-tile-value {
@@ -167,6 +204,15 @@
   font-weight: 700;
   letter-spacing: -0.015em;
   margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.im-h2-icon {
+  display: inline-flex;
+  font-size: 20px;
+  color: var(--series);
 }
 
 .im-note {
@@ -182,25 +228,39 @@
   color: var(--muted);
 }
 
-.im-toggle {
+.im-seg {
   flex: none;
-  padding: 8px 15px;
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  background: var(--plane);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+}
+
+.im-seg button {
+  padding: 6px 15px;
   font-family: inherit;
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--ink-2);
-  background: var(--plane);
-  border: 1px solid var(--rule);
+  color: var(--muted);
+  background: none;
+  border: none;
   border-radius: 999px;
   cursor: pointer;
 }
 
-.im-toggle:hover {
+.im-seg button:hover {
   color: var(--ink);
-  border-color: var(--axis);
 }
 
-.im-toggle:focus-visible {
+.im-seg button.is-on {
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+}
+
+.im-seg button:focus-visible {
   outline: 2px solid var(--series);
   outline-offset: 2px;
 }
@@ -288,16 +348,19 @@
 .im-bar-row {
   position: relative;
   display: grid;
-  grid-template-columns: 116px minmax(0, 1fr) 46px;
+  grid-template-columns: 200px minmax(0, 1fr) 46px;
   align-items: center;
   gap: 12px;
 }
 
 .im-bar-name {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--ink-2);
   text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .im-bar-track {
@@ -324,7 +387,7 @@
 /* Hover readout, so exact counts are reachable without a table. */
 .im-bar-tip {
   position: absolute;
-  left: 128px;
+  left: 212px;
   bottom: calc(100% + 6px);
   z-index: 5;
   padding: 6px 10px;
@@ -349,6 +412,12 @@
   left: 50%;
   transform: translateX(-50%);
   bottom: calc(100% - 18px);
+}
+
+@media (hover: none) {
+  .im-bar-tip {
+    display: none;
+  }
 }
 
 /* ── Table view ── */
@@ -415,6 +484,20 @@
   overflow: hidden;
 }
 
+/* Nothing happened in this band, so draw nothing: an empty outlined box
+   reads as a rendering fault. */
+.im-band-zero .im-band-track {
+  background: none;
+  border: none;
+  border-bottom: 2px solid var(--rule);
+  border-radius: 0;
+  height: 94px;
+}
+
+.im-band-zero .im-band-value {
+  color: var(--axis);
+}
+
 .im-band-fill {
   width: 100%;
   background: var(--series);
@@ -469,6 +552,55 @@
 
 .im-compare-note {
   margin-top: 14px;
+}
+
+/* ── Two kinds of mistake ── */
+.im-mistakes {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.im-mistake {
+  padding: 18px 16px;
+  background: var(--plane);
+  border-radius: 12px;
+  border-left: 3px solid var(--axis);
+}
+
+/* The dangerous error carries the emphasis. */
+.im-mistake-bad {
+  border-left-color: #c2410c;
+}
+
+.im-mistake-value {
+  display: block;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.im-mistake-bad .im-mistake-value {
+  color: #c2410c;
+}
+
+.im-mistake-label {
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.im-mistake small {
+  display: block;
+  margin-top: 6px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--muted);
 }
 
 /* ── Line chart ── */
@@ -655,15 +787,37 @@
   .im-card {
     padding: 22px 18px 24px;
   }
+  /* Scenario names are too long to sit beside the bar on a phone, so
+     the label moves above it. */
   .im-bar-row {
-    grid-template-columns: 86px minmax(0, 1fr) 40px;
-    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    grid-template-areas: 'name name' 'bar value';
+    gap: 4px 10px;
   }
   .im-bar-name {
-    font-size: 12px;
+    grid-area: name;
+    text-align: left;
+    font-size: 12.5px;
+    white-space: normal;
   }
+  .im-bar-track {
+    grid-area: bar;
+  }
+  .im-bar-value {
+    grid-area: value;
+    text-align: right;
+  }
+  /* A nowrap absolutely-positioned readout is wider than a phone and
+     drags the whole page sideways. There is no hover on touch, so it
+     can never be shown there anyway. */
   .im-bar-tip {
-    left: 0;
+    display: none;
+  }
+  .im-bars {
+    gap: 14px;
+  }
+  .im-mistakes {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

@@ -21,7 +21,7 @@ const REQUIRED = new Set([
  * Never throws and never blocks the UI — if saving fails, the user still
  * sees their full results.
  */
-export async function saveSession(summary) {
+export async function saveSession(summary, results = []) {
   if (!isConfigured) return { saved: false, reason: 'not-configured' };
 
   const row = {
@@ -61,7 +61,7 @@ export async function saveSession(summary) {
     // database does not know about and send the rest, so a schema that has
     // drifted costs us a column instead of all our evidence.
     for (let i = 0; i <= 4; i++) {
-      const res = await restInsert('sessions', attempt);
+      const res = await restInsert('sessions', attempt, { returning: true });
 
       if (res.ok) {
         if (dropped.length) {
@@ -71,7 +71,9 @@ export async function saveSession(summary) {
               'supabase/ to add the missing column(s).',
           );
         }
-        return { saved: true, dropped };
+        const sessionId = res.rows?.[0]?.id ?? null;
+        const answers = await saveAnswers(sessionId, results);
+        return { saved: true, dropped, answers };
       }
 
       const column = missingColumnFrom(res.body);
@@ -88,6 +90,45 @@ export async function saveSession(summary) {
   } catch (err) {
     // Offline, DNS failure, blocked by an extension.
     console.warn('[spot-the-scam] session not saved:', err.message);
+    return { saved: false, reason: err.message };
+  }
+}
+
+/**
+ * Store the per-question detail alongside the summary.
+ *
+ * This is what makes "which of the ten messages catches people out"
+ * answerable. The quiz has always collected it; it used to be averaged
+ * away before saving.
+ *
+ * A failure here is reported but never downgrades the session: the
+ * summary row is the record that matters, and a run counted without its
+ * detail is far better than a run lost entirely.
+ */
+async function saveAnswers(sessionId, results) {
+  if (!sessionId || !results.length) return { saved: false, reason: 'no-session-id' };
+
+  const rows = results.map((r) => ({
+    session_id: sessionId,
+    scam_id: r.scamId,
+    scam_type: r.type,
+    round: r.round,
+    chosen: r.verdictChosen,
+    actual: r.actualVerdict,
+    correct: r.verdictCorrect,
+    response_ms: r.responseMs,
+  }));
+
+  try {
+    // PostgREST takes an array body, so all ten go in one request.
+    const res = await restInsert('session_answers', rows);
+    if (!res.ok) {
+      console.warn('[spot-the-scam] answers not saved:', res.body);
+      return { saved: false, reason: res.body };
+    }
+    return { saved: true, count: rows.length };
+  } catch (err) {
+    console.warn('[spot-the-scam] answers not saved:', err.message);
     return { saved: false, reason: err.message };
   }
 }
