@@ -1,8 +1,29 @@
 import { isConfigured, missingColumnFrom, restInsert } from './supabase';
 
+/**
+ * Make the session's id here rather than asking the database for it.
+ *
+ * Reading it back would mean `Prefer: return=representation`, which makes
+ * Postgres run INSERT ... RETURNING, and that needs SELECT permission on
+ * the row. Our RLS deliberately grants anon no SELECT policy, so the
+ * return is refused and the entire insert fails. Generating the id up
+ * front keeps the table unreadable and still lets the answers reference
+ * their session.
+ */
+function newSessionId() {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  // Older browsers, or a page served over plain http.
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
 // Without these the row says nothing useful, so we would rather lose it
 // than store something misleading. Everything else is droppable.
 const REQUIRED = new Set([
+  // Dropping the id would orphan every answer row.
+  'id',
   'score',
   'correct',
   'total',
@@ -24,7 +45,10 @@ const REQUIRED = new Set([
 export async function saveSession(summary, results = []) {
   if (!isConfigured) return { saved: false, reason: 'not-configured' };
 
+  const sessionId = newSessionId();
+
   const row = {
+    id: sessionId,
     schema_version: summary.schemaVersion,
 
     score: summary.score,
@@ -61,7 +85,7 @@ export async function saveSession(summary, results = []) {
     // database does not know about and send the rest, so a schema that has
     // drifted costs us a column instead of all our evidence.
     for (let i = 0; i <= 4; i++) {
-      const res = await restInsert('sessions', attempt, { returning: true });
+      const res = await restInsert('sessions', attempt);
 
       if (res.ok) {
         if (dropped.length) {
@@ -71,7 +95,6 @@ export async function saveSession(summary, results = []) {
               'supabase/ to add the missing column(s).',
           );
         }
-        const sessionId = res.rows?.[0]?.id ?? null;
         const answers = await saveAnswers(sessionId, results);
         return { saved: true, dropped, answers };
       }
