@@ -1,0 +1,45 @@
+# Spot the Scam — Apache / LiteSpeed config (Hostinger and similar).
+# Vite copies this file into dist/, so it ships with the upload.
+# Vercel ignores it and uses vercel.json instead.
+
+# ── Send unknown paths to the app ──────────────────────────────
+# Without this, /impact is a 404 because no such file exists on disk.
+# Paths are resolved relative to the folder this file sits in, so it
+# works at a domain root or inside a subfolder without editing.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Anything that really exists is served as-is.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Everything else is the app's business.
+  RewriteRule . index.html [L]
+</IfModule>
+
+# ── Compression ────────────────────────────────────────────────
+# Matters for this audience: many are on slow mobile connections.
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css
+  AddOutputFilterByType DEFLATE application/javascript application/json
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# ── Caching ────────────────────────────────────────────────────
+# Asset filenames contain a content hash, so they can be cached hard.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 month"
+  ExpiresByType image/png "access plus 1 month"
+</IfModule>
+
+# index.html must never be cached hard, or visitors keep loading the
+# old version after an update.
+<FilesMatch "index\.html$">
+  <IfModule mod_headers.c>
+    Header set Cache-Control "no-cache, must-revalidate"
+  </IfModule>
+</FilesMatch>

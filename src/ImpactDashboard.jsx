@@ -329,7 +329,7 @@ export default function ImpactDashboard() {
         </p>
         <p>
           Built by <a href="https://myfactree.org">FactTree</a>.{' '}
-          <a href="/">Take the quiz</a>
+          <a href={import.meta.env.BASE_URL}>Take the quiz</a>
         </p>
       </footer>
     </div>
@@ -609,7 +609,9 @@ function Empty() {
           Nobody has finished the quiz yet, so there is nothing to show. This
           page fills in on its own as people play.
         </p>
-        <a className="im-cta" href="/">Take the quiz</a>
+        <a className="im-cta" href={import.meta.env.BASE_URL}>
+          Take the quiz
+        </a>
       </div>
     </div>
   );
@@ -625,7 +627,9 @@ function Failed({ message }) {
           normally.
         </p>
         <p className="im-error">{message}</p>
-        <a className="im-cta" href="/">Take the quiz</a>
+        <a className="im-cta" href={import.meta.env.BASE_URL}>
+          Take the quiz
+        </a>
       </div>
     </div>
   );

@@ -6,7 +6,11 @@ import ImpactPanel from './components/ImpactPanel';
 import ShareCard from './components/ShareCard';
 import './AnalyticsScreen.css';
 
-const SHARE_URL = 'https://spot-the-scam-ebon.vercel.app/';
+// The address printed on the shared card. Falls back to wherever the
+// app is actually running, so a move to new hosting needs no code change.
+const SHARE_URL =
+  import.meta.env.VITE_SHARE_URL ||
+  `${window.location.origin}${import.meta.env.BASE_URL}`;
 
 const TYPE_ICON = {
   sms: '💬',

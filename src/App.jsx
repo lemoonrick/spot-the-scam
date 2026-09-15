@@ -12,10 +12,19 @@ const ImpactDashboard = lazy(() => import('./ImpactDashboard'));
 
 // One extra page does not justify a router and the kilobytes it costs.
 // The dashboard is a separate destination, not a step in the quiz, so a
-// plain path check is enough. vercel.json rewrites every path to
-// index.html so /impact loads on a hard refresh.
+// plain path check is enough.
+//
+// Two spellings are accepted so the page works wherever it is hosted:
+//   /impact       needs the server to send unknown paths to index.html
+//                 (.htaccess on Apache, vercel.json on Vercel)
+//   #/impact      needs nothing at all, so it still works if a host
+//                 ignores .htaccess or rewrites cannot be enabled
 function isImpactPath() {
-  return /^\/impact\/?$/.test(window.location.pathname);
+  if (/^#\/?impact\/?$/.test(window.location.hash)) return true;
+
+  const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+  const path = window.location.pathname.replace(/\/$/, '');
+  return path === `${base}/impact`;
 }
 
 export default function App() {
