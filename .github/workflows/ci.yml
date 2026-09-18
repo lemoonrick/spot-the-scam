@@ -1,0 +1,36 @@
+# Runs on every push and every pull request.
+#
+# This exists because a batch of real bugs shipped silently: a flag that
+# pointed at nothing, stranded timers, a lint error in the build config,
+# and a database anyone could flood. None of them were hard to catch.
+# Nothing was checking.
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests
+        run: npm test
+
+      # Catches anything that only breaks when Vite actually compiles it,
+      # such as a bad import or a syntax error in a rarely-touched file.
+      - name: Build
+        run: npm run build

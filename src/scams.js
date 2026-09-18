@@ -249,7 +249,7 @@ export const scams = [
       { text: ' from ', flag: null },
       { text: 'Pizza Hut, Koramangala', flag: 'merchant' },
       { text: ' has been confirmed.\n\n', flag: null },
-      { text: 'Estimated delivery: 35 mins.', flag: 'eta' },
+      { text: 'Estimated delivery: 35 mins.', flag: null },
       { text: '\n\nTrack your order in the Swiggy app.', flag: 'no-link' },
     ],
     flags: [
