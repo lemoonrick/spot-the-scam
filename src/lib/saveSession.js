@@ -1,157 +1,65 @@
-import { isConfigured, missingColumnFrom, restInsert } from './supabase';
+import { isConfigured } from './supabase';
+import { getTurnstileToken } from './turnstile';
+
+const FUNCTION_NAME = 'submit-session';
 
 /**
- * Make the session's id here rather than asking the database for it.
+ * Hand a finished quiz to the server.
  *
- * Reading it back would mean `Prefer: return=representation`, which makes
- * Postgres run INSERT ... RETURNING, and that needs SELECT permission on
- * the row. Our RLS deliberately grants anon no SELECT policy, so the
- * return is refused and the entire insert fails. Generating the id up
- * front keeps the table unreadable and still lets the answers reference
- * their session.
- */
-function newSessionId() {
-  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
-  // Older browsers, or a page served over plain http.
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
-  });
-}
-
-// Without these the row says nothing useful, so we would rather lose it
-// than store something misleading. Everything else is droppable.
-const REQUIRED = new Set([
-  // Dropping the id would orphan every answer row.
-  'id',
-  'score',
-  'correct',
-  'total',
-  'baseline_score',
-  'trained_score',
-  'improvement',
-]);
-
-/**
- * Store one finished quiz run.
+ * The browser reports only what it observed: which message, what the
+ * player picked, which half it was in, how long they took. It does not
+ * send a score. The server marks each answer against its own answer key
+ * and works out every figure itself, so nothing on /impact rests on a
+ * number the browser supplied.
  *
- * Anonymous by design: no name, email, account or IP is sent. The row
- * describes what happened, not who did it, so there is nothing to leak
- * and nothing to ask consent for.
+ * Anonymous as before: no name, no email, no account. The server sees
+ * the IP address any web request carries, and uses a salted one-way
+ * hash of it purely to count requests. The address is never stored and
+ * is never attached to a result.
  *
- * Never throws and never blocks the UI — if saving fails, the user still
- * sees their full results.
+ * Never throws and never blocks the UI. If saving fails the player
+ * still sees their full results.
  */
 export async function saveSession(summary, results = []) {
   if (!isConfigured) return { saved: false, reason: 'not-configured' };
 
-  const sessionId = newSessionId();
-
-  const row = {
-    id: sessionId,
-    schema_version: summary.schemaVersion,
-
-    score: summary.score,
-    correct: summary.correct,
-    total: summary.total,
-
-    baseline_score: summary.baselineScore,
-    trained_score: summary.trainedScore,
-    improvement: summary.improvement,
-
-    median_response_ms_baseline: summary.medianResponseMsBaseline,
-    median_response_ms_trained: summary.medianResponseMsTrained,
-    total_time_ms: summary.totalTimeMs,
-
-    scams_waved_through: summary.scamsWavedThrough,
-    weakest_type: summary.weakestType,
-    type_breakdown: summary.typeBreakdown,
-
-    personalised: summary.personalised,
-
-    device: summary.device,
-    language: summary.language,
-    // NOTE: completedAt is deliberately not sent. The database stamps
-    // created_at itself — a timestamp from the browser can be wrong or
-    // faked, and this one has to be trustworthy for the dashboard.
-  };
+  const url = import.meta.env.VITE_SUPABASE_URL;
+  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
   try {
-    let attempt = { ...row };
-    const dropped = [];
+    const turnstileToken = await getTurnstileToken();
 
-    // A table that predates a newer column would otherwise reject the whole
-    // row, losing every session over one optional field. Drop what the
-    // database does not know about and send the rest, so a schema that has
-    // drifted costs us a column instead of all our evidence.
-    for (let i = 0; i <= 4; i++) {
-      const res = await restInsert('sessions', attempt);
+    const res = await fetch(`${url}/functions/v1/${FUNCTION_NAME}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Identifies the project. The function does the real checking.
+        Authorization: `Bearer ${anonKey}`,
+        apikey: anonKey,
+      },
+      body: JSON.stringify({
+        turnstileToken,
+        personalised: Boolean(summary.personalised),
+        device: summary.device,
+        language: summary.language,
+        answers: results.map((r) => ({
+          scamId: r.scamId,
+          round: r.round,
+          chosen: r.verdictChosen,
+          responseMs: r.responseMs,
+        })),
+      }),
+    });
 
-      if (res.ok) {
-        if (dropped.length) {
-          console.warn(
-            `[spot-the-scam] saved without ${dropped.join(', ')}. ` +
-              'Your sessions table is behind the app: run the files in ' +
-              'supabase/ to add the missing column(s).',
-          );
-        }
-        const answers = await saveAnswers(sessionId, results);
-        return { saved: true, dropped, answers };
-      }
-
-      const column = missingColumnFrom(res.body);
-      if (!column || REQUIRED.has(column) || !(column in attempt)) {
-        console.warn('[spot-the-scam] session not saved:', res.body);
-        return { saved: false, reason: res.body };
-      }
-
-      delete attempt[column];
-      dropped.push(column);
+    if (!res.ok) {
+      const body = await res.text();
+      console.warn('[spot-the-scam] session not saved:', res.status, body);
+      return { saved: false, reason: body };
     }
-
-    return { saved: false, reason: 'too many missing columns' };
+    return { saved: true };
   } catch (err) {
     // Offline, DNS failure, blocked by an extension.
     console.warn('[spot-the-scam] session not saved:', err.message);
-    return { saved: false, reason: err.message };
-  }
-}
-
-/**
- * Store the per-question detail alongside the summary.
- *
- * This is what makes "which of the ten messages catches people out"
- * answerable. The quiz has always collected it; it used to be averaged
- * away before saving.
- *
- * A failure here is reported but never downgrades the session: the
- * summary row is the record that matters, and a run counted without its
- * detail is far better than a run lost entirely.
- */
-async function saveAnswers(sessionId, results) {
-  if (!sessionId || !results.length) return { saved: false, reason: 'no-session-id' };
-
-  const rows = results.map((r) => ({
-    session_id: sessionId,
-    scam_id: r.scamId,
-    scam_type: r.type,
-    round: r.round,
-    chosen: r.verdictChosen,
-    actual: r.actualVerdict,
-    correct: r.verdictCorrect,
-    response_ms: r.responseMs,
-  }));
-
-  try {
-    // PostgREST takes an array body, so all ten go in one request.
-    const res = await restInsert('session_answers', rows);
-    if (!res.ok) {
-      console.warn('[spot-the-scam] answers not saved:', res.body);
-      return { saved: false, reason: res.body };
-    }
-    return { saved: true, count: rows.length };
-  } catch (err) {
-    console.warn('[spot-the-scam] answers not saved:', err.message);
     return { saved: false, reason: err.message };
   }
 }
