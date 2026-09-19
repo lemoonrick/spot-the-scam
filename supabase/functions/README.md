@@ -1,25 +1,27 @@
 # Turning off direct database writes
 
-Do these in order. Running the migration first breaks saving, because
+Do these in order. Running migration 006 first breaks saving, because
 the function it hands over to would not exist yet.
 
-## 1. Get a Turnstile widget
+**No Cloudflare account is needed.** Abuse is held off with four things
+the app and the database do between themselves:
 
-At `dash.cloudflare.com` → Turnstile → Add widget.
+| | |
+|---|---|
+| A ticket | Issued when a quiz starts, usable exactly once. No ticket, no result. |
+| A minimum age | Nobody reads ten messages in twenty seconds. |
+| Timing checks | The reported times have to describe a person. |
+| A rate limit | Per address, on both starting and submitting. |
 
-- Domain: `myfactree.org`
-- Mode: Managed
+None is impressive alone. Together they turn a one-line flood script
+into real work for no reward, which for a quiz with nothing to steal is
+the right amount of defence.
 
-You get two keys. The **site key** is public and goes in `.env`:
+Turnstile is still supported if you ever get a Cloudflare account: set
+`TURNSTILE_SECRET_KEY` and `VITE_TURNSTILE_SITE_KEY` and it is enforced
+as an extra layer. Leave them unset and everything above still applies.
 
-```
-VITE_TURNSTILE_SITE_KEY=0x4AAAA...
-```
-
-The **secret key** never goes near the frontend. It goes to the function
-in step 3.
-
-## 2. Install the Supabase CLI and link the project
+## 1. Install the Supabase CLI and link the project
 
 ```
 npm install -g supabase
@@ -29,10 +31,9 @@ supabase link --project-ref <your-project-ref>
 
 The project ref is the part of your Supabase URL before `.supabase.co`.
 
-## 3. Give the function its secrets
+## 2. Give the function its secret
 
 ```
-supabase secrets set TURNSTILE_SECRET_KEY=<the secret key from step 1>
 supabase secrets set IP_HASH_SALT=$(openssl rand -hex 32)
 ```
 
@@ -44,14 +45,27 @@ it just resets the rate-limit counters.
 automatically. Do not set them yourself, and never put the service role
 key in `.env`.
 
+## 3. Create the tickets table
+
+In the SQL Editor, run `supabase/007_session_tickets.sql`.
+
 ## 4. Deploy the function
 
 ```
 supabase functions deploy submit-session
 ```
 
-Check it is alive. A request with no bot token should be refused, which
-is the correct answer:
+Check it is alive. Asking for a ticket should work:
+
+```
+curl -s -X POST \
+  "https://<project-ref>.supabase.co/functions/v1/submit-session" \
+  -H "apikey: <your anon key>" \
+  -H "content-type: application/json" \
+  -d '{"action":"start"}'
+```
+
+Expect a ticket id back. Then check a result with no ticket is refused:
 
 ```
 curl -i -X POST \
@@ -61,13 +75,9 @@ curl -i -X POST \
   -d '{"answers":[]}'
 ```
 
-Expect `403` and "Could not verify this came from a browser". A `503`
-means `TURNSTILE_SECRET_KEY` did not get set.
+Expect `400` and "Missing ticket".
 
 ## 5. Rebuild and upload the site
-
-The site key is compiled into the JavaScript, so the frontend must be
-rebuilt after step 1.
 
 ```
 npm run build
@@ -84,11 +94,12 @@ After this the public key cannot write to `sessions` or
 
 ## 7. Housekeeping (optional)
 
-Rate-limit rows expire on their own but are not deleted automatically.
-Either run this occasionally:
+Rate-limit rows and spent tickets expire on their own but are not
+deleted automatically. Either run this occasionally:
 
 ```sql
 select public.prune_rate_limits();
+select public.prune_session_tickets();
 ```
 
 or add it as a scheduled job under Database → Cron.
@@ -99,7 +110,8 @@ Check the function's logs under Edge Functions → submit-session → Logs.
 
 | What you see | What it means |
 |---|---|
-| `403` for everyone | Site key and secret key are from different widgets |
-| `503` | `TURNSTILE_SECRET_KEY` is not set |
-| `429` | The rate limit is doing its job; 20 per hour per address |
-| `401` before reaching the function | The anon key in `.env` is wrong |
+| `400` Missing ticket | The browser never got one. Check `007` was run and the function can reach `session_tickets`. |
+| `409` cannot be submitted again | The ticket was already spent, or is over six hours old. Normal if someone leaves a tab open all day. |
+| `422` too quick | The minimum time or the timing checks rejected it. Expected when clicking through without reading; a real player will not see it. |
+| `429` | The rate limit is doing its job: 20 results and 40 starts an hour per address. Raise the constants in the function if a large workshop shares one connection. |
+| `401` before reaching the function | The anon key in `.env` is wrong. |

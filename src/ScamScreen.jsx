@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { scams as allScams } from './scams';
 import { buildMatchedRounds, roundFor } from './session';
 import { EMPTY_IDENTITY, personalizeScam } from './identity';
+import { requestTicket } from './lib/ticket';
 import ResultsScreen from './ResultsScreen';
 import SmsScam from './components/SmsScam';
 import WhatsAppScam from './components/WhatsAppScam';
@@ -59,6 +60,12 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
     resetForNextQuestion();
     setScamIndex((prev) => prev + 1);
   };
+
+  // Ask the server for a ticket up front, so it is well past the
+  // minimum age by the time anyone reaches the end.
+  useEffect(() => {
+    requestTicket();
+  }, []);
 
   // Start the response clock whenever a fresh question is put on screen.
   useEffect(() => {

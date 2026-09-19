@@ -69,7 +69,32 @@ describe('the browser is not trusted', () => {
     expect(source).toContain('correct: chosen === key.verdict');
   });
 
-  it('refuses to run without its bot-check secret', () => {
-    expect(source).toContain('if (!TURNSTILE_SECRET)');
+  // Turnstile is optional now, so these are what actually holds abuse
+  // off. Each is asserted so none can be dropped unnoticed.
+  it('requires a ticket before accepting a result', () => {
+    expect(source).toContain("payload.ticket");
+    expect(source).toContain('Missing ticket');
+  });
+
+  it('only redeems a ticket that is unused and recent', () => {
+    expect(source).toContain(".is('used_at', null)");
+    expect(source).toContain("gte('created_at', cutoff)");
+  });
+
+  it('rejects a quiz finished impossibly fast', () => {
+    expect(source).toContain('MIN_QUIZ_SECONDS');
+    expect(source).toContain('MIN_PLAUSIBLE_TOTAL_MS');
+  });
+
+  it('rate-limits both issuing and submitting', () => {
+    expect(source).toContain("'start', MAX_TICKETS_PER_IP_PER_HOUR");
+    expect(source).toContain("'submit', MAX_PER_IP_PER_HOUR");
+  });
+
+  // It used to refuse to run without a Turnstile secret. There is no
+  // Cloudflare account, so failing closed would mean saving nothing.
+  it('still checks Turnstile when configured, but does not require it', () => {
+    expect(source).toContain('if (TURNSTILE_SECRET)');
+    expect(source).not.toContain('if (!TURNSTILE_SECRET)');
   });
 });

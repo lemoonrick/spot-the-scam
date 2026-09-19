@@ -11,10 +11,27 @@
 //
 //  Now the browser sends only what it observed: which message, what the
 //  player chose, how long they took. This function decides everything
-//  else. It checks a bot token, rate-limits by a hashed IP, marks each
-//  answer right or wrong against its own copy of the answer key, and
-//  works out the scores itself. Nothing the browser claims about its
-//  score is trusted, because the browser no longer sends one.
+//  else. It marks each answer right or wrong against its own copy of the
+//  answer key and works out the scores itself. Nothing the browser
+//  claims about its score is trusted, because the browser no longer
+//  sends one.
+//
+//  ABUSE CONTROL, WITHOUT A THIRD-PARTY BOT CHECK
+//  There is no Cloudflare account available, so four cheaper things are
+//  layered instead. None is impressive alone; together they turn a
+//  one-line flood script into real work for no reward.
+//
+//    1. A ticket, issued when a quiz starts and usable exactly once.
+//       No ticket, no result.
+//    2. A minimum age on that ticket. Nobody reads ten messages in
+//       twenty seconds, so a result arriving sooner is not a person.
+//    3. Plausibility checks on the timings the browser reports.
+//    4. A rate limit per address, on both issuing and submitting.
+//
+//  Turnstile is still supported and still checked when its secret is
+//  set, so this can be tightened later without code changes. It is no
+//  longer required, which means the function must NOT fail closed on a
+//  missing secret the way it did before.
 // ============================================================
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
@@ -37,7 +54,18 @@ const ANSWER_KEY: Record<number, { type: string; verdict: string }> = {
 
 const EXPECTED_ANSWERS = 10;
 const MAX_PER_IP_PER_HOUR = 20; // generous for a workshop, useless for a flood
+const MAX_TICKETS_PER_IP_PER_HOUR = 40; // a couple of restarts is normal
 const MAX_RESPONSE_MS = 30 * 60 * 1000;
+
+// Nobody reads ten messages, weighs each one and steps through the
+// explanations in less than this. A workshop rushing through still
+// takes minutes.
+const MIN_QUIZ_SECONDS = 20;
+const MAX_TICKET_AGE_HOURS = 6;
+
+// The fastest a person can plausibly judge a message they actually
+// read. Anything quicker across the whole quiz is a script.
+const MIN_PLAUSIBLE_TOTAL_MS = 8000;
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -81,6 +109,28 @@ async function passesTurnstile(token: string, ip: string, secret: string) {
   return out.success === true;
 }
 
+/**
+ * Count recent requests of one kind from one caller, and record this
+ * one. Returns true when the caller is over the limit.
+ */
+async function overLimit(
+  db: any,
+  who: string,
+  kind: string,
+  max: number,
+) {
+  const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const { count } = await db
+    .from('rate_limits')
+    .select('*', { count: 'exact', head: true })
+    .eq('fingerprint', `${kind}:${who}`)
+    .gte('created_at', since);
+
+  if ((count ?? 0) >= max) return true;
+  await db.from('rate_limits').insert({ fingerprint: `${kind}:${who}` });
+  return false;
+}
+
 const pct = (n: number, d: number) => (d > 0 ? Math.round((n / d) * 100) : 0);
 
 function median(nums: number[]) {
@@ -111,36 +161,82 @@ Deno.serve(async (req) => {
     return json({ error: 'Malformed request' }, 400);
   }
 
-  // ── Bot check ───────────────────────────────────────────────
-  // Refuse to run unprotected: a missing secret is a deployment
-  // mistake, and failing open would quietly restore the old hole.
-  if (!TURNSTILE_SECRET) {
-    console.error('TURNSTILE_SECRET_KEY is not set');
-    return json({ error: 'Not accepting results right now' }, 503);
-  }
-  if (!(await passesTurnstile(String(payload.turnstileToken ?? ''), ip, TURNSTILE_SECRET))) {
-    return json({ error: 'Could not verify this came from a browser' }, 403);
-  }
-
   const db = createClient(SUPABASE_URL, SERVICE_KEY, {
     auth: { persistSession: false },
   });
 
-  // ── Rate limit ──────────────────────────────────────────────
-  if (ip && IP_SALT) {
-    const who = await fingerprint(ip, IP_SALT);
-    const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const who = ip && IP_SALT ? await fingerprint(ip, IP_SALT) : '';
 
-    const { count } = await db
-      .from('rate_limits')
-      .select('*', { count: 'exact', head: true })
-      .eq('fingerprint', who)
-      .gte('created_at', since);
-
-    if ((count ?? 0) >= MAX_PER_IP_PER_HOUR) {
-      return json({ error: 'Too many results from here. Try later.' }, 429);
+  // ── Handing out a ticket at the start of a quiz ──────────────
+  if (payload.action === 'start') {
+    if (who && (await overLimit(db, who, 'start', MAX_TICKETS_PER_IP_PER_HOUR))) {
+      return json({ error: 'Too many quizzes started from here.' }, 429);
     }
-    await db.from('rate_limits').insert({ fingerprint: who });
+    const { data, error } = await db
+      .from('session_tickets')
+      .insert({})
+      .select('id')
+      .single();
+
+    if (error) {
+      console.error('could not issue ticket', error.message);
+      return json({ error: 'Could not start' }, 500);
+    }
+    return json({ ticket: data.id });
+  }
+
+  // ── Optional bot check ───────────────────────────────────────
+  // Only enforced where a secret is configured. It is a bonus layer,
+  // not the foundation, so a missing secret must not fail closed.
+  if (TURNSTILE_SECRET) {
+    const ok = await passesTurnstile(
+      String(payload.turnstileToken ?? ''),
+      ip,
+      TURNSTILE_SECRET,
+    );
+    if (!ok) {
+      return json({ error: 'Could not verify this came from a browser' }, 403);
+    }
+  }
+
+  // ── Rate limit ──────────────────────────────────────────────
+  if (who && (await overLimit(db, who, 'submit', MAX_PER_IP_PER_HOUR))) {
+    return json({ error: 'Too many results from here. Try later.' }, 429);
+  }
+
+  // ── Redeem the ticket ───────────────────────────────────────
+  // Marking it used and checking it was unused happen in one statement,
+  // so two requests racing with the same ticket cannot both win.
+  const ticket = String(payload.ticket ?? '');
+  if (!ticket) return json({ error: 'Missing ticket' }, 400);
+
+  const cutoff = new Date(
+    Date.now() - MAX_TICKET_AGE_HOURS * 60 * 60 * 1000,
+  ).toISOString();
+
+  const { data: redeemed, error: redeemError } = await db
+    .from('session_tickets')
+    .update({ used_at: new Date().toISOString() })
+    .eq('id', ticket)
+    .is('used_at', null)
+    .gte('created_at', cutoff)
+    .select('created_at')
+    .maybeSingle();
+
+  if (redeemError) {
+    console.error('ticket redeem failed', redeemError.message);
+    return json({ error: 'Could not save' }, 500);
+  }
+  if (!redeemed) {
+    // Unknown, already spent, or too old.
+    return json({ error: 'This quiz cannot be submitted again' }, 409);
+  }
+
+  // A quiz that finished impossibly soon after it started was not read.
+  const startedSecondsAgo =
+    (Date.now() - new Date(redeemed.created_at).getTime()) / 1000;
+  if (startedSecondsAgo < MIN_QUIZ_SECONDS) {
+    return json({ error: 'That was too quick to be a real attempt' }, 422);
   }
 
   // ── Validate what the browser observed ──────────────────────
@@ -183,6 +279,12 @@ Deno.serve(async (req) => {
     });
   }
 
+  // ── Do the reported timings describe a person? ──────────────
+  const totalMs = clean.reduce((sum, a) => sum + (a.response_ms ?? 0), 0);
+  if (totalMs < MIN_PLAUSIBLE_TOTAL_MS) {
+    return json({ error: 'That was too quick to be a real attempt' }, 422);
+  }
+
   // ── Work out the scores ourselves ───────────────────────────
   const first = clean.filter((a) => a.round === 1);
   const second = clean.filter((a) => a.round === 2);
@@ -222,7 +324,7 @@ Deno.serve(async (req) => {
     median_response_ms_trained: median(
       second.map((a) => a.response_ms ?? 0).filter(Boolean),
     ),
-    total_time_ms: clean.reduce((sum, a) => sum + (a.response_ms ?? 0), 0),
+    total_time_ms: totalMs,
     scams_waved_through: clean.filter(
       (a) => !a.correct && a.actual === 'phishing',
     ).length,

@@ -1,5 +1,6 @@
 import { isConfigured } from './supabase';
 import { getTurnstileToken } from './turnstile';
+import { clearTicket, getTicket, requestTicket } from './ticket';
 
 const FUNCTION_NAME = 'submit-session';
 
@@ -27,7 +28,10 @@ export async function saveSession(summary, results = []) {
   const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
   try {
-    const turnstileToken = await getTurnstileToken();
+    const [turnstileToken, ticket] = await Promise.all([
+      getTurnstileToken(),
+      getTicket(),
+    ]);
 
     const res = await fetch(`${url}/functions/v1/${FUNCTION_NAME}`, {
       method: 'POST',
@@ -38,6 +42,7 @@ export async function saveSession(summary, results = []) {
         apikey: anonKey,
       },
       body: JSON.stringify({
+        ticket,
         turnstileToken,
         personalised: Boolean(summary.personalised),
         device: summary.device,
@@ -56,6 +61,9 @@ export async function saveSession(summary, results = []) {
       console.warn('[spot-the-scam] session not saved:', res.status, body);
       return { saved: false, reason: body };
     }
+    // Spent. A second run needs a new one.
+    clearTicket();
+    requestTicket();
     return { saved: true };
   } catch (err) {
     // Offline, DNS failure, blocked by an extension.
