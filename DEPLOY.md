@@ -42,9 +42,17 @@ all.
 
 **The Supabase keys are baked into the JavaScript at build time.** So
 `.env` has to be filled in on the machine doing the build. Anyone can
-read the key out of the uploaded files; that is expected, and Row Level
-Security is what makes it safe. The key can only add a quiz result. It
-cannot read, change or delete anything.
+read the key out of the uploaded files; that is expected.
+
+What makes that safe is that the key now grants nothing at all. Browsers
+used to write results straight into the database with it, which meant a
+short script could have flooded the public figures with invented plays.
+Those write permissions are gone. Results go to a checkpoint function
+instead, which issues a one-time ticket at the start of a quiz, refuses
+anything submitted impossibly fast, limits how much can arrive from one
+place in an hour, and marks the answers against its own copy of the key
+so the score cannot be misreported. The browser key can no longer read,
+add, change or delete a single row.
 
 **Changing the folder name means rebuilding.** The folder is written
 into every asset path.
