@@ -160,6 +160,32 @@
   margin-bottom: 14px;
 }
 
+/* "Paying" and the amount are each the subject of their own red flag,
+   so each lights up on its own rather than tinting the whole block. */
+.upi-paying-label,
+.upi-amount {
+  border-radius: 6px;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.upi-paying-label.upi-lit,
+.upi-amount.upi-lit {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fca5a5;
+  outline: 1.5px solid rgba(239, 68, 68, 0.4);
+  outline-offset: 2px;
+}
+
+/* Both are full-width block elements, so without this the highlight
+   stretches across the screen instead of hugging the text. */
+.upi-paying-label.upi-lit,
+.upi-amount.upi-lit {
+  display: inline-block;
+  padding: 2px 14px;
+}
+
 /* Note chip */
 .upi-note-chip {
   display: inline-flex;
@@ -175,10 +201,6 @@
     border-color 0.2s ease;
   max-width: 240px;
 }
-.upi-note-chip.upi-active {
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.35);
-}
 .upi-note-chip svg {
   flex-shrink: 0;
   margin-top: 1px;
@@ -187,9 +209,6 @@
   font-size: 11.5px;
   color: rgba(255, 255, 255, 0.6);
   line-height: 1.5;
-}
-.upi-note-chip.upi-active span {
-  color: #fca5a5;
 }
 
 /* ── PIN area ── */

@@ -150,6 +150,18 @@ button:active {
   animation: slideInRight 0.35s ease forwards;
 }
 
+/* Every screen paints its highlights with these two variables, so
+   swapping them here recolours all of them at once.
+
+   On a genuine message the highlighted phrases are the reasons to
+   trust it — the real order number, the official domain. Showing
+   those in the same alarm red used for scams taught the opposite of
+   what the card next to them was saying. */
+.scam-content[data-verdict='legitimate'] {
+  --flag-bg: var(--flag-safe-bg);
+  --flag-text: var(--flag-safe-text);
+}
+
 .scam-relative-container {
   position: relative;
   width: 100%;

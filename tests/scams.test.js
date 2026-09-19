@@ -117,6 +117,46 @@ describe('scam data', () => {
   });
 });
 
+describe('card placement and colour', () => {
+  it('marks a block for the card to clear on every screen with a message', () => {
+    // Without this the card drops straight under the highlighted phrase
+    // and lands on the rest of the message. The Swiggy chat lit up the
+    // shop name in line one and hid lines two and three behind it.
+    const typesWithMessages = new Set(
+      scams.filter((s) => (s.message ?? []).length > 0).map((s) => s.type),
+    );
+    for (const type of typesWithMessages) {
+      const source = readFileSync(SCREEN[type], 'utf8');
+      expect(
+        source.includes('data-flag-clear'),
+        `${SCREEN[type]} draws a message but marks no block for the ` +
+          `explanation card to clear, so the card will cover the message.`,
+      ).toBe(true);
+    }
+  });
+
+  it('colours highlights by verdict rather than always scam-red', () => {
+    // A genuine message's highlights are the reasons to trust it. Shown
+    // in alarm red they said the opposite of the card beside them.
+    const app = readFileSync('src/App.css', 'utf8');
+    expect(app).toMatch(/\.scam-content\[data-verdict='legitimate'\]/);
+    expect(readFileSync('src/ScamScreen.jsx', 'utf8')).toContain(
+      'data-verdict={scam.verdict}',
+    );
+  });
+
+  it('paints every screen from the same two colour variables', () => {
+    // The rule above only works because each screen defers to these.
+    for (const file of new Set(Object.values(SCREEN))) {
+      const css = readFileSync(file.replace(/\.jsx$/, '.css'), 'utf8');
+      if (!/-flag\.active/.test(css)) continue;
+      expect(css, `${file}'s highlight does not use var(--flag-bg)`).toMatch(
+        /var\(--flag-bg\)/,
+      );
+    }
+  });
+});
+
 describe('whatsapp link previews', () => {
   // WhatsApp draws a link as a preview card under the bubble. The site
   // and title used to be hardcoded in the screen, so a second WhatsApp

@@ -84,21 +84,26 @@ export default function UpiScam({ scam, activeFlagId }) {
         </div>
 
         {/* Amount section */}
-        {/* Both anchors below sit on the element that actually lights
-            up, so the card clears it. Pointing at the "Paying" label
-            instead put the card on top of the amount it was explaining. */}
+        {/* Marked as one block to clear: whichever line is being
+            explained, the card drops below the whole section rather
+            than landing on top of the rest of it. */}
         <div
           className={`upi-amount-section${slot.on('direction') ? ' upi-active' : ''}`}
           {...slot.anchor('direction')}
+          data-flag-clear
         >
-          <p className="upi-paying-label">Paying</p>
-          <p className="upi-amount">{scam.amount}</p>
-
-          {/* Note from sender */}
-          <div
-            className={`upi-note-chip${slot.on('amount') ? ' upi-active' : ''}`}
+          <p className={`upi-paying-label${slot.on('direction') ? ' upi-lit' : ''}`}>
+            Paying
+          </p>
+          <p
+            className={`upi-amount${slot.on('amount') ? ' upi-lit' : ''}`}
             {...slot.anchor('amount')}
           >
+            {scam.amount}
+          </p>
+
+          {/* Note from sender */}
+          <div className="upi-note-chip">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
               <path
                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"

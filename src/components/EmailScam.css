@@ -485,9 +485,3 @@
   border-radius: 6px;
 }
 
-/* Used where a message part is worth pointing out for being correct
-   rather than suspicious. */
-.gmail-flag.safe-active {
-  background: var(--flag-safe-bg);
-  color: var(--flag-safe-text);
-}

@@ -50,7 +50,7 @@ export default function WhatsAppScam({ scam, activeFlagId }) {
 
           {/* Message bubble */}
           <div className="wa-bubble-row">
-            <div className="wa-bubble">
+            <div className="wa-bubble" data-flag-clear>
               <div className="wa-bubble-text">
                 {scam.message.filter(p => p !== linkPart).map((block, i) =>
                   block.flag ? (

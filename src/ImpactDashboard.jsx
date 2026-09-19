@@ -133,6 +133,12 @@ export default function ImpactDashboard() {
           sub="Out of 100"
         />
         <Tile
+          icon={<ShieldWarning weight="duotone" />}
+          value={num(summary.scams_waved_through)}
+          label="Fakes trusted"
+          sub="Moments someone would have fallen for a real scam"
+        />
+        <Tile
           icon={<TrendUp weight="duotone" />}
           value={
             summary.avg_improvement == null
@@ -142,12 +148,6 @@ export default function ImpactDashboard() {
           label="Improvement"
           sub="Average points gained, out of 100"
           good={summary.avg_improvement > 0}
-        />
-        <Tile
-          icon={<ShieldWarning weight="duotone" />}
-          value={num(summary.scams_waved_through)}
-          label="Fakes trusted"
-          sub="Moments someone would have fallen for a real scam"
         />
       </section>
 

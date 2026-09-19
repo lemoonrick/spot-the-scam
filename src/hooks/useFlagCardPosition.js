@@ -52,14 +52,33 @@ export function useFlagCardPosition({ active, activeFlagId }) {
     return contentRef.current?.querySelector(selector) ?? null;
   }, [activeFlagId]);
 
+  /**
+   * The card drops below this, which is not always the highlight.
+   *
+   * Sitting directly under the highlighted phrase meant the card landed
+   * on the rest of the message: the Swiggy chat lit up the shop name in
+   * line one and then hid lines two and three behind the explanation.
+   * So each screen marks the block its message lives in, and the card
+   * clears the whole block. The phrase still lights up; the card just
+   * waits until the reader can see all of what it is talking about.
+   */
+  const findClearance = useCallback(() => {
+    const target = findTarget();
+    return target?.closest('[data-flag-clear]') ?? target;
+  }, [findTarget]);
+
   const place = useCallback(() => {
     const target = findTarget();
+    const clearance = findClearance();
     if (!containerRef.current || !target) return;
 
     const container = containerRef.current.getBoundingClientRect();
     const rect = target.getBoundingClientRect();
+    const below = clearance.getBoundingClientRect();
 
-    const top = rect.bottom - container.top + GAP_BELOW_TARGET;
+    // Vertically: below the whole block. Horizontally: still centred on
+    // the highlight, so the card's arrow points back at it.
+    const top = below.bottom - container.top + GAP_BELOW_TARGET;
     const left = rect.left - container.left + rect.width / 2;
     setPosition({ top, left });
 
@@ -69,7 +88,7 @@ export function useFlagCardPosition({ active, activeFlagId }) {
     const overflow =
       top + cardHeightRef.current + BREATHING_ROOM - phoneHeight;
     if (overflow > 0) setContainerPad((prev) => Math.max(prev, overflow));
-  }, [findTarget]);
+  }, [findTarget, findClearance]);
 
   /** The card reports its real height once rendered. */
   const measure = useCallback(
@@ -99,11 +118,12 @@ export function useFlagCardPosition({ active, activeFlagId }) {
     if (!active) return;
     const raf = requestAnimationFrame(() => {
       const target = findTarget();
+      const clearance = findClearance();
       if (!containerRef.current || !target) return;
 
       const container = containerRef.current.getBoundingClientRect();
-      const rect = target.getBoundingClientRect();
-      const cardTop = rect.bottom - container.top + GAP_BELOW_TARGET;
+      const cardTop =
+        clearance.getBoundingClientRect().bottom - container.top + GAP_BELOW_TARGET;
 
       const cardBottomOnPage =
         window.scrollY +
@@ -131,7 +151,7 @@ export function useFlagCardPosition({ active, activeFlagId }) {
       }
     });
     return () => cancelAnimationFrame(raf);
-  }, [containerPad, active, findTarget]);
+  }, [containerPad, active, findTarget, findClearance]);
 
   return { containerRef, contentRef, position, containerPad, measure, reset };
 }

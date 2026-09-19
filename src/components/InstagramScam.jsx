@@ -42,7 +42,7 @@ export default function InstagramScam({ scam, activeFlagId }) {
           {/* Message bubble */}
           <div className="insta-msg-row">
             <div className="insta-msg-avatar">{scam.sender.charAt(0).toUpperCase()}</div>
-            <div className="insta-bubble">
+            <div className="insta-bubble" data-flag-clear>
               {scam.message.map((part, i) =>
                 part.flag ? (
                   <span

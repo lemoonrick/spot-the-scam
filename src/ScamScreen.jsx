@@ -302,6 +302,10 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
           key={scam.id}
           className="scam-content slide-in"
           ref={contentRef}
+          // Recolours every highlight on the screen. On a genuine
+          // message the points being made are reassuring ones, and
+          // painting them scam-red told the reader the opposite.
+          data-verdict={scam.verdict}
         >
           {renderScam()}
         </div>
