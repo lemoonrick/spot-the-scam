@@ -232,7 +232,10 @@ button:active {
   content: '';
   position: absolute;
   top: -12px;
-  left: 50%;
+  /* Normally dead centre. When the card has been held back from the
+     edge of the screen, the offset slides the arrow along so it still
+     sits under the phrase. */
+  left: calc(50% + var(--arrow-offset, 0px));
   transform: translateX(-50%);
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
@@ -479,7 +482,6 @@ button:active {
   }
   .flag-card-wrap {
     width: 240px;
-    left: 50% !important;
   }
 }
 

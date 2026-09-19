@@ -84,15 +84,13 @@ export default function UpiScam({ scam, activeFlagId }) {
         </div>
 
         {/* Amount section */}
-        {/* Marked as one block to clear: whichever line is being
-            explained, the card drops below the whole section rather
-            than landing on top of the rest of it. */}
-        <div
-          className={`upi-amount-section${slot.on('direction') ? ' upi-active' : ''}`}
-          {...slot.anchor('direction')}
-          data-flag-clear
-        >
-          <p className={`upi-paying-label${slot.on('direction') ? ' upi-lit' : ''}`}>
+        <div className="upi-amount-section">
+          {/* Each line carries its own anchor so the card lands under
+              the words it is about, not under the whole block. */}
+          <p
+            className={`upi-paying-label${slot.on('direction') ? ' upi-lit' : ''}`}
+            {...slot.anchor('direction')}
+          >
             Paying
           </p>
           <p

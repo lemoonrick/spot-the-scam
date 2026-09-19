@@ -66,7 +66,7 @@ function RichEmailBody({ scam, slot }) {
 // ── Plain text email body ─────────────────────────────────────────────────────
 function PlainEmailBody({ scam, activeFlagId }) {
   return (
-    <div className="gmail-body" data-flag-clear>
+    <div className="gmail-body">
       {scam.message.map((line, i) =>
         line.flag ? (
           <span
@@ -165,7 +165,7 @@ export default function EmailScam({ scam, activeFlagId, identity }) {
             <span className="gmail-tag">Inbox</span>
           </div>
 
-          <div className="gmail-message-card" data-flag-clear>
+          <div className="gmail-message-card">
             {/* Sender row — always present */}
             <div className="gmail-sender-row">
               <div className="gmail-avatar-circle">

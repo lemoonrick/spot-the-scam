@@ -76,7 +76,7 @@ export default function PopupScam({ scam, activeFlagId }) {
               />
             </svg>
           </div>
-          <div className="popup-message" data-flag-clear>
+          <div className="popup-message">
             {scam.message.map((part, i) =>
               part.flag ? (
                 <span

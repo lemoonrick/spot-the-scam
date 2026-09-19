@@ -1,7 +1,10 @@
 import { useEffect, useRef } from 'react';
 
-// Below this the card is close enough that its arrow is clear on its own.
-const LEADER_THRESHOLD = 28;
+// The card normally sits a few pixels under the phrase, where its arrow
+// says everything. The leader line is a fallback for the day something
+// pushes the two far apart; at this distance the arrow alone would be
+// pointing at whatever sits in between.
+const LEADER_THRESHOLD = 64;
 
 export default function FlagCard({
   flag,
@@ -21,7 +24,10 @@ export default function FlagCard({
   // After the card renders, measure its real height and report it up
   useEffect(() => {
     if (wrapRef.current && onMeasure) {
-      onMeasure(wrapRef.current.offsetHeight);
+      onMeasure({
+        height: wrapRef.current.offsetHeight,
+        width: wrapRef.current.offsetWidth,
+      });
     }
   }, [flag]); // re-measure when the flag content changes (different flags have different text lengths)
 
@@ -32,14 +38,12 @@ export default function FlagCard({
     transform: 'translateX(-50%)',
     zIndex: 2000,
     '--current-theme': themeHex,
+    // Slides the arrow along the card's top edge so it stays under the
+    // phrase even when the card has been nudged away from the edge of
+    // the screen.
+    '--arrow-offset': `${coords.arrowOffset ?? 0}px`,
   };
 
-  // The card sits below the whole message so it never covers the text.
-  // When the highlighted phrase is near the top of a long message that
-  // leaves a real distance between the two, and the little arrow on the
-  // card ends up pointing at whatever happens to be above it. Past that
-  // distance, draw a line back up to the phrase so the pairing is
-  // unmistakable. Short hops keep the arrow alone, as before.
   const gap = coords.gap ?? 0;
   const showLeader = gap > LEADER_THRESHOLD;
 

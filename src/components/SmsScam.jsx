@@ -50,7 +50,7 @@ export default function SmsScam({ scam, activeFlagId }) {
           <div className="sms-thread-date">Today 2:05 PM</div>
 
           <div className="sms-bubble-row">
-            <div className="sms-bubble incoming" data-flag-clear>
+            <div className="sms-bubble incoming">
               {scam.message.map((part, i) =>
                 part.flag ? (
                   <span

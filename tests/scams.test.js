@@ -118,21 +118,19 @@ describe('scam data', () => {
 });
 
 describe('card placement and colour', () => {
-  it('marks a block for the card to clear on every screen with a message', () => {
-    // Without this the card drops straight under the highlighted phrase
-    // and lands on the rest of the message. The Swiggy chat lit up the
-    // shop name in line one and hid lines two and three behind it.
-    const typesWithMessages = new Set(
-      scams.filter((s) => (s.message ?? []).length > 0).map((s) => s.type),
-    );
-    for (const type of typesWithMessages) {
-      const source = readFileSync(SCREEN[type], 'utf8');
-      expect(
-        source.includes('data-flag-clear'),
-        `${SCREEN[type]} draws a message but marks no block for the ` +
-          `explanation card to clear, so the card will cover the message.`,
-      ).toBe(true);
-    }
+  it('puts the card under the phrase, not under the whole message', () => {
+    // The card covering the message below it is fine and always was:
+    // people read the message before they answer. What is not fine is
+    // the card drifting away from the phrase it explains, which is what
+    // clearing the whole block did — on a long email it landed past the
+    // Reply button and its arrow pointed at nothing.
+    const hook = readFileSync('src/hooks/useFlagCardPosition.js', 'utf8');
+    expect(hook).toMatch(/rect\.bottom - container\.top \+ GAP_BELOW_TARGET/);
+    expect(
+      hook.includes('data-flag-clear'),
+      'the card should sit under the highlight itself, not under a ' +
+        'block that clears the message',
+    ).toBe(false);
   });
 
   it('colours highlights by verdict rather than always scam-red', () => {
@@ -145,21 +143,23 @@ describe('card placement and colour', () => {
     );
   });
 
-  it('draws a leader line when the card cannot sit beside the phrase', () => {
-    // Clearing the message block means that when the highlight is the
-    // first line of a long email, the card lands a long way below it and
-    // its little arrow points at whatever happens to be in between. The
-    // card measures that distance and draws a line back to the phrase.
+  it('keeps the arrow under the phrase when the card is held back', () => {
+    // A phrase near the edge of the screen would otherwise drag the card
+    // half out of view. The card stops at the edge instead and slides
+    // its arrow along the top to stay under the phrase.
     const hook = readFileSync('src/hooks/useFlagCardPosition.js', 'utf8');
-    expect(hook, 'the hook must report how far the card sits from the ' +
-      'highlight, or the card cannot know to draw the line').toMatch(/gap/);
+    expect(hook).toContain('arrowOffset');
 
     const card = readFileSync('src/components/FlagCard.jsx', 'utf8');
-    expect(card).toContain('flag-leader');
-    expect(card).toContain('coords.gap');
+    expect(card).toContain('--arrow-offset');
 
     const css = readFileSync('src/App.css', 'utf8');
-    expect(css).toMatch(/\.flag-leader\b/);
+    expect(css).toMatch(/left: calc\(50% \+ var\(--arrow-offset/);
+    expect(
+      /left: 50% !important/.test(css),
+      'the small-screen rule used to centre the card regardless of the ' +
+        'phrase, which put the arrow nowhere near it',
+    ).toBe(false);
   });
 
   it('paints every screen from the same two colour variables', () => {

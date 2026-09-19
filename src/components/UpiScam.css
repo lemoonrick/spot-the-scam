@@ -137,10 +137,6 @@
   border-radius: 4px;
   transition: background 0.2s ease;
 }
-.upi-amount-section.upi-active {
-  background: rgba(239, 68, 68, 0.1);
-  outline: 1.5px solid rgba(239, 68, 68, 0.25);
-}
 
 .upi-paying-label {
   font-size: 12px;
