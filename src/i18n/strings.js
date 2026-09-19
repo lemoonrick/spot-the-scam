@@ -1,0 +1,100 @@
+// UI wording, in English and Marathi. Scam content itself lives in
+// scams.js and is translated there, through localizeScam.
+//
+// t() falls back to English for any key with no Marathi, so a partly
+// translated table is safe: a Marathi reader sees Marathi where it
+// exists and English where it does not, never a broken key.
+//
+// WHAT STILL NEEDS A MARATHI SPEAKER
+// These keys came from the Maharashtra Gramin Bank build and were
+// written by someone who speaks the language. Screens added since then
+// are English-only and are listed in UNTRANSLATED at the bottom.
+// Nothing here is machine-translated: for an audience being taught to
+// spot fraud, awkward or wrong wording costs trust, so the gaps are
+// left visible rather than guessed at.
+
+export const strings = {
+  en: {
+    'start.headlineMain': 'Spot the Scam.',
+    'start.headlineSub': 'Before it spots you.',
+    'start.body': 'Real examples — fake SMS and WhatsApp messages. Learn to spot the tricks before someone uses them on you.',
+    'start.pillTime': 'About 3 minutes',
+    'start.pillNoSignup': 'No sign-up',
+    'start.cta': 'Start',
+    'start.ctaHint': 'Free · Works on mobile · No account needed',
+    'start.footerHelp': 'Cheated online? Call the fraud helpline 1930.',
+    'start.pillFree': 'Free',
+    'scam.correct': 'Correct!',
+    'scam.incorrect': 'Not quite.',
+    'scam.verdictPhishing': 'Phishing',
+    'scam.verdictLegit': 'Legitimate',
+    'scam.showMe': 'Show me →',
+    'flag.seeScore': 'See My Score',
+    'flag.nextExample': 'Next Example →',
+    'flag.next': 'Next →',
+    'an.yourResults': 'Your Results',
+    'an.tally': '{correct} correct out of {total}',
+    'an.tryAgain': 'Try Again',
+    'an.breakdownTitle': 'Question Breakdown',
+    'an.youSaid': 'You said:',
+    'an.correctMark': 'Correct',
+    'an.wrongWas': 'Wrong. It was {verdict}',
+    'an.feedbackHigh': 'Hard to fool. Great instincts!',
+    'an.feedbackMid': 'Good — but stay sharp.',
+    'type.sms': 'SMS',
+    'type.whatsapp': 'WhatsApp',
+    'type.email': 'Email',
+    'type.instagram': 'Instagram',
+    'type.popup': 'Browser Popup',
+    'type.upi': 'UPI / GPay',
+    'an.feedbackLow': 'You are reacting too fast. Be careful.',
+  },
+
+  mr: {
+    'start.headlineMain': 'फसवणूक ओळखा.',
+    'start.headlineSub': 'सावध तोच सुरक्षित!',
+    'start.body': 'खरेखुरे मेसेज बघा, त्यातली चलाखी ओळखा — आणि पुढच्या वेळी बिनधास्त "नाही" म्हणा.',
+    'start.pillTime': 'फक्त ३ मिनिटं',
+    'start.pillNoSignup': 'लॉगिन नको',
+    'start.cta': 'सुरू करा',
+    'start.ctaHint': 'फुकट · मोबाईलवर चालतं · खातं-बितं काही नको',
+    'start.footerHelp': 'ऑनलाइन फसवणूक झाली? लगेच 1930 वर फोन करा.',
+    'start.pillFree': 'मोफत',
+    'scam.correct': 'अगदी बरोबर!',
+    'scam.incorrect': 'अरेरे, चुकलं!',
+    'scam.verdictPhishing': 'फसवणूक',
+    'scam.verdictLegit': 'खरे',
+    'scam.showMe': 'दाखवा',
+    'flag.seeScore': 'माझा स्कोअर बघा',
+    'flag.nextExample': 'पुढचं उदाहरण',
+    'flag.next': 'पुढे',
+    'an.yourResults': 'तुमचा निकाल',
+    'an.tally': '{total} पैकी {correct} बरोबर',
+    'an.tryAgain': 'पुन्हा खेळा',
+    'an.breakdownTitle': 'एकेक प्रश्न बघा',
+    'an.youSaid': 'तुम्ही म्हणालात:',
+    'an.correctMark': 'बरोबर',
+    'an.wrongWas': 'चूक. ते खरं तर {verdict} होतं',
+    'an.feedbackHigh': 'तुम्हाला फसवणं अवघड! एकदम हुशार.',
+    'an.feedbackMid': 'छान चाललंय — पण गाफील राहू नका.',
+    'type.sms': 'एसएमएस',
+    'type.whatsapp': 'व्हॉट्सॲप',
+    'type.email': 'ईमेल',
+    'type.instagram': 'इन्स्टाग्राम',
+    'type.popup': 'पॉपअप',
+    'type.upi': 'यूपीआय',
+    'an.feedbackLow': 'जरा घाई होतेय. निवांत विचार करा.',
+  },
+};
+
+/**
+ * Screens with no Marathi yet. Hand this list to a translator, add the
+ * keys to both tables above, and the UI picks them up with no code
+ * change.
+ */
+export const UNTRANSLATED = [
+  'The name screen (asking for a first name)',
+  'The halfway checkpoint between the two rounds',
+  'The rebuilt results screen (before/after panel, share card)',
+  'The public dashboard at /impact',
+];

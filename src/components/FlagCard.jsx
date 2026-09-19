@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useLocale } from '../i18n/LocaleContext';
 
 export default function FlagCard({
   flag,
@@ -11,6 +12,7 @@ export default function FlagCard({
   verdict,
   onMeasure, // callback(cardHeight) called after mount so ScamScreen can scroll accurately
 }) {
+  const { t } = useLocale();
   const isLegit = verdict === 'legitimate';
   const themeHex = isLegit ? '#22c55e' : '#ef4444';
   const wrapRef = useRef(null);
@@ -63,9 +65,9 @@ export default function FlagCard({
         <button className="flag-next-btn" onClick={onNext}>
           {isLastFlag
             ? isLastScam
-              ? 'See My Score'
-              : 'Next Example →'
-            : 'Next →'}
+              ? t('flag.seeScore')
+              : t('flag.nextExample')
+            : t('flag.next')}
         </button>
       </div>
     </div>

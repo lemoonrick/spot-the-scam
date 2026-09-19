@@ -11,13 +11,26 @@ import PopupScam from './components/PopupScam';
 import UpiScam from './components/UpiScam';
 import FlagCard from './components/FlagCard';
 import { useFlagCardPosition } from './hooks/useFlagCardPosition';
+import { useLocale } from './i18n/LocaleContext';
+import { localizeScam } from './i18n/localizeScam';
+import ReadAloudButton from './i18n/ReadAloudButton';
 
 export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
+  const { locale, t } = useLocale();
+
   // The player's name is woven into the message text here, so every
   // simulated scam addresses them the way a real one would.
-  const scams = useMemo(
+  //
+  // The order is fixed once and does not re-shuffle when the language
+  // changes; localizeScam resolves each translatable field for the
+  // chosen language, and passes anything monolingual straight through.
+  const baseScams = useMemo(
     () => buildMatchedRounds(allScams).map((s) => personalizeScam(s, identity)),
     [identity],
+  );
+  const scams = useMemo(
+    () => baseScams.map((s) => localizeScam(s, locale)),
+    [baseScams, locale],
   );
 
   const [scamIndex, setScamIndex] = useState(0);
@@ -81,6 +94,13 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
       />
     );
   }
+
+  // The message as one run of text, for the read-aloud button.
+  const spokenMessage = [scam.guideText, ...(scam.message ?? []).map((m) => m.text)]
+    .filter(Boolean)
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
   const currentFlag = phase === 'revealing' ? scam.flags[flagIndex] : null;
   const isLastFlag = flagIndex === scam.flags.length - 1;
@@ -241,7 +261,9 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
           className={`verdict-header ${userVerdict === scam.verdict ? 'correct' : 'incorrect'}`}
         >
           <span className="verdict-header-label">
-            {userVerdict === scam.verdict ? '✓ Correct!' : '✗ Not quite.'}
+            {userVerdict === scam.verdict
+              ? `✓ ${t('scam.correct')}`
+              : `✗ ${t('scam.incorrect')}`}
           </span>
           <span className="verdict-header-short">{scam.explanation.short}</span>
         </div>
@@ -250,18 +272,21 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
       {phase === 'idle' && (
         <div className="verdict-section">
           {scam.guideText && <p className="guide-text">{scam.guideText}</p>}
+          {/* The whole point of the app is that people read a message
+              closely. Someone who cannot read it needs to hear it. */}
+          <ReadAloudButton text={spokenMessage} />
           <div className="verdict-buttons">
             <button
               className="verdict-btn"
               onClick={() => handleVerdictPick('phishing')}
             >
-              Phishing
+              {t('scam.verdictPhishing')}
             </button>
             <button
               className="verdict-btn"
               onClick={() => handleVerdictPick('legitimate')}
             >
-              Legitimate
+              {t('scam.verdictLegit')}
             </button>
           </div>
         </div>
@@ -270,7 +295,7 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
       {phase === 'verdict-chosen' && (
         <div className="verdict-section">
           <button className="show-btn show-btn-pulse" onClick={handleShowMe}>
-            Show me →
+            {t('scam.showMe')}
           </button>
         </div>
       )}

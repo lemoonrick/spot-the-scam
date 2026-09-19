@@ -4,6 +4,8 @@ import StartScreen from './StartScreen';
 import NameScreen from './NameScreen';
 import ScamScreen from './ScamScreen';
 import { EMPTY_IDENTITY, makeIdentity } from './identity';
+import { LocaleProvider } from './i18n/LocaleContext';
+import LanguageToggle from './i18n/LanguageToggle';
 
 // Loaded on demand. The dashboard and its icon set are a separate
 // destination from the quiz, and people on slow connections should not
@@ -28,6 +30,9 @@ function isImpactPath() {
 }
 
 export default function App() {
+  // The dashboard is for whoever is reading the figures, not for the
+  // people taking the quiz, so it stays in English and outside the
+  // provider.
   if (isImpactPath()) {
     return (
       <Suspense fallback={<div className="im-boot" />}>
@@ -35,7 +40,12 @@ export default function App() {
       </Suspense>
     );
   }
-  return <Quiz />;
+  return (
+    <LocaleProvider>
+      <LanguageToggle />
+      <Quiz />
+    </LocaleProvider>
+  );
 }
 
 function Quiz() {

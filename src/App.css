@@ -247,6 +247,8 @@ button:active {
   display: flex;
   align-items: center;
   gap: 12px;
+  /* Clear of the fixed language toggle in the top-right corner. */
+  margin-top: 46px;
 }
 
 .scam-progress-track {
@@ -603,4 +605,43 @@ button:active {
   .ht-btn {
     transition: none;
   }
+}
+
+/* ── Read aloud ──────────────────────────────────────────────
+   For anyone who cannot comfortably read the message on screen. */
+.read-aloud-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 auto 14px;
+  padding: 9px 18px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  background: #fff;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.read-aloud-btn:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.read-aloud-btn.speaking {
+  color: var(--green-dark);
+  border-color: var(--correct-border);
+  background: var(--correct-bg);
+}
+
+.read-aloud-btn:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.read-aloud-icon {
+  display: inline-flex;
 }

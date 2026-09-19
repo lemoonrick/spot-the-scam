@@ -333,9 +333,10 @@ export default function ImpactDashboard() {
           Each finished quiz saves one anonymous record: the scores, how long
           each answer took, which messages were misread, whether it was played
           on a phone or a computer, and the browser language. No name, email
-          or account is stored, and nothing at all is saved onto anyone's
-          device. That last point means a person who plays twice counts as two
-          plays, which is why this page says plays rather than people.
+          or account is stored. The only thing kept on anyone's device is which
+          language they chose, and nothing that identifies a person is saved
+          there. That means someone who plays twice counts as two plays, which
+          is why this page says plays rather than people.
           Results are scored on our server rather than in the browser, so the
           figures here cannot be inflated by anyone submitting made-up scores.
           Your address is used only to stop that abuse, as a scrambled
