@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
-
 /* ============================================================
    DESIGN TOKENS
    ============================================================ */
@@ -36,6 +34,13 @@
 
   --radius-pill: 999px;
   --radius-card: 16px;
+
+  /* Flagged text inside a simulated message. */
+  --flag-bg: var(--red-soft);
+  --flag-text: #991b1b;
+  --flag-safe-bg: rgba(59, 130, 246, 0.1);
+  --flag-safe-text: #1e40af;
+  --flag-ease: background 0.22s ease, color 0.22s ease;
 }
 
 /* ============================================================
@@ -326,45 +331,11 @@ button:active {
   font-weight: 500;
 }
 
-/* ── Flag active states ── */
-.sms-flag,
-.wa-flag,
-.insta-flag,
-.popup-flag,
-.gmail-flag,
-.rich-flag,
-.flag {
-  border-radius: 4px;
-  transition:
-    background 0.22s ease,
-    color 0.22s ease;
-}
-
-.sms-flag.active,
-.wa-flag.active,
-.insta-flag.active,
-.popup-flag.active,
-.gmail-flag.active,
-.rich-flag.active,
-.flag.active {
-  background: var(--red-soft);
-  color: #991b1b;
-  border-radius: 3px;
-}
-
-.gmail-sender-addr.active {
-  background: var(--red-soft);
-  color: #991b1b;
-  font-weight: 600;
-  border-radius: 3px;
-}
-
-.gmail-flag.safe-active,
-.flag.safe-active {
-  background: rgba(59, 130, 246, 0.1);
-  color: #1e40af;
-  border-radius: 3px;
-}
+/* Each screen styles its own highlight, in its own stylesheet, using
+   the --flag-* tokens above. This file used to carry one rule listing
+   every platform, so adding a screen meant remembering to edit a file
+   you were not otherwise touching, and the dark UPI screen needed three
+   rules whose only job was to cancel a highlight it never wanted. */
 
 /* confetti canvas (triggered from ResultsScreen) */
 .confetti-canvas {

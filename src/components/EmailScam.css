@@ -450,3 +450,31 @@
   height: 24px;
   flex-shrink: 0;
 }
+
+/* Highlights for this screen: the plain body, the rich layout, and the
+   sender address in the header. */
+.gmail-flag,
+.rich-flag {
+  border-radius: 3px;
+  transition: var(--flag-ease);
+}
+
+.gmail-flag.active,
+.rich-flag.active {
+  background: var(--flag-bg);
+  color: var(--flag-text);
+}
+
+.gmail-sender-addr.active {
+  background: var(--flag-bg);
+  color: var(--flag-text);
+  font-weight: 600;
+  border-radius: 3px;
+}
+
+/* Used where a message part is worth pointing out for being correct
+   rather than suspicious. */
+.gmail-flag.safe-active {
+  background: var(--flag-safe-bg);
+  color: var(--flag-safe-text);
+}

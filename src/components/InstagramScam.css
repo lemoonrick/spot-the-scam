@@ -222,3 +222,14 @@
 @media (max-width: 440px) {
   .insta-phone { border-radius: 24px; }
 }
+
+/* Highlight for a flagged phrase in this screen. */
+.insta-flag {
+  border-radius: 3px;
+  transition: var(--flag-ease);
+}
+
+.insta-flag.active {
+  background: var(--flag-bg);
+  color: var(--flag-text);
+}

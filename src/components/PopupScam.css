@@ -264,3 +264,14 @@
     font-size: 13px;
   }
 }
+
+/* Highlight for a flagged phrase in this screen. */
+.popup-flag {
+  border-radius: 3px;
+  transition: var(--flag-ease);
+}
+
+.popup-flag.active {
+  background: var(--flag-bg);
+  color: var(--flag-text);
+}

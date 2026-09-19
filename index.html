@@ -11,6 +11,16 @@
     />
 
     <link rel="icon" type="image/svg+xml" href="%BASE_URL%site-icon.svg" />
+
+    <!-- Loaded here rather than with @import in CSS, which blocked
+         rendering until the Google stylesheet arrived. preconnect opens
+         the connection early, which matters most on a slow phone. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+    />
     <meta name="theme-color" content="#0f172a" />
 
     <!--

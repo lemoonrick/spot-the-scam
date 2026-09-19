@@ -210,3 +210,14 @@
 @media (max-width: 440px) {
   .wa-phone { border-radius: 16px; }
 }
+
+/* Highlight for a flagged phrase in this screen. */
+.wa-flag {
+  border-radius: 3px;
+  transition: var(--flag-ease);
+}
+
+.wa-flag.active {
+  background: var(--flag-bg);
+  color: var(--flag-text);
+}

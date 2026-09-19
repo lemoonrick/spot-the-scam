@@ -86,3 +86,36 @@ describe('scam data', () => {
     expect(scams.length % 2, 'an odd number of scams cannot split evenly').toBe(0);
   });
 });
+
+describe('highlight styles', () => {
+  // Each screen owns its own highlight rule now. Moving them out of the
+  // shared stylesheet is easy to get half-right: a screen keeps applying
+  // a class that no longer has a rule, and the flagged phrase silently
+  // stops lighting up.
+  const FLAG_CLASSES = {
+    'src/components/SmsScam.css': ['sms-flag'],
+    'src/components/WhatsAppScam.css': ['wa-flag'],
+    'src/components/InstagramScam.css': ['insta-flag'],
+    'src/components/PopupScam.css': ['popup-flag'],
+    'src/components/EmailScam.css': ['gmail-flag', 'rich-flag'],
+  };
+
+  it('gives every flag class an active rule in its own stylesheet', () => {
+    for (const [file, classes] of Object.entries(FLAG_CLASSES)) {
+      const css = readFileSync(file, 'utf8');
+      for (const cls of classes) {
+        expect(css, `${file} has no .${cls}.active rule`).toMatch(
+          new RegExp(`\\.${cls}\\.active`),
+        );
+      }
+    }
+  });
+
+  it('leaves no dangling selector list in the shared stylesheet', () => {
+    // A selector list ending in a comma before a comment merges into
+    // whatever rule follows. That once turned every flagged phrase into
+    // a full-screen fixed overlay.
+    const css = readFileSync('src/App.css', 'utf8');
+    expect(css).not.toMatch(/,\s*\n\s*\/\*/);
+  });
+});

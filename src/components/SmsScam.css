@@ -199,3 +199,14 @@
     border-radius: 28px;
   }
 }
+
+/* Highlight for a flagged phrase in this screen. */
+.sms-flag {
+  border-radius: 3px;
+  transition: var(--flag-ease);
+}
+
+.sms-flag.active {
+  background: var(--flag-bg);
+  color: var(--flag-text);
+}
