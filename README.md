@@ -43,7 +43,7 @@ When you click "Show me →", the app highlights the exact suspicious element in
 
 The 10 scam examples (a mix of phishing and legitimate messages) are shuffled on every session using a Fisher-Yates shuffle, so repeat users don't memorize answer patterns.
 
-### Analytics Screen
+### Results Screen
 
 After all 10 questions, you get a score breakdown with:
 
@@ -69,15 +69,21 @@ A live progress bar at the top of the quiz tracks where you are in the 10 questi
 
 | Layer     | Tech                                                                           |
 | --------- | ------------------------------------------------------------------------------ |
-| Framework | React 18 (Vite)                                                                |
+| Framework | React 19 (Vite)                                                                |
 | Styling   | Plain CSS with custom properties (no UI library)                               |
 | State     | React hooks only (`useState`, `useEffect`, `useRef`, `useCallback`, `useMemo`) |
-| Routing   | None. single-page state machine                                                |
-| Data      | Static JS module (`scams.js`)                                                  |
+| Routing   | Path check for `/impact`; the quiz is a state machine                                                |
+| Data      | Static JS module (`scams.js`); results in Supabase                                                  |
 | Fonts     | Poppins via Google Fonts                                                       |
 | Build     | Vite                                                                           |
 
-No backend. No database. No auth. Fully static deployable to GitHub Pages, Netlify, Vercel, or any CDN.
+The quiz itself is fully static and deployable to any host. Results are
+sent to a Supabase Edge Function, which scores them and stores them
+anonymously; the app works perfectly with none of that configured.
+
+See `DEPLOY.md` for hosting, `supabase/functions/README.md` for the
+result-collection setup, and `tests/README.md` for what the tests
+cover.
 
 ---
 
@@ -89,7 +95,11 @@ src/
 ├── App.css                  # Global tokens, animations, ScamScreen styles, flag active states
 ├── scams.js                 # All 10 scam definitions (message data + flags + articles)
 ├── ScamScreen.jsx           # Core quiz logic. phase state machine, FlagCard positioning
-├── AnalyticsScreen.jsx      # Results screen with SVG ring chart
+├── ResultsScreen.jsx        # Results screen with SVG ring chart
+├── ImpactDashboard.jsx      # Public figures at /impact
+├── NameScreen.jsx           # Optional first name, used inside the scams
+├── session.js               # Before/after measurement
+├── identity.js              # Name handling, never stored
 └── components/
     ├── FlagCard.jsx         # Floating explanation card
     ├── SmsScam.jsx          # SMS UI
@@ -111,7 +121,7 @@ idle → verdict-chosen → revealing → [next scam or analytics]
 - `idle` — Scam is displayed, Phishing/Legitimate buttons are visible
 - `verdict-chosen` — User has picked, "Show me →" button appears
 - `revealing` — FlagCard is shown, flags step through one by one
-- After the last flag of the last scam → `AnalyticsScreen`
+- After the last flag of the last scam → `ResultsScreen`
 
 ### How FlagCard positioning works
 
@@ -155,7 +165,7 @@ It's also built to be embeddable in digital literacy workshops, school curricula
 ## Running locally
 
 ```bash
-git clone https://github.com/your-username/spot-the-scam.git
+git clone https://github.com/lemoonrick/spot-the-scam.git
 cd spot-the-scam
 npm install
 npm run dev

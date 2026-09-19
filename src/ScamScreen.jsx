@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { scams as allScams } from './scams';
 import { buildMatchedRounds, roundFor } from './session';
 import { EMPTY_IDENTITY, personalizeScam } from './identity';
@@ -10,6 +10,7 @@ import InstagramScam from './components/InstagramScam';
 import PopupScam from './components/PopupScam';
 import UpiScam from './components/UpiScam';
 import FlagCard from './components/FlagCard';
+import { useFlagCardPosition } from './hooks/useFlagCardPosition';
 
 export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
   // The player's name is woven into the message text here, so every
@@ -24,27 +25,38 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
   const [userVerdict, setUserVerdict] = useState(null);
   const [phase, setPhase] = useState('idle');
   const [flagIndex, setFlagIndex] = useState(0);
-  const [cardPosition, setCardPosition] = useState({ top: 0, left: 0 });
-  const [containerPad, setContainerPad] = useState(0);
   const [showHalftime, setShowHalftime] = useState(false);
 
-  const containerRef = useRef(null);
-  const scamContentRef = useRef(null);
-  const cardHeightRef = useRef(260);
   const questionShownAtRef = useRef(0);
   const responseMsRef = useRef(0);
+
+  const {
+    containerRef,
+    contentRef,
+    position: cardPosition,
+    containerPad,
+    measure: measureCard,
+    reset: resetCard,
+  } = useFlagCardPosition({ active: phase === 'revealing' });
 
   const scam = scams[scamIndex];
   const isLastScam = scamIndex === scams.length - 1;
 
-  const goToNextScam = () => {
+  /**
+   * Everything that has to go back to a clean slate between questions.
+   * This used to be written out twice, once here and once in the Try
+   * Again handler, and the two had already drifted apart.
+   */
+  const resetForNextQuestion = () => {
     window.scrollTo({ top: 0, behavior: 'instant' });
     setUserVerdict(null);
     setPhase('idle');
     setFlagIndex(0);
-    setCardPosition({ top: 0, left: 0 });
-    setContainerPad(0);
-    cardHeightRef.current = 260;
+    resetCard();
+  };
+
+  const goToNextScam = () => {
+    resetForNextQuestion();
     setScamIndex((prev) => prev + 1);
   };
 
@@ -54,80 +66,6 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
       questionShownAtRef.current = Date.now();
   }, [scamIndex, phase, showHalftime]);
 
-  const positionAndScroll = useCallback(() => {
-    if (!containerRef.current) return;
-    const activeEl = containerRef.current.querySelector(
-      '.active, .safe-active, .upi-active',
-    );
-    if (!activeEl) return;
-
-    const containerRect = containerRef.current.getBoundingClientRect();
-    const activeRect = activeEl.getBoundingClientRect();
-    const cardHeight = cardHeightRef.current;
-    const PADDING = 48;
-
-    const cardTop = activeRect.bottom - containerRect.top + 12;
-    const cardLeft =
-      activeRect.left - containerRect.left + activeRect.width / 2;
-
-    setCardPosition({ top: cardTop, left: cardLeft });
-
-    // Only pad by how much the FlagCard bottom exceeds the phone's natural height.
-    const phoneHeight = scamContentRef.current
-      ? scamContentRef.current.scrollHeight
-      : 0;
-    const overflow = cardTop + cardHeight + PADDING - phoneHeight;
-    if (overflow > 0) {
-      setContainerPad((prev) => Math.max(prev, overflow));
-    }
-    // Scroll happens in a separate useEffect once containerPad has actually been applied.
-  }, []);
-
-  const handleCardMeasure = useCallback(
-    (height) => {
-      cardHeightRef.current = height;
-      positionAndScroll();
-    },
-    [positionAndScroll],
-  );
-
-  useEffect(() => {
-    if (phase !== 'revealing') return;
-    const raf = requestAnimationFrame(() => positionAndScroll());
-    return () => cancelAnimationFrame(raf);
-  }, [phase, flagIndex, scamIndex, positionAndScroll]);
-
-  // Scroll AFTER containerPad has been applied to the DOM so the card is fully in view.
-  useEffect(() => {
-    if (phase !== 'revealing' || !containerRef.current) return;
-    const raf = requestAnimationFrame(() => {
-      const activeEl = containerRef.current.querySelector(
-        '.active, .safe-active, .upi-active',
-      );
-      if (!activeEl) return;
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const cardHeight = cardHeightRef.current;
-      const PADDING = 48;
-      const cardTop =
-        activeEl.getBoundingClientRect().bottom - containerRect.top + 12;
-      const cardBottomOnPage =
-        window.scrollY + containerRect.top + cardTop + cardHeight + PADDING;
-      const currentViewportBottom = window.scrollY + window.innerHeight;
-      if (cardBottomOnPage > currentViewportBottom) {
-        window.scrollTo({
-          top: cardBottomOnPage - window.innerHeight,
-          behavior: 'smooth',
-        });
-      }
-      if (activeEl.getBoundingClientRect().top < 80) {
-        window.scrollTo({
-          top: window.scrollY + activeEl.getBoundingClientRect().top - 80,
-          behavior: 'smooth',
-        });
-      }
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [containerPad, phase]);
 
   if (scamIndex >= scams.length) {
     return (
@@ -135,16 +73,10 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
         results={results}
         identity={identity}
         onRestart={() => {
-          window.scrollTo({ top: 0, behavior: 'instant' });
+          resetForNextQuestion();
           setResults([]);
           setScamIndex(0);
-          setUserVerdict(null);
-          setPhase('idle');
-          setFlagIndex(0);
-          setCardPosition({ top: 0, left: 0 });
-          setContainerPad(0);
           setShowHalftime(false);
-          cardHeightRef.current = 260;
         }}
       />
     );
@@ -347,13 +279,15 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
         className="scam-relative-container"
         ref={containerRef}
         style={
-          containerPad > 0 ? { paddingBottom: `${containerPad}px` } : undefined
+          containerPad > 0
+            ? { paddingBottom: `${containerPad}px` }
+            : undefined
         }
       >
         <div
           key={scam.id}
           className="scam-content slide-in"
-          ref={scamContentRef}
+          ref={contentRef}
         >
           {renderScam()}
         </div>
@@ -368,7 +302,7 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
             onNext={handleNextFlag}
             coords={cardPosition}
             verdict={scam.verdict}
-            onMeasure={handleCardMeasure}
+            onMeasure={measureCard}
           />
         )}
       </div>
