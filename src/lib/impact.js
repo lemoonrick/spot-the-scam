@@ -1,6 +1,17 @@
 import { isConfigured, restSelect } from './supabase';
 
 /**
+ * How long a visitor may see slightly stale figures.
+ *
+ * Every visit used to fire seven requests. That is fine for a handful
+ * of people and wasteful the moment the page is shared, which is the
+ * whole point of it. The numbers move slowly, so a minute of staleness
+ * costs nothing.
+ */
+const CACHE_MS = 60 * 1000;
+let cache = null;
+
+/**
  * Below this many sessions an average is noise, not a finding. The
  * dashboard still shows the numbers, but says plainly that they are
  * provisional. Publishing a confident "+34 points" off six runs would
@@ -27,8 +38,10 @@ const EMPTY_SUMMARY = {
 };
 
 /** Fetch every view in parallel. One failure fails the page, not silently. */
-export async function loadImpact() {
+export async function loadImpact({ force = false } = {}) {
   if (!isConfigured) throw new Error('No database configured');
+
+  if (!force && cache && Date.now() - cache.at < CACHE_MS) return cache.data;
 
   const [summary, byType, personalisation, daily, bands, byScam, errors] =
     await Promise.all([
@@ -46,7 +59,7 @@ export async function loadImpact() {
       restSelect('impact_error_types').catch(() => []),
     ]);
 
-  return {
+  const data = {
     summary: { ...EMPTY_SUMMARY, ...(summary[0] || {}) },
     byType: byType || [],
     personalisation: personalisation || [],
@@ -55,4 +68,7 @@ export async function loadImpact() {
     byScam: byScam || [],
     errors: errors[0] || null,
   };
+
+  cache = { at: Date.now(), data };
+  return data;
 }

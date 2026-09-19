@@ -336,6 +336,23 @@
   padding-bottom: 58px;
 }
 
+.im-ba-summary {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 15px;
+  color: var(--ink-2);
+}
+
+.im-ba-summary strong {
+  font-weight: 700;
+  color: var(--gain);
+}
+
+.im-ba-caveat {
+  margin: 10px auto 0;
+  text-align: center;
+}
+
 /* ── Horizontal bars ── */
 .im-bars {
   list-style: none;
@@ -661,7 +678,7 @@
 .im-facts {
   margin-top: 20px;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 16px;
 }
 

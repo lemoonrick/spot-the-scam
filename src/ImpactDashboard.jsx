@@ -140,14 +140,14 @@ export default function ImpactDashboard() {
               : `${summary.avg_improvement > 0 ? '+' : ''}${summary.avg_improvement}`
           }
           label="Improvement"
-          sub="Points gained, first half to second"
+          sub="Average points gained, out of 100"
           good={summary.avg_improvement > 0}
         />
         <Tile
-          icon={<ArrowUp weight="duotone" />}
-          value={summary.improved_pct == null ? '—' : `${summary.improved_pct}%`}
-          label="Did better in the second half"
-          sub={`${num(summary.improved_count)} of ${plural(n, 'play', 'plays')}`}
+          icon={<ShieldWarning weight="duotone" />}
+          value={num(summary.scams_waved_through)}
+          label="Fakes trusted"
+          sub="Moments someone would have fallen for a real scam"
         />
       </section>
 
@@ -172,6 +172,20 @@ export default function ImpactDashboard() {
             variant={summary.avg_trained > summary.avg_baseline ? 'up' : 'flat'}
           />
         </div>
+
+        {summary.improved_pct != null && (
+          <p className="im-ba-summary">
+            <strong>{summary.improved_pct}%</strong> scored better in the
+            second half, that is {num(summary.improved_count)} of{' '}
+            {plural(n, 'play', 'plays')}.
+          </p>
+        )}
+
+        <p className="im-note im-ba-caveat">
+          Each half is five messages, so one person's score can only move in
+          steps of twenty. Across many plays that averages out, but a single
+          result is a rough measure.
+        </p>
       </Card>
 
       {/* ── The question this page exists to answer ── */}
@@ -306,10 +320,6 @@ export default function ImpactDashboard() {
           <Fact
             value={secs(summary.avg_later_decision_ms)}
             label="Thinking time on the last five"
-          />
-          <Fact
-            value={num(summary.scams_waved_through)}
-            label="Times a fake was trusted"
           />
           <Fact
             value={`${Math.round((summary.mobile_sessions / n) * 100)}%`}
