@@ -2,9 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { scams as allScams } from './scams';
 import { buildSessionSummary } from './session';
 import { saveSession } from './lib/saveSession';
+import { htmlToText } from './lib/htmlToText';
 import ImpactPanel from './components/ImpactPanel';
 import ShareCard from './components/ShareCard';
-import './AnalyticsScreen.css';
+import './ResultsScreen.css';
 
 // The address printed on the shared card. Falls back to wherever the
 // app is actually running, so a move to new hosting needs no code change.
@@ -93,7 +94,7 @@ function triggerConfetti(color) {
   setTimeout(() => canvas.remove(), 4000);
 }
 
-export default function AnalyticsScreen({ results, onRestart, identity }) {
+export default function ResultsScreen({ results, onRestart, identity }) {
   // One anonymous record per run — the same shape Phase 2 will store.
   const summary = useMemo(
     () => buildSessionSummary(results, { personalised: !!identity?.personalised }),
@@ -104,6 +105,7 @@ export default function AnalyticsScreen({ results, onRestart, identity }) {
   const [displayScore, setDisplayScore] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [posts, setPosts] = useState([]);
+  const [postsFailed, setPostsFailed] = useState(false);
   const [filter, setFilter] = useState('all');
   const savedRef = useRef(false);
 
@@ -122,35 +124,54 @@ export default function AnalyticsScreen({ results, onRestart, identity }) {
   const feedback = getFeedback(score);
 
   useEffect(() => {
-    const delay = setTimeout(() => {
-      let current = 0;
-      const step = setInterval(() => {
-        current += 1;
-        if (current >= score) {
-          current = score;
-          clearInterval(step);
-        }
-        setDisplayScore(current);
-      }, 18);
-      return () => clearInterval(step);
-    }, 400);
+    // Every handle is collected so the cleanup can clear all of them.
+    // The count-up interval used to be cleared by a function returned
+    // from inside setTimeout, which React never sees, so it kept ticking
+    // after Try Again and the confetti fired twice in development.
+    const timers = [];
 
-    if (score >= 80)
-      setTimeout(() => triggerConfetti(getScoreColor(score)), 600);
-    setTimeout(() => setRevealed(true), 300);
+    timers.push(
+      setTimeout(() => {
+        let current = 0;
+        const step = setInterval(() => {
+          current += 1;
+          if (current >= score) {
+            current = score;
+            clearInterval(step);
+          }
+          setDisplayScore(current);
+        }, 18);
+        timers.push(step);
+      }, 400),
+    );
 
-    return () => clearTimeout(delay);
+    if (score >= 80) {
+      timers.push(
+        setTimeout(() => triggerConfetti(getScoreColor(score)), 600),
+      );
+    }
+    timers.push(setTimeout(() => setRevealed(true), 300));
+
+    return () => timers.forEach(clearTimeout);
   }, [score]);
 
-  // Fetch blog posts for the bottom section
+  // Reading suggestions for the bottom of the page.
   useEffect(() => {
-    fetch('https://myfactree.org/wp-json/wp/v2/posts?_embed&per_page=3')
+    const abort = new AbortController();
+    fetch('https://myfactree.org/wp-json/wp/v2/posts?_embed&per_page=3', {
+      signal: abort.signal,
+    })
       .then((r) => {
-        if (!r.ok) throw new Error();
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then(setPosts)
-      .catch(() => {});
+      .then((data) => setPosts(Array.isArray(data) ? data : []))
+      .catch((err) => {
+        // Pressing Try Again mid-request aborts it, which is not a
+        // failure worth reporting.
+        if (err.name !== 'AbortError') setPostsFailed(true);
+      });
+    return () => abort.abort();
   }, []);
 
   // Match each result to its scam — article lives directly on the scam object
@@ -300,7 +321,12 @@ export default function AnalyticsScreen({ results, onRestart, identity }) {
         </div>
       </section>
 
-      {/* ── Blog section ── */}
+      {/* ── Reading suggestions ── */}
+      {postsFailed && (
+        <p className="an-blog-failed">
+          Could not load the latest articles just now.
+        </p>
+      )}
       {posts.length > 0 && (
         <section className="an-blog">
           <div className="an-blog-header">
@@ -328,17 +354,8 @@ export default function AnalyticsScreen({ results, onRestart, identity }) {
                     />
                   )}
                   <div className="an-blog-content">
-                    <h4
-                      dangerouslySetInnerHTML={{ __html: post.title.rendered }}
-                    />
-                    <p
-                      dangerouslySetInnerHTML={{
-                        __html:
-                          post.excerpt.rendered
-                            .replace(/<[^>]+>/g, '')
-                            .slice(0, 110) + '…',
-                      }}
-                    />
+                    <h4>{htmlToText(post.title.rendered)}</h4>
+                    <p>{`${htmlToText(post.excerpt.rendered).slice(0, 110)}…`}</p>
                   </div>
                 </a>
               );

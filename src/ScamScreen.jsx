@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { scams as allScams } from './scams';
 import { buildMatchedRounds, roundFor } from './session';
 import { EMPTY_IDENTITY, personalizeScam } from './identity';
-import AnalyticsScreen from './AnalyticsScreen';
+import ResultsScreen from './ResultsScreen';
 import SmsScam from './components/SmsScam';
 import WhatsAppScam from './components/WhatsAppScam';
 import EmailScam from './components/EmailScam';
@@ -131,7 +131,7 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
 
   if (scamIndex >= scams.length) {
     return (
-      <AnalyticsScreen
+      <ResultsScreen
         results={results}
         identity={identity}
         onRestart={() => {

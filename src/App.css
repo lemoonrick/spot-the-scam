@@ -366,7 +366,7 @@ button:active {
   border-radius: 3px;
 }
 
-/* confetti canvas (triggered from AnalyticsScreen) */
+/* confetti canvas (triggered from ResultsScreen) */
 .confetti-canvas {
   position: fixed;
   inset: 0;
