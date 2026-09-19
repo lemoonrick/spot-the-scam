@@ -120,14 +120,33 @@ async function overLimit(
   max: number,
 ) {
   const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-  const { count } = await db
+  const { count, error } = await db
     .from('rate_limits')
     .select('*', { count: 'exact', head: true })
     .eq('fingerprint', `${kind}:${who}`)
     .gte('created_at', since);
 
+  // A missing or unreadable table would otherwise turn rate limiting
+  // off without a word, which is the worst way for a protection to
+  // fail. Say so loudly in the logs. We still let the request through:
+  // tickets and the timing checks are the real gate, and refusing every
+  // result because a counter is broken would be worse.
+  if (error) {
+    console.error(
+      `rate limiting is NOT active: ${error.message}. ` +
+        'Has 006_close_direct_writes.sql been run? It creates rate_limits.',
+    );
+    return false;
+  }
+
   if ((count ?? 0) >= max) return true;
-  await db.from('rate_limits').insert({ fingerprint: `${kind}:${who}` });
+
+  const { error: writeError } = await db
+    .from('rate_limits')
+    .insert({ fingerprint: `${kind}:${who}` });
+  if (writeError) {
+    console.error(`rate limit counter not recorded: ${writeError.message}`);
+  }
   return false;
 }
 

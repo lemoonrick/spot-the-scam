@@ -91,6 +91,12 @@ describe('the browser is not trusted', () => {
     expect(source).toContain("'submit', MAX_PER_IP_PER_HOUR");
   });
 
+  // A protection that switches itself off in silence is worse than no
+  // protection, because nobody goes looking.
+  it('says so in the logs if rate limiting cannot run', () => {
+    expect(source).toContain('rate limiting is NOT active');
+  });
+
   // It used to refuse to run without a Turnstile secret. There is no
   // Cloudflare account, so failing closed would mean saving nothing.
   it('still checks Turnstile when configured, but does not require it', () => {
