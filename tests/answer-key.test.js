@@ -91,6 +91,19 @@ describe('the browser is not trusted', () => {
     expect(source).toContain("'submit', MAX_PER_IP_PER_HOUR");
   });
 
+  // The browser sends apikey and authorization. If the preflight does
+  // not allow them, every save from a browser is blocked before the
+  // request is even made, while curl keeps working because it skips
+  // preflight entirely. That is exactly how this shipped broken once.
+  it('allows every header the client actually sends', () => {
+    for (const header of ['authorization', 'apikey', 'content-type']) {
+      expect(
+        source,
+        `CORS must allow the ${header} header`,
+      ).toMatch(new RegExp(`Access-Control-Allow-Headers[\\s\\S]{0,120}${header}`));
+    }
+  });
+
   // A protection that switches itself off in silence is worse than no
   // protection, because nobody goes looking.
   it('says so in the logs if rate limiting cannot run', () => {

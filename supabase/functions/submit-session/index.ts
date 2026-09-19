@@ -67,10 +67,17 @@ const MAX_TICKET_AGE_HOURS = 6;
 // read. Anything quicker across the whole quiz is a script.
 const MIN_PLAUSIBLE_TOTAL_MS = 8000;
 
+// Every header the browser actually sends has to be listed here, or the
+// preflight fails and the real request is never made. The client sends
+// apikey and authorization to identify the project, so both belong in
+// this list; leaving them out blocked every save from a browser while
+// curl, which skips preflight entirely, kept working fine.
 const cors = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
 
 const json = (body: unknown, status = 200) =>
