@@ -41,7 +41,7 @@ export function useFlagCardPosition({ active, activeFlagId }) {
   const contentRef = useRef(null);
   const cardHeightRef = useRef(ASSUMED_CARD_HEIGHT);
 
-  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [position, setPosition] = useState({ top: 0, left: 0, gap: 0 });
   const [containerPad, setContainerPad] = useState(0);
 
   const findTarget = useCallback(() => {
@@ -77,10 +77,18 @@ export function useFlagCardPosition({ active, activeFlagId }) {
     const below = clearance.getBoundingClientRect();
 
     // Vertically: below the whole block. Horizontally: still centred on
-    // the highlight, so the card's arrow points back at it.
+    // the highlight.
     const top = below.bottom - container.top + GAP_BELOW_TARGET;
     const left = rect.left - container.left + rect.width / 2;
-    setPosition({ top, left });
+
+    // How far the card ended up from the phrase it explains. When the
+    // highlight is the last line of a message this is nearly nothing and
+    // the card's arrow does the pointing. When the highlight is the
+    // first line of a long email it can be the height of the whole
+    // message, and an arrow alone points at empty space — so the card
+    // draws a line back up to the phrase instead.
+    const gap = top - (rect.bottom - container.top);
+    setPosition({ top, left, gap });
 
     // Grow the container only by however much the card overhangs the
     // phone's natural height.
@@ -101,7 +109,7 @@ export function useFlagCardPosition({ active, activeFlagId }) {
 
   /** Back to a clean slate for the next question. */
   const reset = useCallback(() => {
-    setPosition({ top: 0, left: 0 });
+    setPosition({ top: 0, left: 0, gap: 0 });
     setContainerPad(0);
     cardHeightRef.current = ASSUMED_CARD_HEIGHT;
   }, []);

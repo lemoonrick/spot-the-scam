@@ -180,6 +180,45 @@ button:active {
     left 0.3s ease;
 }
 
+/* Runs from the highlighted phrase down to the card, for the cases
+   where the two cannot sit next to each other. Ends in a dot at the
+   phrase so it reads as "this bit" rather than as a stray rule. */
+.flag-leader {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  opacity: 0.55;
+  pointer-events: none;
+  /* Dashed, because a solid rule reads as a divider cutting the message
+     in half rather than as a pointer. The colour arrives as the inline
+     `background`, which this mask punches holes in. */
+  -webkit-mask-image: repeating-linear-gradient(
+    to bottom,
+    #000 0 5px,
+    transparent 5px 10px
+  );
+  mask-image: repeating-linear-gradient(
+    to bottom,
+    #000 0 5px,
+    transparent 5px 10px
+  );
+}
+
+/* A dot where the line meets the highlighted phrase, so the eye lands
+   on the right words rather than somewhere along the line. Drawn on the
+   wrap, not the line, so the dashes do not eat it. */
+.flag-card-wrap .flag-leader-dot {
+  position: absolute;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
 .flag-card {
   background: #ffffff;
   border-radius: 12px;

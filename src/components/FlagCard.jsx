@@ -1,5 +1,8 @@
 import { useEffect, useRef } from 'react';
 
+// Below this the card is close enough that its arrow is clear on its own.
+const LEADER_THRESHOLD = 28;
+
 export default function FlagCard({
   flag,
   flagIndex,
@@ -31,8 +34,31 @@ export default function FlagCard({
     '--current-theme': themeHex,
   };
 
+  // The card sits below the whole message so it never covers the text.
+  // When the highlighted phrase is near the top of a long message that
+  // leaves a real distance between the two, and the little arrow on the
+  // card ends up pointing at whatever happens to be above it. Past that
+  // distance, draw a line back up to the phrase so the pairing is
+  // unmistakable. Short hops keep the arrow alone, as before.
+  const gap = coords.gap ?? 0;
+  const showLeader = gap > LEADER_THRESHOLD;
+
   return (
     <div className="flag-card-wrap" style={style} ref={wrapRef}>
+      {showLeader && (
+        <>
+          <span
+            className="flag-leader"
+            style={{ height: `${gap}px`, background: themeHex }}
+            aria-hidden="true"
+          />
+          <span
+            className="flag-leader-dot"
+            style={{ top: `-${gap}px`, background: themeHex }}
+            aria-hidden="true"
+          />
+        </>
+      )}
       <div className="flag-card" style={{ borderTopColor: themeHex }}>
         {totalFlags > 1 && (
           <div className="flag-dots">

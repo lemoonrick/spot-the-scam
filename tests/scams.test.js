@@ -145,6 +145,23 @@ describe('card placement and colour', () => {
     );
   });
 
+  it('draws a leader line when the card cannot sit beside the phrase', () => {
+    // Clearing the message block means that when the highlight is the
+    // first line of a long email, the card lands a long way below it and
+    // its little arrow points at whatever happens to be in between. The
+    // card measures that distance and draws a line back to the phrase.
+    const hook = readFileSync('src/hooks/useFlagCardPosition.js', 'utf8');
+    expect(hook, 'the hook must report how far the card sits from the ' +
+      'highlight, or the card cannot know to draw the line').toMatch(/gap/);
+
+    const card = readFileSync('src/components/FlagCard.jsx', 'utf8');
+    expect(card).toContain('flag-leader');
+    expect(card).toContain('coords.gap');
+
+    const css = readFileSync('src/App.css', 'utf8');
+    expect(css).toMatch(/\.flag-leader\b/);
+  });
+
   it('paints every screen from the same two colour variables', () => {
     // The rule above only works because each screen defers to these.
     for (const file of new Set(Object.values(SCREEN))) {
