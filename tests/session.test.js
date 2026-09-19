@@ -80,6 +80,25 @@ describe('session summary', () => {
     expect(s.scamsWavedThrough).toBe(1);
   });
 
+  // Three of the six types have a single question, so one wrong answer
+  // would otherwise be reported to the player as their blind spot.
+  it('will not name a blind spot from a single question', () => {
+    const results = [
+      { scamId: 7, type: 'instagram', round: 1, verdictChosen: 'legitimate', actualVerdict: 'phishing', verdictCorrect: false, responseMs: 100 },
+      { scamId: 1, type: 'sms', round: 1, verdictChosen: 'phishing', actualVerdict: 'phishing', verdictCorrect: true, responseMs: 100 },
+      { scamId: 2, type: 'sms', round: 2, verdictChosen: 'phishing', actualVerdict: 'legitimate', verdictCorrect: false, responseMs: 100 },
+    ];
+    // instagram is 0% but seen once; sms is 50% across two.
+    expect(buildSessionSummary(results).weakestType).toBe('sms');
+  });
+
+  it('names no blind spot when nothing has enough questions', () => {
+    const results = [
+      { scamId: 7, type: 'instagram', round: 1, verdictChosen: 'legitimate', actualVerdict: 'phishing', verdictCorrect: false, responseMs: 100 },
+    ];
+    expect(buildSessionSummary(results).weakestType).toBeNull();
+  });
+
   it('records whether the run was personalised', () => {
     const order = buildMatchedRounds(scams);
     const results = play(order, () => true);

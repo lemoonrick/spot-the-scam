@@ -38,7 +38,10 @@ export function deriveEmail(name) {
     .filter(Boolean);
 
   if (!parts.length) return '';
-  return `${parts.slice(0, 2).join('.').slice(0, 24)}@gmail.com`;
+  // @example.com is reserved by the RFCs precisely for this and can
+  // never belong to anyone. A generated gmail.com address could easily
+  // be a real person's, shown inside a fake scam message.
+  return `${parts.slice(0, 2).join('.').slice(0, 24)}@example.com`;
 }
 
 /**

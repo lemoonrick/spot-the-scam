@@ -21,9 +21,17 @@ describe('identity', () => {
   });
 
   it('builds a usable address from any name', () => {
-    expect(deriveEmail('Priya')).toBe('priya@gmail.com');
-    expect(deriveEmail('Priya Sharma')).toBe('priya.sharma@gmail.com');
+    expect(deriveEmail('Priya')).toBe('priya@example.com');
+    expect(deriveEmail('Priya Sharma')).toBe('priya.sharma@example.com');
     expect(deriveEmail('123')).toBe('');
+  });
+
+  // The address is shown inside a fake scam message. A real-looking
+  // gmail.com address could belong to an actual person.
+  it('never generates an address at a real mail provider', () => {
+    for (const name of ['Priya', 'Rahul Verma', 'A B']) {
+      expect(deriveEmail(name)).toMatch(/@example\.com$/);
+    }
   });
 });
 

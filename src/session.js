@@ -94,8 +94,12 @@ export function buildSessionSummary(results, { personalised = false } = {}) {
     accuracy: pct(t.correct, t.seen),
   }));
 
+  // A "blind spot" drawn from a single question is just one wrong
+  // answer. Three of the six types have only one question each, so
+  // require at least two before naming one.
+  const MIN_QUESTIONS_FOR_BLIND_SPOT = 2;
   const missed = typeBreakdown
-    .filter((t) => t.accuracy < 100)
+    .filter((t) => t.accuracy < 100 && t.seen >= MIN_QUESTIONS_FOR_BLIND_SPOT)
     .sort((a, b) => a.accuracy - b.accuracy);
 
   // A "false trust" miss is the dangerous kind: a real scam waved through.

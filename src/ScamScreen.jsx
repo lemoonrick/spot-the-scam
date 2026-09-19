@@ -217,7 +217,16 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
         return <PopupScam {...props} />;
       case 'upi':
         return <UpiScam {...props} />;
+      case 'sms':
+        return <SmsScam {...props} />;
       default:
+        // A typo in scams.js used to render silently as an SMS, so a
+        // WhatsApp scam could ship looking like a text message and
+        // nobody would notice. Say so instead. The test suite checks
+        // every type has a screen, so this should be unreachable.
+        console.error(
+          `[spot-the-scam] scam ${scam.id} has unknown type "${scam.type}"`,
+        );
         return <SmsScam {...props} />;
     }
   };
