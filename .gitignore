@@ -27,3 +27,6 @@ dist-ssr
 # Supabase CLI link state (machine-local, not shared)
 supabase/.temp/
 .supabase-token
+
+# Generated reports (regenerate rather than commit)
+docs/*.pdf
