@@ -95,6 +95,11 @@ export const scams = [
     guideText:
       'Amazon has reached out regarding a billing issue. Check the sender before clicking anything.',
     time: '9:14 AM',
+    // The spoofed address is in the Gmail header, not the body, so it
+    // has no phrase in `message` to attach to. See components/flagAnchor.js.
+    anchors: {
+      'spoofed-sender': 'sender',
+    },
     message: [
       { text: 'Hello {name|there},\n\n', flag: null },
       {
@@ -161,14 +166,19 @@ export const scams = [
       ctaText: 'Watch Now',
       ctaColor: '#E50914',
     },
-    message: [
-      { text: 'info@mailer.netflix.com', flag: 'official-domain' },
-      {
-        text: 'Watch Now → https://www.netflix.com/title/81091393',
-        flag: 'real-link',
-      },
-      { text: 'No password or payment info requested', flag: 'no-ask' },
-    ],
+    // This email renders `richHero`, not a list of text parts, so its
+    // flags point at pieces of that layout instead of at phrases. The
+    // `message` array that used to sit here was never drawn on screen.
+    //
+    // "Asks for nothing sensitive" is a fact about the whole email
+    // rather than any one element, so it anchors to the email itself:
+    // the card opens beneath it and the reader sees the entire thing
+    // the claim is about.
+    anchors: {
+      'official-domain': 'sender',
+      'real-link': 'cta',
+      'no-ask': 'whole-email',
+    },
     flags: [
       {
         id: 'official-domain',
@@ -213,6 +223,14 @@ export const scams = [
       },
       { text: 'http://jio-kyc-update.in', flag: 'fake-link' },
     ],
+    // WhatsApp lifts a link out of the bubble and draws a preview card
+    // for it. The card's wording used to be hardcoded in the screen, so
+    // every WhatsApp scenario with a link would have shown Jio's.
+    linkPreview: {
+      flag: 'fake-link',
+      site: 'jio-kyc-update.in',
+      title: 'Jio KYC Verification Portal',
+    },
     flags: [
       {
         id: 'authority',
@@ -380,6 +398,9 @@ export const scams = [
     guideText:
       'A trusted organization sent you an impact report. Check the sender details carefully.',
     time: '10:30 AM',
+    anchors: {
+      'official-domain': 'sender',
+    },
     message: [
       { text: 'Hi {name|there},\n\n', flag: null },
       {
@@ -425,6 +446,13 @@ export const scams = [
     note: 'Flipkart refund for order #FL-9920183. Accept to receive ₹4,800 back.',
     guideText:
       'Someone says they sent you a refund on GPay. This screen appears asking for your UPI PIN. What do you do?',
+    // A payment request has no message text, so every flag here points
+    // at a part of the payment screen.
+    anchors: {
+      'fake-upi-id': 'recipient',
+      'collect-not-receive': 'direction',
+      'small-amount-trick': 'amount',
+    },
     flags: [
       {
         id: 'collect-not-receive',

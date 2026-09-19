@@ -1,11 +1,15 @@
 import './EmailScam.css';
+import { makeSlots } from './flagAnchor';
 
 // ── Rich HTML email body (Netflix-style marketing email) ──────────────────────
-function RichEmailBody({ scam, activeFlagId }) {
+function RichEmailBody({ scam, slot }) {
   const h = scam.richHero;
   return (
     <div className="gmail-rich-body">
-      <div className="rich-email-wrap">
+      <div
+        className={`rich-email-wrap${slot.on('whole-email') ? ' rich-scope-active' : ''}`}
+        {...slot.anchor('whole-email')}
+      >
         {/* Brand header bar */}
         <div className="rich-email-header">
           <svg className="rich-netflix-n" viewBox="0 0 111 190" fill="none">
@@ -34,7 +38,8 @@ function RichEmailBody({ scam, activeFlagId }) {
 
           <div className="rich-cta-wrap">
             <button
-              className={`rich-cta-btn rich-flag${activeFlagId === 'real-link' ? ' active' : ''}`}
+              className={`rich-cta-btn rich-flag${slot.on('cta') ? ' active' : ''}`}
+              {...slot.anchor('cta')}
               style={{ background: h.ctaColor }}
             >
               {h.ctaText}
@@ -67,6 +72,7 @@ function PlainEmailBody({ scam, activeFlagId }) {
           <span
             key={i}
             className={`gmail-flag${activeFlagId === line.flag ? ' active' : ''}`}
+            data-flag-anchor={line.flag}
           >
             {line.text}
           </span>
@@ -81,6 +87,7 @@ function PlainEmailBody({ scam, activeFlagId }) {
 // ── Main export ───────────────────────────────────────────────────────────────
 export default function EmailScam({ scam, activeFlagId, identity }) {
   const isRich = scam.emailStyle === 'rich';
+  const slot = makeSlots(scam, activeFlagId);
 
   return (
     <div className="gmail-wrap">
@@ -169,12 +176,8 @@ export default function EmailScam({ scam, activeFlagId, identity }) {
                   <span className="gmail-sender-name">{scam.senderName}</span>
                   to:
                   <span
-                    className={`gmail-sender-addr${
-                      activeFlagId === 'spoofed-sender' ||
-                      activeFlagId === 'official-domain'
-                        ? ' active'
-                        : ''
-                    }`}
+                    className={`gmail-sender-addr${slot.on('sender') ? ' active' : ''}`}
+                    {...slot.anchor('sender')}
                   >
                     {scam.senderEmail}
                   </span>
@@ -203,7 +206,7 @@ export default function EmailScam({ scam, activeFlagId, identity }) {
 
             {/* Body */}
             {isRich ? (
-              <RichEmailBody scam={scam} activeFlagId={activeFlagId} />
+              <RichEmailBody scam={scam} slot={slot} />
             ) : (
               <PlainEmailBody scam={scam} activeFlagId={activeFlagId} />
             )}

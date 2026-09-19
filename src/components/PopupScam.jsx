@@ -82,6 +82,7 @@ export default function PopupScam({ scam, activeFlagId }) {
                 <span
                   key={i}
                   className={`popup-flag${activeFlagId === part.flag ? ' active' : ''}`}
+                  data-flag-anchor={part.flag}
                 >
                   {part.text}
                 </span>

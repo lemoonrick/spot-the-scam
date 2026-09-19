@@ -7,8 +7,20 @@ const BREATHING_ROOM = 48;
 const MIN_TOP_MARGIN = 80;
 const ASSUMED_CARD_HEIGHT = 260;
 
-// Every screen marks its highlighted element with one of these.
-const TARGET = '.active, .safe-active, .upi-active';
+// Every screen marks the element a flag points at with
+// `data-flag-anchor="<flag id>"`. See components/flagAnchor.js.
+//
+// This used to hunt for `.active, .safe-active, .upi-active` instead —
+// any lit-up element, whichever came first in the DOM. Two ways that
+// went wrong. A screen that lights several elements for one flag got
+// the card under whichever happened to be first rather than the main
+// one. Worse, the explanation card itself sits inside this container
+// and draws `.flag-dot.active` for its own progress dots, so whenever
+// the message had nothing lit — the Netflix email's "asks for nothing
+// sensitive" — the card found its own dot and positioned itself
+// against itself.
+const anchorFor = (flagId) =>
+  flagId ? `[data-flag-anchor="${CSS.escape(flagId)}"]` : null;
 
 /**
  * Places the explanation card under the highlighted part of a message,
@@ -24,7 +36,7 @@ const TARGET = '.active, .safe-active, .upi-active';
  * scrolls, but only once that extra room is really in the DOM, or the
  * scroll target is computed against a container that is about to grow.
  */
-export function useFlagCardPosition({ active }) {
+export function useFlagCardPosition({ active, activeFlagId }) {
   const containerRef = useRef(null);
   const contentRef = useRef(null);
   const cardHeightRef = useRef(ASSUMED_CARD_HEIGHT);
@@ -32,10 +44,13 @@ export function useFlagCardPosition({ active }) {
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const [containerPad, setContainerPad] = useState(0);
 
-  const findTarget = useCallback(
-    () => containerRef.current?.querySelector(TARGET) ?? null,
-    [],
-  );
+  const findTarget = useCallback(() => {
+    const selector = anchorFor(activeFlagId);
+    if (!selector) return null;
+    // Only ever look inside the message being shown. The card is a
+    // sibling of it in this container and must never be its own target.
+    return contentRef.current?.querySelector(selector) ?? null;
+  }, [activeFlagId]);
 
   const place = useCallback(() => {
     const target = findTarget();

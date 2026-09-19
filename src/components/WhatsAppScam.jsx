@@ -1,8 +1,15 @@
 import './WhatsAppScam.css';
 
 export default function WhatsAppScam({ scam, activeFlagId }) {
-  // Find the fake-link part for the CTA row
-  const linkPart = scam.message.find(p => p.flag === 'fake-link');
+  // A link is drawn as a preview card below the bubble rather than
+  // inline. Which part that is, and what the card reads, both come from
+  // the scenario — this screen used to name Jio's link itself, so any
+  // other WhatsApp scenario with a link would have shown Jio's details.
+  const preview = scam.linkPreview ?? null;
+  const linkPart = preview
+    ? scam.message.find((p) => p.flag === preview.flag)
+    : null;
+  const previewActive = Boolean(preview) && activeFlagId === preview.flag;
 
   return (
     <div className="wa-wrap">
@@ -45,11 +52,12 @@ export default function WhatsAppScam({ scam, activeFlagId }) {
           <div className="wa-bubble-row">
             <div className="wa-bubble">
               <div className="wa-bubble-text">
-                {scam.message.filter(p => p.flag !== 'fake-link').map((block, i) =>
+                {scam.message.filter(p => p !== linkPart).map((block, i) =>
                   block.flag ? (
                     <span
                       key={i}
                       className={`wa-flag${activeFlagId === block.flag ? ' active' : ''}`}
+                      data-flag-anchor={block.flag}
                     >
                       {block.text}
                     </span>
@@ -61,18 +69,21 @@ export default function WhatsAppScam({ scam, activeFlagId }) {
 
               {/* Link preview card */}
               {linkPart && (
-                <div className={`wa-link-preview${activeFlagId === 'fake-link' ? ' active' : ''}`}>
+                <div
+                  className="wa-link-preview"
+                  data-flag-anchor={preview.flag}
+                >
                   <div className="wa-link-domain">
                     <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
                       <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" stroke="#1a73e8" strokeWidth="2" strokeLinecap="round"/>
                       <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" stroke="#1a73e8" strokeWidth="2" strokeLinecap="round"/>
                     </svg>
-                    <span className={`wa-flag${activeFlagId === 'fake-link' ? ' active' : ''}`}>
+                    <span className={`wa-flag${previewActive ? ' active' : ''}`}>
                       {linkPart.text}
                     </span>
                   </div>
-                  <div className="wa-link-site">jio-kyc-update.in</div>
-                  <div className="wa-link-title">Jio KYC Verification Portal</div>
+                  <div className="wa-link-site">{preview.site}</div>
+                  <div className="wa-link-title">{preview.title}</div>
                 </div>
               )}
 

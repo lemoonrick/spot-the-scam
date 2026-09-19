@@ -31,6 +31,14 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
   const questionShownAtRef = useRef(0);
   const responseMsRef = useRef(0);
 
+  const scam = scams[scamIndex];
+  const isLastScam = scamIndex === scams.length - 1;
+
+  // Which red flag is being explained right now. The card points at
+  // whichever element carries this id, so the positioning hook needs it
+  // too — hence both being worked out before the hook runs.
+  const currentFlag = phase === 'revealing' ? scam.flags[flagIndex] : null;
+
   const {
     containerRef,
     contentRef,
@@ -38,10 +46,10 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
     containerPad,
     measure: measureCard,
     reset: resetCard,
-  } = useFlagCardPosition({ active: phase === 'revealing' });
-
-  const scam = scams[scamIndex];
-  const isLastScam = scamIndex === scams.length - 1;
+  } = useFlagCardPosition({
+    active: phase === 'revealing',
+    activeFlagId: currentFlag?.id,
+  });
 
   /**
    * Everything that has to go back to a clean slate between questions.
@@ -89,7 +97,6 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
     );
   }
 
-  const currentFlag = phase === 'revealing' ? scam.flags[flagIndex] : null;
   const isLastFlag = flagIndex === scam.flags.length - 1;
 
   const handleVerdictPick = (verdict) => {

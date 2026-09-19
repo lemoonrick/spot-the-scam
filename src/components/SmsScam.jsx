@@ -56,6 +56,7 @@ export default function SmsScam({ scam, activeFlagId }) {
                   <span
                     key={i}
                     className={`sms-flag${activeFlagId === part.flag ? ' active' : ''}`}
+                    data-flag-anchor={part.flag}
                   >
                     {part.text}
                   </span>

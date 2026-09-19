@@ -48,6 +48,7 @@ export default function InstagramScam({ scam, activeFlagId }) {
                   <span
                     key={i}
                     className={`insta-flag${activeFlagId === part.flag ? ' active' : ''}`}
+                    data-flag-anchor={part.flag}
                   >
                     {part.text}
                   </span>

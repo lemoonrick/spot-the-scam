@@ -472,6 +472,19 @@
   border-radius: 3px;
 }
 
+/* Some points are about the whole email rather than one phrase — "it
+   asks you for nothing sensitive" is only true of all of it at once.
+   A ring around the email says "look at this entire thing", where a
+   block of highlight colour over the artwork would just look broken. */
+.rich-email-wrap {
+  transition: box-shadow 0.22s ease;
+}
+
+.rich-email-wrap.rich-scope-active {
+  box-shadow: 0 0 0 3px var(--flag-safe-text);
+  border-radius: 6px;
+}
+
 /* Used where a message part is worth pointing out for being correct
    rather than suspicious. */
 .gmail-flag.safe-active {

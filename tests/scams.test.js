@@ -13,18 +13,8 @@ const SCREEN = {
   upi: 'src/components/UpiScam.jsx',
 };
 
-/**
- * Flags that are declared but have nothing to point at on screen, so
- * the explanation card opens against blank space.
- *
- * These are issues 1 and 3 in the runbook and are deliberately left
- * alone for now. The list exists so the rule still applies to
- * everything else: a NEW unanchored flag fails the build. Delete an
- * entry here when its anchor is added.
- */
-const KNOWN_UNANCHORED = new Set([
-  '4:no-ask', // rich Netflix layout renders richHero, not the flagged message
-]);
+/** Every flag id used anywhere, for the no-hardcoding rule below. */
+const ALL_FLAG_IDS = new Set(scams.flatMap((s) => s.flags.map((f) => f.id)));
 
 describe('scam data', () => {
   it('has a screen for every type', () => {
@@ -54,18 +44,58 @@ describe('scam data', () => {
   it('gives every declared flag something to point at', () => {
     for (const s of scams) {
       const inMessage = new Set((s.message ?? []).map((p) => p.flag).filter(Boolean));
-      const screenSource = readFileSync(SCREEN[s.type], 'utf8');
+      const anchors = s.anchors ?? {};
 
       for (const flag of s.flags) {
-        if (KNOWN_UNANCHORED.has(`${s.id}:${flag.id}`)) continue;
-        const anchored =
-          inMessage.has(flag.id) || screenSource.includes(`'${flag.id}'`);
         expect(
-          anchored,
-          `scam ${s.id} flag "${flag.id}" has no anchor: not in its message, ` +
-            `and ${SCREEN[s.type]} never mentions it. The explanation card ` +
-            `will point at empty space.`,
+          inMessage.has(flag.id) || flag.id in anchors,
+          `scam ${s.id} flag "${flag.id}" has no anchor: it marks no phrase ` +
+            `in its message and no slot in its \`anchors\` map. The ` +
+            `explanation card will point at empty space.`,
         ).toBe(true);
+      }
+    }
+  });
+
+  it('only anchors flags that exist', () => {
+    for (const s of scams) {
+      const declared = new Set(s.flags.map((f) => f.id));
+      for (const flagId of Object.keys(s.anchors ?? {})) {
+        expect(
+          declared.has(flagId),
+          `scam ${s.id} anchors "${flagId}", which is not one of its flags`,
+        ).toBe(true);
+      }
+    }
+  });
+
+  it('anchors only to slots its screen actually provides', () => {
+    // An anchor names a slot the screen draws. A typo, or a slot
+    // renamed on one side only, would leave the card with no target.
+    for (const s of scams) {
+      const screenSource = readFileSync(SCREEN[s.type], 'utf8');
+      for (const [flagId, slotName] of Object.entries(s.anchors ?? {})) {
+        expect(
+          screenSource.includes(`'${slotName}'`),
+          `scam ${s.id} anchors "${flagId}" to slot "${slotName}", but ` +
+            `${SCREEN[s.type]} never renders that slot.`,
+        ).toBe(true);
+      }
+    }
+  });
+
+  it('never names a flag id inside a screen', () => {
+    // Screens ask about slots, never about specific flags. Naming a
+    // flag in JSX means renaming it in scams.js silently kills the
+    // highlight — no error, no failing test, just a card over nothing.
+    for (const file of new Set(Object.values(SCREEN))) {
+      const source = readFileSync(file, 'utf8');
+      for (const flagId of ALL_FLAG_IDS) {
+        expect(
+          source.includes(`'${flagId}'`),
+          `${file} names the flag "${flagId}" directly. Add it to that ` +
+            `scam's \`anchors\` map and ask for the slot instead.`,
+        ).toBe(false);
       }
     }
   });
@@ -84,6 +114,39 @@ describe('scam data', () => {
     expect(phishing, 'need an even split of phishing across halves').toBeGreaterThan(1);
     expect(legit, 'need an even split of legitimate across halves').toBeGreaterThan(1);
     expect(scams.length % 2, 'an odd number of scams cannot split evenly').toBe(0);
+  });
+});
+
+describe('whatsapp link previews', () => {
+  // WhatsApp draws a link as a preview card under the bubble. The site
+  // and title used to be hardcoded in the screen, so a second WhatsApp
+  // scenario with a link would have shown the first one's branding.
+  const withPreview = scams.filter((s) => s.linkPreview);
+
+  it('names a flag that marks a real part of the message', () => {
+    for (const s of withPreview) {
+      const part = (s.message ?? []).find((p) => p.flag === s.linkPreview.flag);
+      expect(
+        part,
+        `scam ${s.id} previews flag "${s.linkPreview.flag}", which is not a ` +
+          `part of its message, so the preview card would never render`,
+      ).toBeDefined();
+    }
+  });
+
+  it('carries its own site and title', () => {
+    for (const s of withPreview) {
+      expect(s.linkPreview.site, `scam ${s.id} preview has no site`).toBeTruthy();
+      expect(s.linkPreview.title, `scam ${s.id} preview has no title`).toBeTruthy();
+    }
+  });
+
+  it('keeps no scenario wording in the screen itself', () => {
+    const source = readFileSync('src/components/WhatsAppScam.jsx', 'utf8');
+    for (const s of withPreview) {
+      expect(source).not.toContain(s.linkPreview.site);
+      expect(source).not.toContain(s.linkPreview.title);
+    }
   });
 });
 

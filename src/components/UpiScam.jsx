@@ -1,4 +1,5 @@
 import './UpiScam.css';
+import { makeSlots } from './flagAnchor';
 
 // Simulates the GPay screen you'd see AFTER tapping "Pay" on a collect request.
 // This is the critical moment — you're about to enter your UPI PIN.
@@ -7,6 +8,7 @@ import './UpiScam.css';
 
 export default function UpiScam({ scam, activeFlagId }) {
   const dots = [0, 1, 2, 3, 4, 5]; // 6-digit UPI PIN dots
+  const slot = makeSlots(scam, activeFlagId);
 
   return (
     <div className="upi-wrap">
@@ -66,12 +68,13 @@ export default function UpiScam({ scam, activeFlagId }) {
             <div className="upi-avatar-sm">R</div>
             <div className="upi-header-text">
               <span
-                className={`upi-recipient-name${activeFlagId === 'fake-upi-id' ? ' upi-active' : ''}`}
+                className={`upi-recipient-name${slot.on('recipient') ? ' upi-active' : ''}`}
               >
                 {scam.sender}
               </span>
               <span
-                className={`upi-recipient-id${activeFlagId === 'fake-upi-id' ? ' upi-active active' : ''}`}
+                className={`upi-recipient-id${slot.on('recipient') ? ' upi-active' : ''}`}
+                {...slot.anchor('recipient')}
               >
                 {scam.upiId}
               </span>
@@ -81,23 +84,20 @@ export default function UpiScam({ scam, activeFlagId }) {
         </div>
 
         {/* Amount section */}
+        {/* Both anchors below sit on the element that actually lights
+            up, so the card clears it. Pointing at the "Paying" label
+            instead put the card on top of the amount it was explaining. */}
         <div
-          className={`upi-amount-section${activeFlagId === 'collect-not-receive' ? ' upi-active' : ''}`}
+          className={`upi-amount-section${slot.on('direction') ? ' upi-active' : ''}`}
+          {...slot.anchor('direction')}
         >
-          <p
-            className={`upi-paying-label${activeFlagId === 'collect-not-receive' ? ' active' : ''}`}
-          >
-            Paying
-          </p>
-          <p
-            className={`upi-amount${activeFlagId === 'small-amount-trick' ? ' active' : ''}`}
-          >
-            {scam.amount}
-          </p>
+          <p className="upi-paying-label">Paying</p>
+          <p className="upi-amount">{scam.amount}</p>
 
           {/* Note from sender */}
           <div
-            className={`upi-note-chip${activeFlagId === 'small-amount-trick' ? ' upi-active' : ''}`}
+            className={`upi-note-chip${slot.on('amount') ? ' upi-active' : ''}`}
+            {...slot.anchor('amount')}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
               <path
