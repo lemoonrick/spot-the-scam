@@ -30,3 +30,8 @@ supabase/.temp/
 
 # Generated reports (regenerate rather than commit)
 docs/*.pdf
+
+# Working files dropped into docs/ that are not part of the project
+docs/*.csv
+docs/*.xlsx
+docs/diagram.png
