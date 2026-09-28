@@ -52,8 +52,17 @@ In the SQL Editor, run `supabase/007_session_tickets.sql`.
 ## 4. Deploy the function
 
 ```
-supabase functions deploy submit-session
+supabase functions deploy submit-session --no-verify-jwt
 ```
+
+`--no-verify-jwt` switches off a gateway check that asks every caller for
+a login token. The quiz has no logins, and newer projects hand out a
+public key (`sb_publishable_…`) that is not a token, so with the check on
+every browser request would be refused before reaching the function.
+Nothing is lost by turning it off: the gateway check only ever proved
+"this caller has the public key", which is public. The one-time ticket,
+the timing checks and the rate limits inside the function are what
+actually keep it safe.
 
 Check it is alive. Asking for a ticket should work:
 

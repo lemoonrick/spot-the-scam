@@ -12,8 +12,7 @@
 //  to the device.
 // ============================================================
 
-const url = import.meta.env.VITE_SUPABASE_URL;
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+import { isConfigured, publicHeaders, supabaseUrl } from './supabase';
 
 let ticket = null;
 let pending = null;
@@ -27,15 +26,11 @@ let pending = null;
  * one record and nothing else.
  */
 export function requestTicket() {
-  if (!url || !anonKey || ticket || pending) return;
+  if (!isConfigured || ticket || pending) return;
 
-  pending = fetch(`${url}/functions/v1/submit-session`, {
+  pending = fetch(`${supabaseUrl}/functions/v1/submit-session`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${anonKey}`,
-      apikey: anonKey,
-    },
+    headers: publicHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify({ action: 'start' }),
   })
     .then((r) => (r.ok ? r.json() : null))

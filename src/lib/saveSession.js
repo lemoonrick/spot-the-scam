@@ -1,4 +1,4 @@
-import { isConfigured } from './supabase';
+import { isConfigured, publicHeaders, supabaseUrl } from './supabase';
 import { getTurnstileToken } from './turnstile';
 import { clearTicket, getTicket, requestTicket } from './ticket';
 
@@ -24,23 +24,16 @@ const FUNCTION_NAME = 'submit-session';
 export async function saveSession(summary, results = []) {
   if (!isConfigured) return { saved: false, reason: 'not-configured' };
 
-  const url = import.meta.env.VITE_SUPABASE_URL;
-  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
   try {
     const [turnstileToken, ticket] = await Promise.all([
       getTurnstileToken(),
       getTicket(),
     ]);
 
-    const res = await fetch(`${url}/functions/v1/${FUNCTION_NAME}`, {
+    const res = await fetch(`${supabaseUrl}/functions/v1/${FUNCTION_NAME}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // Identifies the project. The function does the real checking.
-        Authorization: `Bearer ${anonKey}`,
-        apikey: anonKey,
-      },
+      // Identifies the project. The function does the real checking.
+      headers: publicHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         ticket,
         turnstileToken,
