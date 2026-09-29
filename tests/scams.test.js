@@ -115,6 +115,19 @@ describe('scam data', () => {
     expect(legit, 'need an even split of legitimate across halves').toBeGreaterThan(1);
     expect(scams.length % 2, 'an odd number of scams cannot split evenly').toBe(0);
   });
+
+  it('has an even number of each verdict, so the halves really match', () => {
+    // An even total is not enough. With 7 scams and 3 genuine messages
+    // the total is still 10, but each pool splits unevenly: one half gets
+    // 3 scams and 1 genuine, the other 4 and 2. The halves are no longer
+    // equally hard, and the question-numbering that marks "first half"
+    // no longer lines up with the pools that were dealt into it. Every
+    // improvement figure would be quietly wrong.
+    const phishing = scams.filter((s) => s.verdict === 'phishing').length;
+    const legit = scams.filter((s) => s.verdict === 'legitimate').length;
+    expect(phishing % 2, `${phishing} scams cannot be split evenly between halves`).toBe(0);
+    expect(legit % 2, `${legit} genuine messages cannot be split evenly`).toBe(0);
+  });
 });
 
 describe('card placement and colour', () => {

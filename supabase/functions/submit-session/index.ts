@@ -35,37 +35,19 @@
 // ============================================================
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+// The answer key, the answer checks and every score calculation live in
+// scoring.ts, which has no database or network code so the tests can run
+// it directly. This file handles tickets, limits and saving.
+import { summarise, validateAnswers } from './scoring.ts';
 
-// ── The answer key. This is the trust anchor: right and wrong are
-//    decided here, never by the caller. Adding a scam to src/scams.js
-//    means adding it here too, or its answers are rejected.
-const ANSWER_KEY: Record<number, { type: string; verdict: string }> = {
-  1: { type: 'sms', verdict: 'phishing' },
-  2: { type: 'sms', verdict: 'legitimate' },
-  3: { type: 'email', verdict: 'phishing' },
-  4: { type: 'email', verdict: 'legitimate' },
-  5: { type: 'whatsapp', verdict: 'phishing' },
-  6: { type: 'whatsapp', verdict: 'legitimate' },
-  7: { type: 'instagram', verdict: 'phishing' },
-  8: { type: 'popup', verdict: 'phishing' },
-  9: { type: 'email', verdict: 'legitimate' },
-  10: { type: 'upi', verdict: 'phishing' },
-};
-
-const EXPECTED_ANSWERS = 10;
 const MAX_PER_IP_PER_HOUR = 20; // generous for a workshop, useless for a flood
 const MAX_TICKETS_PER_IP_PER_HOUR = 40; // a couple of restarts is normal
-const MAX_RESPONSE_MS = 30 * 60 * 1000;
 
 // Nobody reads ten messages, weighs each one and steps through the
 // explanations in less than this. A workshop rushing through still
 // takes minutes.
 const MIN_QUIZ_SECONDS = 20;
 const MAX_TICKET_AGE_HOURS = 6;
-
-// The fastest a person can plausibly judge a message they actually
-// read. Anything quicker across the whole quiz is a script.
-const MIN_PLAUSIBLE_TOTAL_MS = 8000;
 
 // Every header the browser actually sends has to be listed here, or the
 // preflight fails and the real request is never made. The client sends
@@ -155,15 +137,6 @@ async function overLimit(
     console.error(`rate limit counter not recorded: ${writeError.message}`);
   }
   return false;
-}
-
-const pct = (n: number, d: number) => (d > 0 ? Math.round((n / d) * 100) : 0);
-
-function median(nums: number[]) {
-  if (!nums.length) return 0;
-  const s = [...nums].sort((a, b) => a - b);
-  const m = Math.floor(s.length / 2);
-  return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2);
 }
 
 Deno.serve(async (req) => {
@@ -265,97 +238,17 @@ Deno.serve(async (req) => {
     return json({ error: 'That was too quick to be a real attempt' }, 422);
   }
 
-  // ── Validate what the browser observed ──────────────────────
-  const answers = Array.isArray(payload.answers) ? payload.answers : [];
-  if (answers.length !== EXPECTED_ANSWERS) {
-    return json({ error: `Expected ${EXPECTED_ANSWERS} answers` }, 400);
-  }
-
-  const seen = new Set<number>();
-  const clean = [];
-
-  for (const a of answers) {
-    const scamId = Number(a?.scamId);
-    const key = ANSWER_KEY[scamId];
-    if (!key) return json({ error: `Unknown message ${scamId}` }, 400);
-    if (seen.has(scamId)) return json({ error: 'Duplicate message' }, 400);
-    seen.add(scamId);
-
-    const chosen = a?.chosen;
-    if (chosen !== 'phishing' && chosen !== 'legitimate') {
-      return json({ error: 'Invalid answer' }, 400);
-    }
-
-    const round = Number(a?.round);
-    if (round !== 1 && round !== 2) return json({ error: 'Invalid round' }, 400);
-
-    const ms = Number(a?.responseMs);
-    const responseMs =
-      Number.isFinite(ms) && ms >= 0 && ms <= MAX_RESPONSE_MS ? Math.round(ms) : null;
-
-    clean.push({
-      scam_id: scamId,
-      scam_type: key.type,
-      round,
-      chosen,
-      actual: key.verdict,
-      // Decided here, against our own key. The caller does not get a say.
-      correct: chosen === key.verdict,
-      response_ms: responseMs,
-    });
-  }
-
-  // ── Do the reported timings describe a person? ──────────────
-  const totalMs = clean.reduce((sum, a) => sum + (a.response_ms ?? 0), 0);
-  if (totalMs < MIN_PLAUSIBLE_TOTAL_MS) {
-    return json({ error: 'That was too quick to be a real attempt' }, 422);
-  }
-
-  // ── Work out the scores ourselves ───────────────────────────
-  const first = clean.filter((a) => a.round === 1);
-  const second = clean.filter((a) => a.round === 2);
-  const correct = clean.filter((a) => a.correct).length;
-
-  const baseline = pct(first.filter((a) => a.correct).length, first.length);
-  const trained = pct(second.filter((a) => a.correct).length, second.length);
-
-  const byType: Record<string, { type: string; seen: number; correct: number }> = {};
-  for (const a of clean) {
-    const t = (byType[a.scam_type] ??= { type: a.scam_type, seen: 0, correct: 0 });
-    t.seen += 1;
-    if (a.correct) t.correct += 1;
-  }
-  const typeBreakdown = Object.values(byType).map((t) => ({
-    ...t,
-    accuracy: pct(t.correct, t.seen),
-  }));
-  const missed = typeBreakdown
-    .filter((t) => t.accuracy < 100)
-    .sort((a, b) => a.accuracy - b.accuracy);
+  // ── Check and mark what the browser observed ────────────────
+  // Includes the plausibility check on the reported timings.
+  const checked = validateAnswers(payload.answers);
+  if (!checked.ok) return json({ error: checked.error }, checked.status);
 
   const sessionId = crypto.randomUUID();
 
   const { error: sessionError } = await db.from('sessions').insert({
     id: sessionId,
     schema_version: 2,
-    score: pct(correct, clean.length),
-    correct,
-    total: clean.length,
-    baseline_score: baseline,
-    trained_score: trained,
-    improvement: trained - baseline,
-    median_response_ms_baseline: median(
-      first.map((a) => a.response_ms ?? 0).filter(Boolean),
-    ),
-    median_response_ms_trained: median(
-      second.map((a) => a.response_ms ?? 0).filter(Boolean),
-    ),
-    total_time_ms: totalMs,
-    scams_waved_through: clean.filter(
-      (a) => !a.correct && a.actual === 'phishing',
-    ).length,
-    weakest_type: missed[0]?.type ?? null,
-    type_breakdown: typeBreakdown,
+    ...summarise(checked.clean, checked.totalMs),
     personalised: payload.personalised === true,
     device: payload.device === 'mobile' ? 'mobile' : 'desktop',
     language: String(payload.language ?? '').slice(0, 20) || 'unknown',
@@ -368,7 +261,7 @@ Deno.serve(async (req) => {
 
   const { error: answersError } = await db
     .from('session_answers')
-    .insert(clean.map((a) => ({ ...a, session_id: sessionId })));
+    .insert(checked.clean.map((a) => ({ ...a, session_id: sessionId })));
 
   if (answersError) {
     // The summary is the record that matters; a run counted without its

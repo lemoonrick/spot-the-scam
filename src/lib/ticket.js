@@ -51,7 +51,15 @@ export async function getTicket() {
   return ticket;
 }
 
-/** A ticket works once, so a replay needs a fresh one. */
-export function clearTicket() {
+/**
+ * Forget the current ticket.
+ *
+ * Pass the ticket a save actually sent, and only that one is forgotten.
+ * A save can still be finishing after the player has pressed Try Again
+ * and the next run has fetched its own ticket; without this, the old
+ * save would wipe the new run's ticket and that run would not be saved.
+ */
+export function clearTicket(which) {
+  if (which !== undefined && which !== ticket) return;
   ticket = null;
 }

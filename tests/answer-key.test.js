@@ -1,8 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { scams } from '../src/scams.js';
+import { ANSWER_KEY } from '../supabase/functions/submit-session/scoring.ts';
 
 const FUNCTION = 'supabase/functions/submit-session/index.ts';
+const SCORING = 'supabase/functions/submit-session/scoring.ts';
 
 /**
  * The Edge Function keeps its own copy of the answer key, because it is
@@ -13,31 +15,20 @@ const FUNCTION = 'supabase/functions/submit-session/index.ts';
  * function is not updated, every player who answers it correctly is
  * recorded as wrong, and /impact quietly reports a lie. Nothing at
  * runtime would notice, so it is checked here.
+ *
+ * The key used to be pulled out of the function's source with a regular
+ * expression. It lives in a plain module now, so it is imported instead.
  */
-function parseAnswerKey(source) {
-  const block = source.slice(
-    source.indexOf('const ANSWER_KEY'),
-    source.indexOf('};', source.indexOf('const ANSWER_KEY')),
-  );
-  const key = {};
-  for (const [, id, type, verdict] of block.matchAll(
-    /(\d+):\s*\{\s*type:\s*'([^']+)',\s*verdict:\s*'([^']+)'\s*\}/g,
-  )) {
-    key[Number(id)] = { type, verdict };
-  }
-  return key;
-}
-
 describe('server answer key', () => {
-  const key = parseAnswerKey(readFileSync(FUNCTION, 'utf8'));
+  const key = ANSWER_KEY;
 
-  it('was parsed at all', () => {
+  it('is not empty', () => {
     expect(Object.keys(key).length).toBeGreaterThan(0);
   });
 
   it('covers every scam in the quiz', () => {
     for (const s of scams) {
-      expect(key[s.id], `scam ${s.id} is missing from ${FUNCTION}`).toBeDefined();
+      expect(key[s.id], `scam ${s.id} is missing from ${SCORING}`).toBeDefined();
     }
   });
 
@@ -65,8 +56,11 @@ describe('the browser is not trusted', () => {
     expect(source).not.toMatch(/payload\.(score|baselineScore|trainedScore|improvement)/);
   });
 
-  it('decides correctness against its own key', () => {
-    expect(source).toContain('correct: chosen === key.verdict');
+  it('leaves all marking to the scoring module', () => {
+    // Right and wrong are decided in scoring.ts, which never sees the
+    // raw request. Its behaviour is tested directly in scoring.test.js.
+    expect(source).toContain('validateAnswers(payload.answers)');
+    expect(readFileSync(SCORING, 'utf8')).not.toMatch(/payload/);
   });
 
   // Turnstile is optional now, so these are what actually holds abuse
@@ -81,9 +75,10 @@ describe('the browser is not trusted', () => {
     expect(source).toContain("gte('created_at', cutoff)");
   });
 
-  it('rejects a quiz finished impossibly fast', () => {
+  it('rejects a quiz finished impossibly soon after it started', () => {
+    // The ticket-age half of the timing check lives here, because it
+    // needs the database. The per-answer timing half is in scoring.ts.
     expect(source).toContain('MIN_QUIZ_SECONDS');
-    expect(source).toContain('MIN_PLAUSIBLE_TOTAL_MS');
   });
 
   it('rate-limits both issuing and submitting', () => {

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { scams as allScams } from './scams';
 import { buildMatchedRounds, roundFor } from './session';
 import { EMPTY_IDENTITY, personalizeScam } from './identity';
-import { requestTicket } from './lib/ticket';
+import { clearTicket, requestTicket } from './lib/ticket';
 import ResultsScreen from './ResultsScreen';
 import SmsScam from './components/SmsScam';
 import WhatsAppScam from './components/WhatsAppScam';
@@ -13,7 +13,14 @@ import UpiScam from './components/UpiScam';
 import FlagCard from './components/FlagCard';
 import { useFlagCardPosition } from './hooks/useFlagCardPosition';
 
-export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
+/**
+ * One run of the quiz, from the first question to the results.
+ *
+ * A run is never reset in place. Try Again asks the parent to mount a
+ * fresh copy instead (see `runId` in App.jsx), which deals a new order
+ * and starts a new ticket without any state from the last run to clear.
+ */
+export default function ScamScreen({ identity = EMPTY_IDENTITY, onRestart }) {
   // The player's name is woven into the message text here, so every
   // simulated scam addresses them the way a real one would.
   const scams = useMemo(
@@ -69,9 +76,12 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
     setScamIndex((prev) => prev + 1);
   };
 
-  // Ask the server for a ticket up front, so it is well past the
-  // minimum age by the time anyone reaches the end.
+  // Every run starts its own ticket, up front, so it is well past the
+  // minimum age by the time anyone reaches the end. Anything left over
+  // from an earlier run is dropped first: if that run's save was cut off
+  // by a lost connection, its ticket may already be spent.
   useEffect(() => {
+    clearTicket();
     requestTicket();
   }, []);
 
@@ -84,16 +94,7 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY }) {
 
   if (scamIndex >= scams.length) {
     return (
-      <ResultsScreen
-        results={results}
-        identity={identity}
-        onRestart={() => {
-          resetForNextQuestion();
-          setResults([]);
-          setScamIndex(0);
-          setShowHalftime(false);
-        }}
-      />
+      <ResultsScreen results={results} identity={identity} onRestart={onRestart} />
     );
   }
 

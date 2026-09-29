@@ -1,6 +1,6 @@
 import { isConfigured, publicHeaders, supabaseUrl } from './supabase';
 import { getTurnstileToken } from './turnstile';
-import { clearTicket, getTicket, requestTicket } from './ticket';
+import { clearTicket, getTicket } from './ticket';
 
 const FUNCTION_NAME = 'submit-session';
 
@@ -49,14 +49,21 @@ export async function saveSession(summary, results = []) {
       }),
     });
 
+    // Any answer from the server means the ticket has been dealt with.
+    // It is redeemed before the answers are checked, so a refusal such
+    // as "too quick" has spent it too. Keeping it would make the next
+    // play from this tab fail with "cannot be submitted again".
+    //
+    // No replacement is fetched here. The next run asks for its own
+    // when it starts, so every ticket stands for a run that began; a
+    // spare fetched now would count as a start that never happened.
+    clearTicket(ticket);
+
     if (!res.ok) {
       const body = await res.text();
       console.warn('[spot-the-scam] session not saved:', res.status, body);
       return { saved: false, reason: body };
     }
-    // Spent. A second run needs a new one.
-    clearTicket();
-    requestTicket();
     return { saved: true };
   } catch (err) {
     // Offline, DNS failure, blocked by an extension.

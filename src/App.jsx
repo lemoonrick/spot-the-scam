@@ -42,6 +42,15 @@ function Quiz() {
   const [step, setStep] = useState('start');
   // Held in memory only. Never persisted, never sent anywhere.
   const [identity, setIdentity] = useState(EMPTY_IDENTITY);
+  // Each run of the quiz is a fresh mount. Bumping this on Try Again
+  // gives a new question order and a new ticket, with nothing carried
+  // over from the run before.
+  const [runId, setRunId] = useState(0);
+
+  const playAgain = () => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    setRunId((n) => n + 1);
+  };
 
   return (
     <div className="app">
@@ -60,7 +69,9 @@ function Quiz() {
         />
       )}
 
-      {step === 'quiz' && <ScamScreen identity={identity} />}
+      {step === 'quiz' && (
+        <ScamScreen key={runId} identity={identity} onRestart={playAgain} />
+      )}
     </div>
   );
 }
