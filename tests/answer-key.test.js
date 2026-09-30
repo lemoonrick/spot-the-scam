@@ -59,7 +59,7 @@ describe('the browser is not trusted', () => {
   it('leaves all marking to the scoring module', () => {
     // Right and wrong are decided in scoring.ts, which never sees the
     // raw request. Its behaviour is tested directly in scoring.test.js.
-    expect(source).toContain('validateAnswers(payload.answers)');
+    expect(source).toContain('validateAnswers(payload.answers, mode)');
     expect(readFileSync(SCORING, 'utf8')).not.toMatch(/payload/);
   });
 
@@ -84,6 +84,36 @@ describe('the browser is not trusted', () => {
   it('rate-limits both issuing and submitting', () => {
     expect(source).toContain("'start', MAX_TICKETS_PER_IP_PER_HOUR");
     expect(source).toContain("'submit', MAX_PER_IP_PER_HOUR");
+  });
+
+  it('reads the mode and room from its own ticket, never the request', () => {
+    // Otherwise a browser could claim workshop mode, or drop plays into a
+    // room it never joined and skew that workshop's report.
+    expect(source).not.toMatch(/payload\.(mode|room_id|roomId|round)\b/);
+    expect(source).toMatch(/mode: Mode = ticketRow\?\.mode === 'workshop'/);
+    expect(source).toContain('room_id: mode === \'workshop\' ? ticketRow!.room_id : null');
+  });
+
+  it('never sends a room\'s private notes to a player', () => {
+    const lookup = source.match(/from\('rooms'\)\s*\.select\('([^']+)'\)/);
+    expect(lookup, 'room lookup not found').not.toBeNull();
+    expect(lookup[1]).not.toMatch(/\*|notes/);
+  });
+
+  it('refuses to start a quiz in a room that is closed or past its time', () => {
+    expect(source).toMatch(/room\.status === 'open' && Date\.now\(\) < new Date\(room\.closes_at\)/);
+    expect(source).toContain('if (!isOpen(room)) return { refusal: ended(room) }');
+  });
+
+  it('caps each room instead of limiting a shared Wi-Fi address', () => {
+    // Thirty people in one room share one public address. A per-address
+    // limit would refuse most of them; the room's own cap is the limit.
+    expect(source).toContain('room.max_participants * ROOM_TICKET_HEADROOM');
+    expect(source).toContain("mode === 'normal' && who && (await overLimit(db, who, 'submit'");
+  });
+
+  it('limits wrong room codes, so codes cannot be guessed', () => {
+    expect(source).toContain("overLimit(db, who, 'room-miss', MAX_ROOM_MISSES_PER_IP_PER_HOUR)");
   });
 
   // The browser sends apikey and authorization. If the preflight does

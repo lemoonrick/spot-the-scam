@@ -30,6 +30,32 @@ export const ANSWER_KEY: Record<number, { type: string; verdict: string }> = {
 export const EXPECTED_ANSWERS = 10;
 export const MAX_RESPONSE_MS = 30 * 60 * 1000;
 
+// Which version of the ten questions this key describes. Change a
+// scam's wording, verdict or flags and this goes up by one, so answers
+// to the old version are never mixed in with answers to the new one.
+export const CONTENT_VERSION = 1;
+
+// A workshop is the public quiz plus a before and after, so it has two
+// halves. The public quiz has none.
+export type Mode = 'normal' | 'workshop';
+
+// Room codes never contain a vowel (so they can't spell a word) or a
+// character easily misread (0 O 1 I L). Must match the database's
+// new_room_code() in 008_modes_and_rooms.sql.
+export const ROOM_CODE_ALPHABET = 'BCDFGHJKMNPQRSTVWXYZ23456789';
+const ROOM_CODE = new RegExp(`^[${ROOM_CODE_ALPHABET}]{6}$`);
+
+/**
+ * Tidy a code as typed — "kft r9m", "KFT-R9M" — into "KFTR9M", or null
+ * if it can't be a real code. Checked before the database is asked, so
+ * nonsense never costs a lookup.
+ */
+export function normaliseRoomCode(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  const code = raw.toUpperCase().replace(/[\s-]/g, '');
+  return ROOM_CODE.test(code) ? code : null;
+}
+
 // The fastest a person can plausibly judge a message they actually
 // read. Anything quicker across the whole quiz is a script.
 export const MIN_PLAUSIBLE_TOTAL_MS = 8000;
@@ -52,7 +78,8 @@ export function median(nums: number[]) {
 export type CleanAnswer = {
   scam_id: number;
   scam_type: string;
-  round: number;
+  position: number;
+  round: number | null;
   chosen: string;
   actual: string;
   correct: boolean;
@@ -66,11 +93,16 @@ export type Checked =
 /**
  * Check what the browser says it observed, and mark it.
  *
- * Only which message, what was chosen, which half and how long are read
- * from each answer. Anything else the caller includes — a `correct` flag,
- * a score — is ignored, because nothing here looks for it.
+ * Only which message, what was chosen and how long are read from each
+ * answer. Anything else the caller includes — a `correct` flag, a score,
+ * which half it thinks a question was in — is ignored.
+ *
+ * Answers arrive in the order they were shown, so the order *is* the
+ * position. In a workshop, positions 1 to 5 are the first half and 6 to
+ * 10 the second: the server decides what counts as "before", rather than
+ * taking the browser's word for it.
  */
-export function validateAnswers(answers: unknown): Checked {
+export function validateAnswers(answers: unknown, mode: Mode): Checked {
   const list = Array.isArray(answers) ? answers : [];
   if (list.length !== EXPECTED_ANSWERS) {
     return { ok: false, status: 400, error: `Expected ${EXPECTED_ANSWERS} answers` };
@@ -91,10 +123,9 @@ export function validateAnswers(answers: unknown): Checked {
       return { ok: false, status: 400, error: 'Invalid answer' };
     }
 
-    const round = Number(a?.round);
-    if (round !== 1 && round !== 2) {
-      return { ok: false, status: 400, error: 'Invalid round' };
-    }
+    const position = clean.length + 1;
+    const round =
+      mode === 'workshop' ? (position <= EXPECTED_ANSWERS / 2 ? 1 : 2) : null;
 
     const ms = Number(a?.responseMs);
     const responseMs =
@@ -103,6 +134,7 @@ export function validateAnswers(answers: unknown): Checked {
     clean.push({
       scam_id: scamId,
       scam_type: key.type,
+      position,
       round,
       chosen,
       actual: key.verdict,
@@ -110,6 +142,18 @@ export function validateAnswers(answers: unknown): Checked {
       correct: chosen === key.verdict,
       response_ms: responseMs,
     });
+  }
+
+  // A before/after comparison is only honest if both halves are equally
+  // hard. The quiz deals them that way; refuse a result claiming
+  // otherwise rather than store a measurement that isn't one.
+  if (mode === 'workshop') {
+    const half = EXPECTED_ANSWERS / 2;
+    const scams = (list: CleanAnswer[]) =>
+      list.filter((a) => a.actual === 'phishing').length;
+    if (scams(clean.slice(0, half)) * 2 !== scams(clean)) {
+      return { ok: false, status: 400, error: 'The two halves do not match' };
+    }
   }
 
   // Do the reported timings describe a person?
@@ -121,8 +165,15 @@ export function validateAnswers(answers: unknown): Checked {
   return { ok: true, clean, totalMs };
 }
 
-/** Every figure stored against a play, worked out from marked answers. */
-export function summarise(clean: CleanAnswer[], totalMs: number) {
+/**
+ * Every figure stored against a play, worked out from marked answers.
+ *
+ * A normal play has no halves, so its before, after and improvement are
+ * empty rather than zero. Zero would read as a real score, and an
+ * "improvement" of minus sixty.
+ */
+export function summarise(clean: CleanAnswer[], totalMs: number, mode: Mode) {
+  const measured = mode === 'workshop';
   const first = clean.filter((a) => a.round === 1);
   const second = clean.filter((a) => a.round === 2);
   const correct = clean.filter((a) => a.correct).length;
@@ -150,15 +201,15 @@ export function summarise(clean: CleanAnswer[], totalMs: number) {
     score: pct(correct, clean.length),
     correct,
     total: clean.length,
-    baseline_score: baseline,
-    trained_score: trained,
-    improvement: trained - baseline,
-    median_response_ms_baseline: median(
-      first.map((a) => a.response_ms ?? 0).filter(Boolean),
-    ),
-    median_response_ms_trained: median(
-      second.map((a) => a.response_ms ?? 0).filter(Boolean),
-    ),
+    baseline_score: measured ? baseline : null,
+    trained_score: measured ? trained : null,
+    improvement: measured ? trained - baseline : null,
+    median_response_ms_baseline: measured
+      ? median(first.map((a) => a.response_ms ?? 0).filter(Boolean))
+      : null,
+    median_response_ms_trained: measured
+      ? median(second.map((a) => a.response_ms ?? 0).filter(Boolean))
+      : null,
     total_time_ms: totalMs,
     scams_waved_through: clean.filter((a) => !a.correct && a.actual === 'phishing')
       .length,
