@@ -20,11 +20,16 @@ Run them in number order:
 | `008_modes_and_rooms.sql` | Workshop rooms; which mode and room each play was in; the order each question was shown |
 | `009_admin_and_rules.sql` | Every play must be `normal` or `workshop`; the admin list; only the admin can read plays or manage rooms |
 | `010_new_views.sql` | The public summary, the per-question figures, and the admin's room reports |
+| `011_lock_impact_views.sql` | The detailed impact figures become admin-only, and count workshop first attempts for before/after |
 
 Each should answer **"Success. No rows returned."** If one shows a red
 error, stop there — later files depend on earlier ones.
 
-**On a project that is already live,** `009` must wait until the
+**On a project that is already live,** `011` must wait until the new
+site has been uploaded: the old site's `/impact` page reads those views
+with the public key, and `011` takes that away. Upload first, then run it.
+
+Likewise `009` must wait until the
 updated `submit-session` function is deployed (it requires every play to
 say which mode it was in, which the old function doesn't), and it refuses
 to run while plays from before the change are still stored. On a new

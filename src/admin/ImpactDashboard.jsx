@@ -12,18 +12,10 @@ import {
   TrendUp,
   Warning,
 } from '@phosphor-icons/react';
-import { scams as allScams } from './scams';
-import { loadImpact, RELIABLE_SAMPLE } from './lib/impact';
-import './ImpactDashboard.css';
-
-const TYPE_LABEL = {
-  sms: 'Text message',
-  email: 'Email',
-  whatsapp: 'WhatsApp',
-  instagram: 'Instagram',
-  popup: 'Pop-up window',
-  upi: 'Payment request',
-};
+import { loadImpact } from './impact';
+import { scamLabel, TYPE_LABEL } from './labels';
+import { dateRange, fmtDate, num, plural, RELIABLE_SAMPLE } from '../lib/format';
+import '../ImpactDashboard.css';
 
 const BAND_LABEL = {
   '0-39': 'Under 40',
@@ -33,38 +25,13 @@ const BAND_LABEL = {
 };
 
 const nf = new Intl.NumberFormat('en-IN');
-const num = (v) => (v == null ? '—' : nf.format(v));
 const secs = (ms) => (ms == null ? '—' : `${(ms / 1000).toFixed(1)}s`);
-const plural = (n, one, many) => `${nf.format(n)} ${n === 1 ? one : many}`;
 
-function fmtDate(iso) {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-}
-
-/** "2 Sept 2026" when it all happened on one day, a range otherwise. */
-function dateRange(from, to) {
-  const a = fmtDate(from);
-  const b = fmtDate(to);
-  if (!b) return null;
-  return !a || a === b ? b : `${a} to ${b}`;
-}
-
-/** Human name for a scenario, e.g. "WhatsApp · Jio Support". */
-const SCAM_LABEL = Object.fromEntries(
-  allScams.map((s) => [
-    s.id,
-    `${TYPE_LABEL[s.type] || s.type} · ${s.senderName || s.sender || 'Unknown'}`,
-  ]),
-);
-
-export default function ImpactDashboard() {
+/**
+ * Everything, across every play: the Overall tab on /admin. Read with
+ * the admin's login, so it shows nothing to anyone else.
+ */
+export default function ImpactDashboard({ onError = () => {} }) {
   const [state, setState] = useState({ status: 'loading' });
   const [detail, setDetail] = useState('chart');
 
@@ -72,11 +39,14 @@ export default function ImpactDashboard() {
     let alive = true;
     loadImpact()
       .then((data) => alive && setState({ status: 'ready', data }))
-      .catch((err) => alive && setState({ status: 'error', error: err.message }));
+      .catch((err) => {
+        onError(err);
+        if (alive) setState({ status: 'error', error: err.message });
+      });
     return () => {
       alive = false;
     };
-  }, []);
+  }, [onError]);
 
   if (state.status === 'loading') return <Loading />;
   if (state.status === 'error') return <Failed message={state.error} />;
@@ -221,7 +191,7 @@ export default function ImpactDashboard() {
           <FailBars
             rows={byScam.map((r) => ({
               key: r.scam_id,
-              name: SCAM_LABEL[r.scam_id] || `Message ${r.scam_id}`,
+              name: scamLabel(r.scam_id),
               pct: r.wrong_pct ?? 0,
               tip: `${plural(r.times_wrong, 'person', 'people')} out of ${nf.format(r.times_shown)} got it wrong`,
             }))}
@@ -451,7 +421,7 @@ function ScamTable({ rows }) {
         <tbody>
           {rows.map((r) => (
             <tr key={r.scam_id}>
-              <td>{SCAM_LABEL[r.scam_id] || `Message ${r.scam_id}`}</td>
+              <td>{scamLabel(r.scam_id)}</td>
               <td>{nf.format(r.times_shown)}</td>
               <td>{nf.format(r.times_wrong)}</td>
               <td>{r.wrong_pct ?? 0}%</td>

@@ -31,8 +31,8 @@ Hostinger's File Manager hides it by default: turn on "show hidden
 files" and confirm it is there. Without it the quiz works but
 `/spot-the-scam/impact` returns 404.
 
-**5. Open the site.** The quiz at `/spot-the-scam/`, the dashboard at
-`/spot-the-scam/impact`.
+**5. Open the site.** The quiz at `/spot-the-scam/`, the public results
+at `/spot-the-scam/impact`, and the admin pages at `/spot-the-scam/admin`.
 
 If the host will not honour `.htaccess`, the dashboard is also reachable
 at `/spot-the-scam/#/impact`, which needs no server configuration at
@@ -59,6 +59,40 @@ into every asset path.
 
 **Updating later:** rebuild, then re-upload the contents of `dist/`.
 Delete the old `assets/` folder first so stale files do not pile up.
+
+## Running a workshop
+
+**Before the day.** Log in at `/admin` and create the workshop: its name
+(players see it when they join), the date, when the link stops working,
+and roughly how many people. You get a six-character code, a link and a
+QR code. **Download QR for slides** saves it as an image for your
+presentation.
+
+**The day before, every time:**
+
+1. Create a separate *test* workshop, open its link on a phone using
+   mobile data (not the venue Wi-Fi), and play it through.
+2. Check the result says **Saved to …** and appears in the test
+   workshop's report.
+3. Delete the test workshop.
+4. Check the real workshop's close time still covers the session.
+
+This also wakes the database. On Supabase's free plan a project pauses
+after about a week with no activity, and a paused project would fail on
+the day.
+
+**During the session.** Put the QR code on screen. The workshop's card
+in `/admin` shows *N joined · N finished*, refreshing itself every 15
+seconds. Ask the room "does yours say *Saved*?" at the end. If the
+session runs over, **+2 hours** keeps the link open.
+
+**Afterwards.** Open the workshop's **Report** for the headline figures
+and each message before and after, or **Download spreadsheet** for every
+answer. **Close now** stops new people joining; anyone still mid-quiz is
+still saved.
+
+**Never deploy on a workshop day.** Uploading a new version removes the
+old files, and anyone in the middle of the quiz gets a blank page.
 
 ## A domain of its own
 

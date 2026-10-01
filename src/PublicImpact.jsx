@@ -8,8 +8,7 @@ import {
   Warning,
 } from '@phosphor-icons/react';
 import { isConfigured, restSelect } from './lib/supabase';
-import { RELIABLE_SAMPLE } from './lib/impact';
-import { dateRange, num, plural, signed } from './lib/format';
+import { dateRange, num, plural, RELIABLE_SAMPLE, signed } from './lib/format';
 import './ImpactDashboard.css';
 
 /**

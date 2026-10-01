@@ -32,3 +32,11 @@ export function dateRange(from, to) {
   if (!b) return null;
   return !a || a === b ? b : `${a} to ${b}`;
 }
+
+/**
+ * Below this many plays an average is noise, not a finding. Both impact
+ * pages still show the numbers, but say plainly that they are
+ * provisional. Publishing a confident "+34 points" off six plays would
+ * discredit every other figure on the page.
+ */
+export const RELIABLE_SAMPLE = 30;

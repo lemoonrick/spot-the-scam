@@ -1,0 +1,599 @@
+/* ============================================================
+   Admin — /admin
+   Plain and legible: this is a working tool, often used on a laptop
+   at the front of a room while a workshop is running.
+   ============================================================ */
+
+.ad-page {
+  min-height: 100dvh;
+  background: #f8fafc;
+  color: var(--text-main);
+  font-family: 'Poppins', system-ui, sans-serif;
+}
+
+.ad-muted {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.ad-good {
+  color: var(--green-dark);
+}
+.ad-bad {
+  color: var(--red-dark);
+}
+.ad-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.ad-h1 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+}
+.ad-h2 {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+/* ── Top bar ── */
+.ad-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 28px;
+  background: #fff;
+  border-bottom: 1px solid var(--border-soft);
+}
+.ad-brand {
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+}
+.ad-brand-tag {
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #0f172a;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: 2px;
+}
+.ad-tabs {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+.ad-tabs button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  box-shadow: none;
+}
+.ad-tabs button:hover {
+  background: #f1f5f9;
+  transform: none;
+}
+.ad-tabs button.is-on {
+  background: #f1f5f9;
+  color: var(--text-main);
+}
+.ad-who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+.ad-email {
+  color: var(--text-muted);
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ad-logout {
+  padding: 6px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.ad-main {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px 28px 80px;
+}
+
+/* ── Buttons and fields ── */
+.ad-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: none;
+}
+.ad-btn:hover {
+  background: #f8fafc;
+  transform: none;
+}
+.ad-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ad-btn-primary {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #fff;
+}
+.ad-btn-primary:hover {
+  background: #1e293b;
+}
+.ad-btn-danger {
+  color: var(--red-dark);
+  border-color: #fecaca;
+}
+.ad-btn-danger-solid {
+  background: var(--red-dark);
+  border-color: var(--red-dark);
+  color: #fff;
+}
+.ad-btn-danger-solid:hover {
+  background: #b91c1c;
+}
+
+.ad-label {
+  display: block;
+  margin: 14px 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+.ad-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text-main);
+}
+.ad-input:focus {
+  outline: none;
+  border-color: #0f172a;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+}
+.ad-input-code {
+  width: 130px;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+.ad-input-suffix {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.ad-error {
+  margin-top: 12px;
+  color: var(--red-dark);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+.ad-caution {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  font-size: 13.5px;
+  color: #78350f;
+}
+
+/* ── Login ── */
+.ad-login {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background: #f8fafc;
+}
+.ad-login-card {
+  width: 100%;
+  max-width: 380px;
+  padding: 32px 28px;
+  background: #fff;
+  border: 1px solid var(--border-soft);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+}
+.ad-login-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 2px 0 4px;
+}
+.ad-login-btn {
+  width: 100%;
+  justify-content: center;
+  margin-top: 20px;
+  padding: 11px;
+  font-size: 15px;
+}
+.ad-footnote {
+  margin-top: 14px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* ── Workshops list ── */
+.ad-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+.ad-room-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ad-room {
+  padding: 18px 20px;
+  background: #fff;
+  border: 1px solid var(--border-soft);
+  border-left: 4px solid var(--green);
+  border-radius: 14px;
+}
+.ad-room-ended,
+.ad-room-closed {
+  border-left-color: #cbd5e1;
+}
+.ad-room-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ad-room-name {
+  font-size: 17px;
+  font-weight: 700;
+}
+.ad-room-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.ad-room-code {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--text-main);
+}
+.ad-room-count {
+  margin: 12px 0 0;
+  font-size: 14px;
+  color: #334155;
+}
+.ad-room-notes {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+.ad-room-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.ad-pill {
+  align-self: flex-start;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.ad-pill-open {
+  background: var(--correct-bg);
+  color: var(--green-dark);
+}
+.ad-pill-ended,
+.ad-pill-closed {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.ad-confirm {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  font-size: 14px;
+}
+.ad-confirm-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ad-empty {
+  padding: 36px 24px;
+  text-align: center;
+  background: #fff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+}
+
+/* ── New workshop form ── */
+.ad-form {
+  margin-bottom: 22px;
+  padding: 22px 24px;
+  background: #fff;
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+}
+.ad-form-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.ad-form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+/* ── Share: the QR on screen ── */
+.ad-share {
+  padding: 28px;
+  background: #fff;
+  border: 1px solid var(--border-soft);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+}
+.ad-share-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+.ad-share-title {
+  font-size: 24px;
+  font-weight: 700;
+}
+.ad-share-body {
+  display: flex;
+  gap: 40px;
+  margin-top: 24px;
+  align-items: flex-start;
+}
+.ad-share-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.ad-share-qr .qr {
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+}
+.ad-share-info {
+  flex: 1;
+  min-width: 0;
+}
+/* Big enough to read from the back of a room. */
+.ad-share-code {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 56px;
+  font-weight: 700;
+  letter-spacing: 8px;
+  line-height: 1.1;
+}
+.ad-share-gap {
+  margin-top: 24px;
+}
+.ad-share-link {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.ad-share-link code {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Room report ── */
+.ad-back {
+  margin-bottom: 18px;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  box-shadow: none;
+}
+.ad-back:hover {
+  color: var(--text-main);
+  transform: none;
+}
+/* The sentence the report exists for. */
+.ad-report-headline {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.3px;
+}
+.ad-report-sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin: 12px 0 22px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+.ad-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.ad-tile {
+  display: flex;
+  flex-direction: column;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+}
+.ad-tile-value {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.ad-arrow {
+  margin: 0 6px;
+  color: #94a3b8;
+  font-weight: 400;
+}
+.ad-tile-label {
+  margin-top: 2px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.ad-tile-sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.ad-callouts {
+  margin-bottom: 16px;
+  padding: 14px 18px;
+  background: #fff;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.ad-card {
+  padding: 22px 24px;
+  background: #fff;
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+}
+.ad-tablewrap {
+  overflow-x: auto;
+  margin-top: 14px;
+}
+.ad-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.ad-table th {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.ad-table td {
+  padding: 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.ad-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ad-change {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ── Phone ── */
+@media (max-width: 760px) {
+  .ad-bar {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 16px;
+  }
+  .ad-tabs {
+    order: 3;
+    flex-basis: 100%;
+  }
+  .ad-email {
+    display: none;
+  }
+  .ad-main {
+    padding: 22px 16px 60px;
+  }
+  .ad-section-head {
+    flex-direction: column;
+  }
+  .ad-form-row,
+  .ad-tiles {
+    grid-template-columns: 1fr 1fr;
+  }
+  .ad-share-body {
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+  .ad-share-code {
+    font-size: 40px;
+    letter-spacing: 5px;
+  }
+  .ad-report-headline {
+    font-size: 20px;
+  }
+}

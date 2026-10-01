@@ -39,26 +39,54 @@ Every UI is built in React with CSS that matches the real thing, fonts, colors, 
 
 When you click "Show me →", the app highlights the exact suspicious element inside the UI a spoofed sender address, a fake domain, an urgency phrase and shows a FlagCard explaining _why_ it's a red flag. Multi-flag scams step through each flag one by one.
 
-### Two Matched Halves, So Learning Can Be Measured
+### Two Modes: the Public Quiz and Workshops
 
-The 10 examples are split into two rounds of five. Both halves are shuffled, but they are drawn so that each contains the same mix of real and fake messages — five genuine, five phishing, spread evenly. That means the second half is as hard as the first, and the difference between the two scores is a measurement rather than luck.
+**The public quiz** is ten messages in a row with the red flags after
+each, then a score. Nothing more to it.
 
-You see the red flags after every answer in both halves. The gap between round one and round two is what the app reports as learning.
+**A workshop** is reached through a room: the facilitator shows a QR code
+or a six-character code, and players join with it. The start screen says
+"You're joining: Pune College Workshop" before anything begins. The ten
+messages are then split into two rounds of five, drawn so that each holds
+the same mix of real and fake. That makes the second half as hard as the
+first, so the difference between the two scores is a measurement rather
+than luck. Every play is filed under its room, so each workshop gets its
+own report.
+
+The mode is decided by the server when it issues the quiz's ticket, not
+by anything the browser sends with the result, so a play can't claim to
+belong to a workshop it never joined.
 
 ### Results Screen
 
 After all 10 questions, you get:
 
 - An SVG ring chart showing your correct/incorrect ratio
-- Your score in each half, and the improvement between them
-- The kind of message you found hardest, shown only when enough questions of that kind were seen to mean anything
-- A per-question review of every answer you gave
+- In a workshop, your score in each half and the improvement between them
+- How many real scams you trusted, and the kind of message you found hardest (named only when enough questions of that kind were seen to mean anything)
+- A per-question review of every answer you gave, each with a line comparing you to other players — "You trusted this one. So did 70% of players." These appear once a question has 50 answers, never say "top 10%", and never claim 0% or 100%
 - A shareable summary card
 - Direct links to relevant FactTree fact-check articles for each scam
 
+### Admin
+
+`/admin`, behind a login, is where a facilitator runs workshops: create
+one, show its QR code (and download it for slides), watch *N joined · N
+finished* fill in live, close or extend it, open its report — "Room
+KFTR9M · Pune College Workshop — 12 Sept · 23 participants · Average
+improvement +26" — and download every answer as a spreadsheet. The full
+dashboard across every play lives here too.
+
+Only accounts on the database's admins list see anything. See
+`DEPLOY.md` for running a workshop, and `supabase/README.md` for adding
+an admin.
+
 ### Public Results Page
 
-`/impact` publishes what the quiz has achieved across everyone who has played: how many plays have been completed, average score, how much scores improve between the halves, how often a real scam was trusted, and which messages catch people out most.
+`/impact` publishes the headline figures anyone can check: quizzes
+completed, workshops held, workshop participants, and how much workshop
+participants improved, with a plain account of how that is measured. It
+never shows a workshop's name or anything about a single play.
 
 It counts **completed plays**, not people. Nothing is stored on a visitor's device, so the app cannot tell a returning player from a new one and does not pretend otherwise.
 
@@ -86,7 +114,8 @@ A live progress bar at the top of the quiz tracks where you are in the 10 questi
 | Routing   | Path check for `/impact`; the quiz is a state machine                          |
 | Data      | Static JS module (`scams.js`); results in Supabase                             |
 | Backend   | One Supabase Edge Function (Deno) — the only thing allowed to write            |
-| Icons     | Phosphor, on the dashboard only, in its own bundle                             |
+| Icons     | Phosphor, on the impact and admin pages only, in their own bundles             |
+| QR codes  | uqr (zero dependencies), on the admin page only                                |
 | Fonts     | Poppins via Google Fonts                                                       |
 | Tests     | Vitest, run on every push by GitHub Actions                                    |
 | Build     | Vite                                                                           |
@@ -95,11 +124,12 @@ The quiz itself is fully static and deployable to any host. Results are
 sent to a Supabase Edge Function, which scores them and stores them
 anonymously; the app works perfectly with none of that configured.
 
-No runtime dependency beyond React. The Supabase client library was
-dropped in favour of plain `fetch` — 58KB gzipped is a real cost on a
-rural connection, and the app makes a handful of simple requests. The
-icon set ships only to `/impact`, which is code-split so the quiz never
-downloads it.
+The quiz itself needs nothing beyond React. The Supabase client library
+was dropped in favour of plain `fetch` — 58KB gzipped is a real cost on
+a rural connection, and the app makes a handful of simple requests. The
+admin login is plain `fetch` too. The icon set and the QR code library
+ship only to `/impact` and `/admin`, which are code-split, so a player
+answering ten questions never downloads them.
 
 See `DEPLOY.md` for hosting, `supabase/functions/README.md` for the
 result-collection setup, and `tests/README.md` for what the tests
@@ -111,32 +141,46 @@ cover.
 
 ```
 src/
-├── App.jsx                  # Root. picks the quiz or /impact, lazy-loads the dashboard
+├── App.jsx                  # Root. picks the quiz, /impact or /admin; holds the workshop room
 ├── App.css                  # Global tokens, animations, ScamScreen and FlagCard styles
 ├── scams.js                 # All 10 scam definitions (message data + flags + anchors + articles)
-├── ScamScreen.jsx           # Core quiz logic. phase state machine
-├── ResultsScreen.jsx        # Results screen with SVG ring chart
-├── ImpactDashboard.jsx      # Public figures at /impact (its own bundle)
+├── StartScreen.jsx          # Landing page, with the workshop join
+├── ScamScreen.jsx           # Core quiz logic. phase state machine, both modes
+├── ResultsScreen.jsx        # Results, comparison lines, workshop save status
+├── PublicImpact.jsx         # Public headline figures at /impact (its own bundle)
 ├── NameScreen.jsx           # Optional first name, used inside the scams
-├── session.js               # Matched halves, scoring, before/after measurement
+├── session.js               # Question order per mode, scoring, before/after
 ├── identity.js              # Name handling, never stored
 ├── hooks/
 │   └── useFlagCardPosition.js  # Where the explanation card goes, and scrolling
 ├── lib/
-│   ├── saveSession.js       # Posts a finished play to the Edge Function
-│   ├── ticket.js            # One-time ticket, requested when the quiz starts
-│   ├── supabase.js          # Read-only REST helper for the dashboard
-│   ├── impact.js            # Loads and caches the public figures
+│   ├── route.js             # Which page a URL is
+│   ├── room.js              # Workshop codes, links, and checking a code
+│   ├── ticket.js            # One-time ticket, requested when a run starts
+│   ├── saveSession.js       # Posts a finished play; retries a dropped connection
+│   ├── questionStats.js     # How every player did on each question
+│   ├── comparisons.js       # The "70% of players…" lines, and their honesty rules
+│   ├── supabase.js          # Public-key requests, with one retry for a waking server
+│   ├── format.js            # Numbers and dates, shared by both impact pages
 │   └── htmlToText.js        # Decodes feed titles instead of injecting HTML
-└── components/
-    ├── FlagCard.jsx         # Floating explanation card
-    ├── flagAnchor.js        # Pairs a flag with the element it points at
-    ├── SmsScam.jsx          # SMS UI
-    ├── WhatsAppScam.jsx     # WhatsApp UI
-    ├── EmailScam.jsx        # Gmail UI
-    ├── InstagramScam.jsx    # Instagram DM UI
-    ├── PopupScam.jsx        # Browser popup UI
-    └── UpiScam.jsx          # UPI mobile UI
+├── components/
+│   ├── FlagCard.jsx         # Floating explanation card
+│   ├── flagAnchor.js        # Pairs a flag with the element it points at
+│   ├── WorkshopJoin.jsx     # "You're joining…", ended rooms, typing a code
+│   ├── ImpactPanel.jsx      # A workshop's before and after
+│   ├── Stats.jsx            # Scams trusted, biggest blind spot
+│   ├── ShareCard.jsx        # Shareable result image
+│   └── …Scam.jsx            # The six simulated screens
+└── admin/                   # /admin only — a separate download players never get
+    ├── AdminApp.jsx         # Login gate and tabs
+    ├── auth.js              # Email + password login, this tab only
+    ├── api.js               # Reads and writes with the admin's own login
+    ├── RoomsScreen.jsx      # Workshops: create, live counts, close, extend, delete
+    ├── RoomReport.jsx       # One workshop's results and spreadsheet
+    ├── SharePanel.jsx       # QR code, code and link for the screen
+    ├── QrCode.jsx           # QR drawn as SVG squares
+    ├── csv.js               # Spreadsheet export
+    └── ImpactDashboard.jsx  # The full dashboard across every play
 
 supabase/                    # SQL migrations + the submit-session Edge Function
 tests/                       # Vitest suite, run on every push by GitHub Actions

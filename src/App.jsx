@@ -11,9 +11,19 @@ import { lookupRoom, readRoomParam, setRoomParam } from './lib/room';
 // destination from the quiz, and people on slow connections should not
 // download them just to answer ten questions.
 const PublicImpact = lazy(() => import('./PublicImpact'));
+// The admin pages, their login and the QR code library: a separate
+// download, fetched only by whoever opens /admin.
+const AdminApp = lazy(() => import('./admin/AdminApp'));
 
 export default function App() {
   const route = routeFor(window.location, import.meta.env.BASE_URL || '/');
+  if (route === 'admin') {
+    return (
+      <Suspense fallback={<div className="im-boot" />}>
+        <AdminApp />
+      </Suspense>
+    );
+  }
   if (route === 'impact') {
     return (
       <Suspense fallback={<div className="im-boot" />}>
