@@ -4,9 +4,9 @@
 //  Every quiz run produces one anonymous "session" object.
 //  Nothing here identifies a person: no name, email, IP or login.
 //
-//  This module is deliberately isolated from the UI so that
-//  Phase 2 can POST buildSessionSummary() straight to a database
-//  without touching any component.
+//  This module is deliberately isolated from the UI: it decides the
+//  order a run is dealt in and works out the figures shown at the end,
+//  and none of it needs a screen to test.
 // ============================================================
 
 // A "blind spot" drawn from a single question is just one wrong answer.
@@ -42,6 +42,19 @@ export function buildMatchedRounds(allScams) {
   return [...roundOne, ...roundTwo];
 }
 
+/**
+ * The order a run is dealt in.
+ *
+ * A workshop measures learning, so it gets two matched halves. The
+ * public quiz measures nothing, so it is a plain shuffle of all ten:
+ * there is no "first half" for anyone to compare against.
+ *
+ * @param {'normal' | 'workshop'} mode
+ */
+export function buildQuizOrder(allScams, mode) {
+  return mode === 'workshop' ? buildMatchedRounds(allScams) : shuffle(allScams);
+}
+
 export function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -70,8 +83,17 @@ function median(nums) {
 /**
  * Turn a finished run into the numbers stakeholders actually ask for.
  * `results` is the array collected by ScamScreen.
+ *
+ * Only a workshop has a before and an after. In the public quiz those
+ * figures are null rather than zero: zero would read as a real score,
+ * and an "improvement" of minus sixty. The server applies the same rule
+ * to what it stores.
  */
-export function buildSessionSummary(results, { personalised = false } = {}) {
+export function buildSessionSummary(
+  results,
+  { personalised = false, mode = 'normal' } = {},
+) {
+  const measured = mode === 'workshop';
   const total = results.length;
   const correct = results.filter((r) => r.verdictCorrect).length;
 
@@ -116,12 +138,17 @@ export function buildSessionSummary(results, { personalised = false } = {}) {
     correct,
     score: pct(correct, total),
 
-    baselineScore,
-    trainedScore,
-    improvement: trainedScore - baselineScore,
+    mode,
+    baselineScore: measured ? baselineScore : null,
+    trainedScore: measured ? trainedScore : null,
+    improvement: measured ? trainedScore - baselineScore : null,
 
-    medianResponseMsBaseline: median(baseline.map((r) => r.responseMs)),
-    medianResponseMsTrained: median(trained.map((r) => r.responseMs)),
+    medianResponseMsBaseline: measured
+      ? median(baseline.map((r) => r.responseMs))
+      : null,
+    medianResponseMsTrained: measured
+      ? median(trained.map((r) => r.responseMs))
+      : null,
     totalTimeMs: results.reduce((sum, r) => sum + (r.responseMs || 0), 0),
 
     scamsWavedThrough,

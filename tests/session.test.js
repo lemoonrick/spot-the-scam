@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { scams } from '../src/scams.js';
 import {
   buildMatchedRounds,
+  buildQuizOrder,
   buildSessionSummary,
   roundFor,
 } from '../src/session.js';
@@ -55,11 +56,61 @@ describe('matched rounds', () => {
   });
 });
 
+describe('the public quiz (normal mode)', () => {
+  it('deals all ten, each exactly once', () => {
+    const order = buildQuizOrder(scams, 'normal');
+    expect(order).toHaveLength(scams.length);
+    expect(new Set(order.map((s) => s.id)).size).toBe(scams.length);
+  });
+
+  it('is not split into matched halves', () => {
+    // Over many deals, the public quiz must sometimes put three or more
+    // genuine messages in the first five. A workshop never does.
+    const lopsided = Array.from({ length: 300 }, () =>
+      buildQuizOrder(scams, 'normal')
+        .slice(0, 5)
+        .filter((s) => s.verdict === 'legitimate').length,
+    ).some((n) => n !== 2);
+    expect(lopsided).toBe(true);
+  });
+
+  it('reports no before and after — empty, not zero', () => {
+    // Zero would show as a real score, and an improvement of minus sixty.
+    const order = buildQuizOrder(scams, 'normal');
+    const s = buildSessionSummary(
+      order.map((sc) => ({
+        scamId: sc.id,
+        type: sc.type,
+        round: null,
+        verdictChosen: sc.verdict,
+        actualVerdict: sc.verdict,
+        verdictCorrect: true,
+        responseMs: 1000,
+      })),
+      { mode: 'normal' },
+    );
+    expect(s.baselineScore).toBeNull();
+    expect(s.trainedScore).toBeNull();
+    expect(s.improvement).toBeNull();
+    expect(s.score).toBe(100);
+  });
+});
+
+describe('a workshop', () => {
+  it('deals two matched halves', () => {
+    const order = buildQuizOrder(scams, 'workshop');
+    const genuine = (half) => half.filter((s) => s.verdict === 'legitimate').length;
+    expect(genuine(order.slice(0, 5))).toBe(genuine(order.slice(5)));
+  });
+});
+
 describe('session summary', () => {
   it('reports improvement as the gap between the halves', () => {
     const order = buildMatchedRounds(scams);
     // Wrong on all of the first half, right on all of the second.
-    const s = buildSessionSummary(play(order, (i) => i >= order.length / 2));
+    const s = buildSessionSummary(play(order, (i) => i >= order.length / 2), {
+      mode: 'workshop',
+    });
     expect(s.baselineScore).toBe(0);
     expect(s.trainedScore).toBe(100);
     expect(s.improvement).toBe(100);
@@ -67,7 +118,9 @@ describe('session summary', () => {
 
   it('reports a decline honestly rather than flooring at zero', () => {
     const order = buildMatchedRounds(scams);
-    const s = buildSessionSummary(play(order, (i) => i < order.length / 2));
+    const s = buildSessionSummary(play(order, (i) => i < order.length / 2), {
+      mode: 'workshop',
+    });
     expect(s.improvement).toBe(-100);
   });
 

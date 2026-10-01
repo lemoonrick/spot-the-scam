@@ -21,28 +21,38 @@ let pending = null;
  * Ask for a ticket. Called when the first question appears, so by the
  * time anyone finishes it is comfortably older than the minimum.
  *
- * Failure is quiet: the quiz must never depend on this. A player with
- * no ticket simply has their result declined at the end, which costs
- * one record and nothing else.
+ * In a workshop, pass the room's code: the server notes the room on the
+ * ticket, and that — not anything sent with the result — is what files
+ * the play under the workshop.
+ *
+ * Resolves to the ticket, or null. Failure is quiet in the public quiz,
+ * where a player with no ticket simply has their result declined at the
+ * end. A workshop shows a notice instead, because there a lost result is
+ * a missing participant in the facilitator's report.
  */
-export function requestTicket() {
-  if (!isConfigured || ticket || pending) return;
+export function requestTicket({ room = null } = {}) {
+  if (!isConfigured) return Promise.resolve(null);
+  if (ticket) return Promise.resolve(ticket);
+  if (pending) return pending;
 
   pending = fetch(`${supabaseUrl}/functions/v1/submit-session`, {
     method: 'POST',
     headers: publicHeaders({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify({ action: 'start' }),
+    body: JSON.stringify(room ? { action: 'start', room } : { action: 'start' }),
   })
     .then((r) => (r.ok ? r.json() : null))
     .then((data) => {
       ticket = data?.ticket ?? null;
+      return ticket;
     })
     .catch(() => {
       ticket = null;
+      return null;
     })
     .finally(() => {
       pending = null;
     });
+  return pending;
 }
 
 /** Wait for any in-flight request, then hand over whatever we have. */

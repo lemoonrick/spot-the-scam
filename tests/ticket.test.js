@@ -96,3 +96,82 @@ describe('Try Again', () => {
     );
   });
 });
+
+describe('saving on patchy Wi-Fi', () => {
+  // `replies` is what each submit gets, in order: a status code, or
+  // 'drop' for a connection that fails with no reply at all.
+  async function saveWith(replies) {
+    let submits = 0;
+    vi.stubGlobal('fetch', async (_url, init) => {
+      const body = JSON.parse(init.body);
+      if (body.action === 'start') {
+        return new Response(JSON.stringify({ ticket: 't1' }), { status: 200 });
+      }
+      const reply = replies[submits++];
+      if (reply === 'drop') throw new TypeError('Failed to fetch');
+      return new Response('{}', { status: reply });
+    });
+    vi.useFakeTimers();
+    const { requestTicket, saveSession } = await load();
+    requestTicket();
+    const saving = saveSession(summary, []);
+    await vi.runAllTimersAsync();
+    const out = await saving;
+    vi.useRealTimers();
+    return { out, submits };
+  }
+
+  it('tries again once if the connection drops', async () => {
+    const { out, submits } = await saveWith(['drop', 200]);
+    expect(out.saved).toBe(true);
+    expect(submits).toBe(2);
+  });
+
+  it('counts it as saved if the first try arrived but its reply was lost', async () => {
+    // No reply, then "already used": the first try got there.
+    const { out } = await saveWith(['drop', 409]);
+    expect(out.saved).toBe(true);
+  });
+
+  it('does not mistake a server fault for a save', async () => {
+    // The server answered with a fault after using the ticket, so the
+    // retry finds it spent. Nothing was saved, and saying otherwise
+    // would tell a facilitator "Saved ✓" for a missing participant.
+    const { out } = await saveWith([500, 409]);
+    expect(out.saved).toBe(false);
+  });
+
+  it('does not retry a refusal that will not change', async () => {
+    // "Too quick", malformed, a room that has ended: asking again won't help.
+    const { out, submits } = await saveWith([422]);
+    expect(out.saved).toBe(false);
+    expect(submits).toBe(1);
+  });
+
+  it('gives up after two dropped connections', async () => {
+    const { out, submits } = await saveWith(['drop', 'drop']);
+    expect(out.saved).toBe(false);
+    expect(submits).toBe(2);
+  });
+
+  it('never sends a score, a half, or a mode', async () => {
+    // The server works these out, and reads the mode from its own
+    // ticket. A browser that sends them is a browser being trusted.
+    let sent;
+    vi.stubGlobal('fetch', async (_url, init) => {
+      const body = JSON.parse(init.body);
+      if (body.action === 'start') return new Response(JSON.stringify({ ticket: 't1' }));
+      sent = body;
+      return new Response('{}');
+    });
+    const { requestTicket, saveSession } = await load();
+    requestTicket();
+    await saveSession({ ...summary, score: 100, improvement: 40 }, [
+      { scamId: 1, round: 1, verdictChosen: 'phishing', responseMs: 2000 },
+    ]);
+    expect(Object.keys(sent)).not.toEqual(expect.arrayContaining(['score']));
+    expect(sent).not.toHaveProperty('mode');
+    expect(sent).not.toHaveProperty('room');
+    expect(sent.answers[0]).not.toHaveProperty('round');
+  });
+});
