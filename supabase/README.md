@@ -17,9 +17,33 @@ Run them in number order:
 | `005_answer_views.sql` | Per-question figures |
 | `006_close_direct_writes.sql` | Stops browsers writing to the tables directly; adds rate limiting |
 | `007_session_tickets.sql` | One-time tickets, handed out when a quiz starts |
+| `008_modes_and_rooms.sql` | Workshop rooms; which mode and room each play was in; the order each question was shown |
+| `009_admin_and_rules.sql` | Every play must be `normal` or `workshop`; the admin list; only the admin can read plays or manage rooms |
+| `010_new_views.sql` | The public summary, the per-question figures, and the admin's room reports |
 
 Each should answer **"Success. No rows returned."** If one shows a red
 error, stop there — later files depend on earlier ones.
+
+**On a project that is already live,** `009` must wait until the
+updated `submit-session` function is deployed (it requires every play to
+say which mode it was in, which the old function doesn't), and it refuses
+to run while plays from before the change are still stored. On a new
+project, run them all in order and deploy the function afterwards.
+
+### Making yourself the admin
+
+1. **Authentication → Users → Add user → Create new user.** Your email, a
+   strong password, *Auto Confirm User* on. Keep the password to
+   yourself.
+2. Run, with that email:
+   ```sql
+   insert into public.admins (user_id)
+   select id from auth.users where email = 'you@company.org'
+   on conflict do nothing;
+   ```
+3. Run [`checks/admin_access.sql`](checks/admin_access.sql). It pretends to
+   be you and then a stranger with an account, and shows what each can
+   see. You should see real numbers; the stranger should see zeros.
 
 Then deploy the function that saves results: see
 [`functions/README.md`](functions/README.md).
