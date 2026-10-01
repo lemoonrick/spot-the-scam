@@ -1,10 +1,24 @@
 import { useEffect, useState } from 'react';
 import './StartScreen.css';
 import logo from './assets/logo.png';
+import WorkshopJoin from './components/WorkshopJoin';
 
 const WORDS = ['Spot', 'the', 'Scam.'];
 
-export default function StartScreen({ onStart }) {
+// Things the player has to see before starting sit above the button;
+// the optional "enter a code" link sits below it, out of the way.
+const SHOWN_ABOVE = ['checking', 'ok', 'closed', 'offline'];
+
+export default function StartScreen({ onStart, roomState, onJoinRoom, onLeaveRoom }) {
+  const joined = roomState.status === 'ok';
+  // Undecided: still checking, or the code couldn't be checked. Starting
+  // now would quietly drop the player into the public quiz instead of
+  // their workshop, so they choose first.
+  const undecided = roomState.status === 'checking' || roomState.status === 'offline';
+  const workshop = (
+    <WorkshopJoin roomState={roomState} onJoin={onJoinRoom} onLeave={onLeaveRoom} />
+  );
+  const above = SHOWN_ABOVE.includes(roomState.status);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -65,8 +79,9 @@ export default function StartScreen({ onStart }) {
           </div>
 
           <div className="hs-cta-wrap hs-reveal hs-delay-6">
-            <button className="hs-cta" onClick={onStart}>
-              Start the Challenge
+            {above && workshop}
+            <button className="hs-cta" onClick={onStart} disabled={undecided}>
+              {joined ? 'Join the workshop' : 'Start the Challenge'}
               <svg className="hs-cta-arrow" viewBox="0 0 20 20" fill="none">
                 <path
                   d="M4 10h12M11 5l5 5-5 5"
@@ -80,6 +95,7 @@ export default function StartScreen({ onStart }) {
             <p className="hs-cta-hint">
               Free · Works on mobile · No account needed
             </p>
+            {!above && workshop}
           </div>
         </div>
 

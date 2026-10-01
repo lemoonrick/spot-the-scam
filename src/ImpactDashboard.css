@@ -222,6 +222,17 @@
   max-width: 560px;
 }
 
+.im-note + .im-note {
+  margin-top: 10px;
+}
+
+/* A call to action under the figures. Not inside .im-foot, whose link
+   colour would turn the button's white text blue on a dark button. */
+.im-actions {
+  max-width: 940px;
+  margin: 26px auto 0;
+}
+
 .im-none {
   margin-top: 14px;
   font-size: 13.5px;

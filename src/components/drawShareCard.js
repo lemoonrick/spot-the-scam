@@ -99,7 +99,8 @@ export function drawCard(summary) {
   // makes a discouraging, misleading thing to broadcast. So the card leads
   // with the before/after only when there IS a gain; otherwise it shows
   // the plain score and turns it into a challenge. Never an invented number.
-  const improved = summary.improvement > 0;
+  // Only a workshop has halves to compare.
+  const improved = summary.mode === 'workshop' && summary.improvement > 0;
   const accent = improved ? GREEN : BLUE;
   const PAD = 88;
   const INNER = W - PAD * 2;

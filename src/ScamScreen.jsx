@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { scams as allScams } from './scams';
-import { buildMatchedRounds, roundFor } from './session';
+import { buildQuizOrder, roundFor } from './session';
 import { EMPTY_IDENTITY, personalizeScam } from './identity';
 import { clearTicket, requestTicket } from './lib/ticket';
+import { loadQuestionStats } from './lib/questionStats';
 import ResultsScreen from './ResultsScreen';
 import SmsScam from './components/SmsScam';
 import WhatsAppScam from './components/WhatsAppScam';
@@ -16,16 +17,29 @@ import { useFlagCardPosition } from './hooks/useFlagCardPosition';
 /**
  * One run of the quiz, from the first question to the results.
  *
- * A run is never reset in place. Try Again asks the parent to mount a
+ * A run is never reset in place. Going again asks the parent to mount a
  * fresh copy instead (see `runId` in App.jsx), which deals a new order
  * and starts a new ticket without any state from the last run to clear.
+ *
+ * In a workshop (`mode` 'workshop', with a `room`) the ten questions are
+ * two matched halves with a halftime between them, so the results can
+ * show a before and an after. The public quiz is ten in a row.
  */
-export default function ScamScreen({ identity = EMPTY_IDENTITY, onRestart }) {
+export default function ScamScreen({
+  identity = EMPTY_IDENTITY,
+  mode = 'normal',
+  room = null,
+  isRepeat = false,
+  onPlayAgain,
+  onNextPerson,
+}) {
+  const workshop = mode === 'workshop';
+
   // The player's name is woven into the message text here, so every
   // simulated scam addresses them the way a real one would.
   const scams = useMemo(
-    () => buildMatchedRounds(allScams).map((s) => personalizeScam(s, identity)),
-    [identity],
+    () => buildQuizOrder(allScams, mode).map((s) => personalizeScam(s, identity)),
+    [identity, mode],
   );
 
   const [scamIndex, setScamIndex] = useState(0);
@@ -34,6 +48,8 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY, onRestart }) {
   const [phase, setPhase] = useState('idle');
   const [flagIndex, setFlagIndex] = useState(0);
   const [showHalftime, setShowHalftime] = useState(false);
+  // Whether this run has a ticket: null while asking, then true or false.
+  const [hasTicket, setHasTicket] = useState(null);
 
   const questionShownAtRef = useRef(0);
   const responseMsRef = useRef(0);
@@ -80,10 +96,26 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY, onRestart }) {
   // minimum age by the time anyone reaches the end. Anything left over
   // from an earlier run is dropped first: if that run's save was cut off
   // by a lost connection, its ticket may already be spent.
+  //
+  // In a workshop the ticket names the room — that, not anything sent at
+  // the end, is what files this play under the workshop.
+  const roomCode = room?.code ?? null;
+  const askForTicket = useCallback(
+    () => requestTicket({ room: roomCode }).then((t) => setHasTicket(Boolean(t))),
+    [roomCode],
+  );
+  const retryTicket = () => {
+    setHasTicket(null);
+    askForTicket();
+  };
+
   useEffect(() => {
     clearTicket();
-    requestTicket();
-  }, []);
+    askForTicket();
+    // How everyone else did on each question, for the results screen.
+    // Asked for now so it is usually ready by the end.
+    loadQuestionStats();
+  }, [askForTicket]);
 
   // Start the response clock whenever a fresh question is put on screen.
   useEffect(() => {
@@ -94,7 +126,15 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY, onRestart }) {
 
   if (scamIndex >= scams.length) {
     return (
-      <ResultsScreen results={results} identity={identity} onRestart={onRestart} />
+      <ResultsScreen
+        results={results}
+        identity={identity}
+        mode={mode}
+        room={room}
+        isRepeat={isRepeat}
+        onPlayAgain={onPlayAgain}
+        onNextPerson={onNextPerson}
+      />
     );
   }
 
@@ -123,19 +163,23 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY, onRestart }) {
         {
           scamId: scam.id,
           type: scam.type,
-          round: roundFor(scamIndex, scams.length),
+          // The order shown. The server decides the halves from this; a
+          // public quiz has none.
+          position: scamIndex + 1,
+          round: workshop ? roundFor(scamIndex, scams.length) : null,
           verdictChosen: userVerdict,
           actualVerdict: scam.verdict,
           verdictCorrect: userVerdict === scam.verdict,
           responseMs: responseMsRef.current,
         },
       ]);
-      // Crossing from the baseline round into the trained round is the
-      // hinge of the whole experience — mark it so the user (and the
-      // results screen) can see the two halves as separate attempts.
+      // In a workshop, crossing from the first half into the second is
+      // the hinge of the whole experience — mark it so the player (and
+      // the results screen) can see the two halves as separate attempts.
+      // The public quiz has no halves, so no halftime.
       const finishedRound = roundFor(scamIndex, scams.length);
       const nextRound = roundFor(scamIndex + 1, scams.length);
-      if (finishedRound === 1 && nextRound === 2) {
+      if (workshop && finishedRound === 1 && nextRound === 2) {
         window.scrollTo({ top: 0, behavior: 'instant' });
         setShowHalftime(true);
       } else {
@@ -239,6 +283,17 @@ export default function ScamScreen({ identity = EMPTY_IDENTITY, onRestart }) {
           : ''
       }`}
     >
+      {workshop && hasTicket === false && (
+        <div className="room-unsaved" role="alert">
+          <span>
+            This play isn&rsquo;t being saved to <strong>{room.name}</strong>.
+          </span>
+          <button type="button" onClick={retryTicket}>
+            Try again
+          </button>
+        </div>
+      )}
+
       <div className="scam-progress-bar-wrap">
         <div className="scam-progress-track">
           <div

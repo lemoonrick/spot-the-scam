@@ -12,7 +12,7 @@
 //  to the device.
 // ============================================================
 
-import { isConfigured, publicHeaders, supabaseUrl } from './supabase';
+import { callFunction, isConfigured } from './supabase';
 
 let ticket = null;
 let pending = null;
@@ -35,11 +35,7 @@ export function requestTicket({ room = null } = {}) {
   if (ticket) return Promise.resolve(ticket);
   if (pending) return pending;
 
-  pending = fetch(`${supabaseUrl}/functions/v1/submit-session`, {
-    method: 'POST',
-    headers: publicHeaders({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify(room ? { action: 'start', room } : { action: 'start' }),
-  })
+  pending = callFunction(room ? { action: 'start', room } : { action: 'start' })
     .then((r) => (r.ok ? r.json() : null))
     .then((data) => {
       ticket = data?.ticket ?? null;

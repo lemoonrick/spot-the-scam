@@ -657,3 +657,37 @@ button:active {
     transition: none;
   }
 }
+
+/* ── Workshop play not being saved ──────────────────────────
+   Shown at the top of the quiz if the room's ticket couldn't be
+   fetched. Loud enough to notice, because in a workshop a lost
+   result is a missing participant in the facilitator's report. */
+.room-unsaved {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fffbeb;
+  border: 1.5px solid #fde68a;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #78350f;
+}
+.room-unsaved button {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1.5px solid #f59e0b;
+  background: #fff;
+  color: #78350f;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: none;
+}

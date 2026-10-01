@@ -1,11 +1,4 @@
-const TYPE_LABEL = {
-  sms: 'SMS',
-  email: 'Email',
-  whatsapp: 'WhatsApp',
-  instagram: 'Instagram',
-  popup: 'Browser popups',
-  upi: 'UPI / GPay',
-};
+import { BlindSpotStat, Stat, WavedThroughStat } from './Stats';
 
 function secs(ms) {
   return `${(ms / 1000).toFixed(1)}s`;
@@ -42,6 +35,10 @@ function readImprovement({ improvement, baselineScore, trainedScore }) {
   };
 }
 
+/**
+ * The before and after, for a workshop play. The public quiz has no
+ * halves, so it never shows this.
+ */
 export default function ImpactPanel({ summary }) {
   const { baselineScore, trainedScore } = summary;
   const read = readImprovement(summary);
@@ -78,27 +75,8 @@ export default function ImpactPanel({ summary }) {
               : `Up from ${secs(summary.medianResponseMsBaseline)}. You slowed down to think`
           }
         />
-        <Stat
-          value={summary.scamsWavedThrough}
-          label={
-            summary.scamsWavedThrough === 1
-              ? 'Scam waved through'
-              : 'Scams waved through'
-          }
-          note="Real scams you marked as safe. The costly kind of mistake."
-          danger={summary.scamsWavedThrough > 0}
-        />
-        <Stat
-          value={
-            summary.weakestType ? TYPE_LABEL[summary.weakestType] : 'None'
-          }
-          label="Biggest blind spot"
-          note={
-            summary.weakestType
-              ? 'The channel you misread most often'
-              : 'You read every channel correctly'
-          }
-        />
+        <WavedThroughStat summary={summary} />
+        <BlindSpotStat summary={summary} />
       </div>
     </section>
   );
@@ -117,18 +95,6 @@ function Bar({ label, caption, value, variant }) {
       </div>
       <span className="ip-bar-label">{label}</span>
       <small className="ip-bar-caption">{caption}</small>
-    </div>
-  );
-}
-
-function Stat({ value, label, note, danger }) {
-  return (
-    <div className="ip-stat">
-      <span className={`ip-stat-value ${danger ? 'ip-stat-danger' : ''}`}>
-        {value}
-      </span>
-      <span className="ip-stat-label">{label}</span>
-      <small className="ip-stat-note">{note}</small>
     </div>
   );
 }

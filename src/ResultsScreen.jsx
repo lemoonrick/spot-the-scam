@@ -3,7 +3,10 @@ import { scams as allScams } from './scams';
 import { buildSessionSummary } from './session';
 import { saveSession } from './lib/saveSession';
 import { htmlToText } from './lib/htmlToText';
+import { loadQuestionStats } from './lib/questionStats';
+import { comparisonLine } from './lib/comparisons';
 import ImpactPanel from './components/ImpactPanel';
+import { BlindSpotStat, WavedThroughStat } from './components/Stats';
 import ShareCard from './components/ShareCard';
 import './ResultsScreen.css';
 
@@ -94,11 +97,24 @@ function triggerConfetti(color) {
   setTimeout(() => canvas.remove(), 4000);
 }
 
-export default function ResultsScreen({ results, onRestart, identity }) {
-  // One anonymous record per run — the same shape Phase 2 will store.
+export default function ResultsScreen({
+  results,
+  identity,
+  mode = 'normal',
+  room = null,
+  isRepeat = false,
+  onPlayAgain,
+  onNextPerson,
+}) {
+  const workshop = mode === 'workshop';
+  // One anonymous record per run, in the shape the server stores.
   const summary = useMemo(
-    () => buildSessionSummary(results, { personalised: !!identity?.personalised }),
-    [results, identity],
+    () =>
+      buildSessionSummary(results, {
+        personalised: !!identity?.personalised,
+        mode,
+      }),
+    [results, identity, mode],
   );
   const { total, correct, score } = summary;
 
@@ -107,6 +123,12 @@ export default function ResultsScreen({ results, onRestart, identity }) {
   const [posts, setPosts] = useState([]);
   const [postsFailed, setPostsFailed] = useState(false);
   const [filter, setFilter] = useState('all');
+  // 'saving' → 'saved' or 'failed'. Shown in a workshop, where a
+  // facilitator may ask the room "does yours say Saved?"
+  const [saveState, setSaveState] = useState('saving');
+  // How everyone else did on each question. Null until loaded; empty if
+  // unavailable or no question has enough answers yet.
+  const [stats, setStats] = useState(null);
   const savedRef = useRef(false);
 
   // Record the run once. StrictMode runs effects twice in development,
@@ -117,8 +139,18 @@ export default function ResultsScreen({ results, onRestart, identity }) {
     savedRef.current = true;
     // The raw per-question results go along with the summary, so the
     // detail is stored instead of averaged away.
-    saveSession(summary, results);
-  }, [summary, results]);
+    saveSession(summary, results, { isRepeat }).then(({ saved }) =>
+      setSaveState(saved ? 'saved' : 'failed'),
+    );
+  }, [summary, results, isRepeat]);
+
+  useEffect(() => {
+    let alive = true;
+    loadQuestionStats().then((map) => alive && setStats(map));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const scoreColor = getScoreColor(displayScore);
   const feedback = getFeedback(score);
@@ -235,8 +267,18 @@ export default function ResultsScreen({ results, onRestart, identity }) {
         </div>
       </section>
 
-      {/* ── Learning impact: baseline vs trained ── */}
-      <ImpactPanel summary={summary} />
+      {workshop && <RoomSaveStatus room={room} state={saveState} />}
+
+      {/* ── Before and after, for a workshop; the two findings alone for
+             the public quiz, which has no halves to compare. ── */}
+      {workshop ? (
+        <ImpactPanel summary={summary} />
+      ) : (
+        <section className="rs-findings">
+          <WavedThroughStat summary={summary} />
+          <BlindSpotStat summary={summary} />
+        </section>
+      )}
 
       {/* ── Share ── */}
       <ShareCard summary={summary} shareUrl={SHARE_URL} />
@@ -304,6 +346,14 @@ export default function ResultsScreen({ results, onRestart, identity }) {
 
                   <p className="an-row-why">{scam.explanation.short}</p>
 
+                  {stats && (
+                    <Comparison
+                      correct={verdictCorrect}
+                      actual={scam.verdict}
+                      stat={stats.get(scam.id)}
+                    />
+                  )}
+
                   {scam.article && (
                     <a
                       href={scam.article.url}
@@ -364,14 +414,66 @@ export default function ResultsScreen({ results, onRestart, identity }) {
         </section>
       )}
 
-      <section className="an-again">
-        <button className="an-restart" onClick={onRestart}>
-          Try again
-        </button>
-        <p className="an-again-hint">
-          A fresh set, shuffled. Your score is not saved between runs.
-        </p>
-      </section>
+      {workshop ? (
+        <section className="an-again">
+          {/* A workshop phone often changes hands. The next person starts
+              from their own name, as a first attempt; a second go by the
+              same person is counted separately, because knowing the
+              questions makes it score higher. */}
+          <div className="an-again-choices">
+            <button className="an-restart" onClick={onNextPerson}>
+              Next person
+            </button>
+            <button className="an-restart an-restart-quiet" onClick={onPlayAgain}>
+              Play again myself
+            </button>
+          </div>
+          <p className="an-again-hint">
+            Handing the phone on? Choose Next person, so they start fresh.
+          </p>
+        </section>
+      ) : (
+        <section className="an-again">
+          <button className="an-restart" onClick={onPlayAgain}>
+            Try again
+          </button>
+          <p className="an-again-hint">A fresh set, shuffled.</p>
+        </section>
+      )}
     </div>
+  );
+}
+
+/** One line comparing this answer with every other player's. */
+function Comparison({ correct, actual, stat }) {
+  const line = comparisonLine({ correct, actual, wrongPct: stat?.wrongPct });
+  if (!line) return null;
+  return <p className="an-row-compare">{line}</p>;
+}
+
+/**
+ * Whether this play reached the workshop. A facilitator may ask the room
+ * "does yours say Saved?", so it is stated plainly either way.
+ */
+function RoomSaveStatus({ room, state }) {
+  if (state === 'saving') {
+    return (
+      <p className="rs-room rs-room-saving" role="status">
+        Saving to {room.name}…
+      </p>
+    );
+  }
+  if (state === 'saved') {
+    return (
+      <p className="rs-room rs-room-saved" role="status">
+        <span aria-hidden="true">✓</span> Saved to {room.name}
+      </p>
+    );
+  }
+  return (
+    <p className="rs-room rs-room-failed" role="alert">
+      This play couldn&rsquo;t be saved to {room.name}. Your results below are
+      still yours to see.
+    </p>
   );
 }

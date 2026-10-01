@@ -28,6 +28,38 @@ export function publicHeaders(extra = {}) {
   return headers;
 }
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Ask the submit-session function something, trying once more if the
+ * server faults or the connection drops.
+ *
+ * The function sleeps when nobody has used it for a while, and the first
+ * request that wakes it can fail. On a workshop day that first request is
+ * the first participant scanning the QR code, who would otherwise be told
+ * the code couldn't be checked. Refusals that won't change — a code that
+ * doesn't exist, a workshop that's full — are returned as they are.
+ *
+ * Only for requests that are safe to repeat. Saving a result has rules
+ * of its own about retrying; see saveSession.js.
+ */
+export async function callFunction(body, { retryAfterMs = 1200 } = {}) {
+  const send = () =>
+    fetch(`${url}/functions/v1/submit-session`, {
+      method: 'POST',
+      headers: publicHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(body),
+    });
+  try {
+    const res = await send();
+    if (res.status < 500) return res;
+  } catch {
+    // No reply at all. Fall through to the second try.
+  }
+  await sleep(retryAfterMs);
+  return send();
+}
+
 /**
  * Read one of the public aggregate views.
  *

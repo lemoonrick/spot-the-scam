@@ -7,7 +7,7 @@
 //  says which workshop, never which person.
 // ============================================================
 
-import { isConfigured, publicHeaders, supabaseUrl } from './supabase';
+import { callFunction, isConfigured } from './supabase';
 
 // No vowels, so a code can never spell a word; none of 0 O 1 I L, so it
 // can't be misread off a slide. Must match the database's
@@ -79,11 +79,7 @@ export function roomLink(code, origin = window.location.origin) {
 export async function lookupRoom(code) {
   if (!isConfigured) return { status: 'offline' };
   try {
-    const res = await fetch(`${supabaseUrl}/functions/v1/submit-session`, {
-      method: 'POST',
-      headers: publicHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ action: 'room', room: code }),
-    });
+    const res = await callFunction({ action: 'room', room: code });
     const body = await res.json().catch(() => ({}));
     if (res.ok && body.room) return { status: 'ok', room: body.room };
     if (res.status === 410 && body.room) return { status: 'closed', room: body.room };

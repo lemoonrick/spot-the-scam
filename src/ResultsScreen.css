@@ -825,3 +825,87 @@
   color: #94a3b8;
   text-align: center;
 }
+
+/* ── Two modes ────────────────────────────────────────────── */
+
+/* The public quiz's two findings, without the before/after above them. */
+.rs-findings {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 30px 40px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.07);
+}
+
+/* "Saved to Pune College Workshop" — plain either way, because a
+   facilitator may ask the room whether theirs says Saved. */
+.rs-room {
+  max-width: 1080px;
+  margin: 0 auto 18px;
+  padding: 11px 18px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+.rs-room-saving {
+  color: #64748b;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+.rs-room-saved {
+  color: var(--green-dark);
+  background: var(--correct-bg);
+  border: 1px solid var(--correct-border);
+}
+.rs-room-failed {
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  font-weight: 500;
+}
+
+/* How everyone else did on this question. Set apart from the
+   explanation above it, but quieter than the answer itself. */
+.an-row-compare {
+  margin-top: 8px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #334155;
+}
+
+/* Workshop: two ways to go again. */
+.an-again-choices {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.an-restart-quiet {
+  color: #0f172a;
+  background: #fff;
+  box-shadow: inset 0 0 0 1.5px #cbd5e1;
+}
+.an-restart-quiet:hover {
+  background: #f8fafc;
+}
+
+@media (max-width: 640px) {
+  .rs-findings {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    padding: 26px 22px;
+  }
+  .rs-room {
+    margin: 0 16px 16px;
+  }
+}

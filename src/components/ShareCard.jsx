@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { drawCard } from './drawShareCard';
 
+// Only a workshop has a before and an after to boast about, and only a
+// gain is worth broadcasting. Decided by the mode, not by whether some
+// improvement figure happens to be above zero.
+const showsGain = (s) => s.mode === 'workshop' && s.improvement > 0;
+
 const shareText = (s) =>
-  s.improvement > 0
+  showsGain(s)
     ? `I went from ${s.baselineScore}% to ${s.trainedScore}% at spotting scams in 5 minutes. Can you beat me?`
     : `I scored ${s.score}% at spotting real scams. Can you beat me?`;
 
